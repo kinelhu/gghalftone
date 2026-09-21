@@ -205,3 +205,14 @@ test_that("hatched ribbons are hairline (tone_max 0.15) while hatched bars keep 
   w_bar <- strip_w(ggplot(data.frame(g = "a", n = 1), aes(g, n)) + with_halftone(geom_col(fill = "black"), pitch = 1, shape = "line", outline = FALSE) + theme_void())
   expect_equal(w_rib, 0.15 * 0.9 * 0.9, tolerance = 1e-6); expect_equal(w_bar, 0.4 * 0.9 * 0.9, tolerance = 1e-6)
 })
+
+test_that("a line-screen layer with a mapped screen recipe stays hatched (the recipe's dot shapes do not override shape = 'line')", {
+  d <- data.frame(g = c("a", "b"), n = c(1, 2))
+  p <- ggplot(d, aes(g, n, screen = g)) + with_halftone(geom_col(fill = "black"), shape = "line", pitch = 1, outline = FALSE) + scale_screen_discrete() + theme_void()
+  k <- content(p, "halftone_fill"); expect_null(find_grob(k, "circle")); expect_false(is.null(find_grob(k, "polygon")))
+  key <- draw_key_halftone(data.frame(colour = "black", screen = gghalftone:::screen_recipe(1)), list(shape = "line", angle = 45, angle_user = FALSE), 5)
+  expect_false(is.null(find_grob(key, "segments")))
+  mixed <- function(vals) content(ggplot(d, aes(g, n, screen = g)) + with_halftone(geom_col(fill = "black"), pitch = 1, outline = FALSE) + scale_screen_manual(values = vals) + theme_void(), "halftone_fill")
+  expect_false(is.null(find_grob(mixed(c("45|line", "15|circle")), "polygon")))   # first group hatched (content() renders the first group)
+  expect_false(is.null(find_grob(mixed(c("15|circle", "45|line")), "circle")))    # first group dotted
+})

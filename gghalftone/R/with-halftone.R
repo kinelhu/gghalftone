@@ -140,7 +140,7 @@ with_halftone <- function(layer, pitch = 0.6, angle = NULL, grid = "hex", tone =
         # a mapped screen is a categorical pattern, and patterns are flat: unless the user chose a tone, drop the profile
         # a screen spec may also switch shape per group ("45|line" beside "15|circle"): dots and hatching in one layer
         kids <- lapply(split(data, data$group), function(d) { sp <- parse_screen(d$screen[1]); Pk <- P
-          if (!is.null(sp$shape)) Pk$shape <- sp$shape
+          if (!is.null(sp$shape) && (P$shape != "line" || sp$shape == "line")) Pk$shape <- sp$shape   # a line layer stays hatched unless the spec says "line"
           Pk$angle <- (if (P$angle_user) P$angle else 0) + screen_angle(sp, Pk$shape)
           if (P$tone_auto && P$tone != "flat") { Pk$tone <- "flat"; if (P$tone_max_auto) Pk$tone_max <- 0.45 }
           gTree(orig = ggproto_parent(parent, self)$draw_panel(d, panel_params, coord, ...), params = Pk, cl = "halftone_fill") })

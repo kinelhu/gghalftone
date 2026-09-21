@@ -312,7 +312,8 @@ scale_tone <- scale_tone_continuous
 #' @export
 draw_key_halftone <- function(data, params, size) {
   n <- 9; g <- expand.grid(i = 1:n, j = 1:n); tone <- rep(0.55, n * n)   # uniform mid-tone swatch
-  sp <- parse_screen(data$screen); shp <- sp$shape %||% params$shape %||% "circle"; has_screen <- !is.null(data$screen) && !is.na(data$screen)
+  sp <- parse_screen(data$screen); has_screen <- !is.null(data$screen) && !is.na(data$screen)
+  shp <- if (identical(params$shape, "line") && !identical(sp$shape, "line")) "line" else sp$shape %||% params$shape %||% "circle"
   base <- if (has_screen) { if (is.null(params$angle_user)) params$angle %||% 0 else if (params$angle_user) params$angle else 0 } else params$angle %||% 15
   a <- (screen_angle(sp, shp) + base) * pi / 180
   if (shp == "line") return(key_hatch_grob(a, scales::alpha(data$colour %||% "black", data$alpha %||% 1)))
