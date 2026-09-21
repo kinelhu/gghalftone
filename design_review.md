@@ -123,3 +123,22 @@ Author's notes on the v2 proofs, and what changed:
 - **Arguments**: `gain` and `size_map` removed. Dot area, not radius, follows tone, and ink spread is a press property that has no place in a figure.
 - **Tone aesthetic** on `geom_halftone()` too; `halftone_tone_legend()` retired.
 - **Docs**: every export has an Rd page; check is clean.
+
+## Pitch ladder (same day)
+
+Author: "I can't help but wonder if the patterns we're using are too coarse." Ladder at 0.6 / 0.45 / 0.35 / 0.25 mm
+(42 / 56 / 73 / 102 lpi) on the three-strata KM, the hatched bars and the iris densities, single column, 600 dpi:
+
+| pitch | dots | hatch | draw time (single KM) |
+|---|---|---|---|
+| 0.60 | reads as dots; the screen is the subject | coarse, poster-like | 1.0 s |
+| 0.45 | texture; still countable | good | ~1.7 s |
+| 0.35 | tone with a visible screen; overlaps weave without moire | fine hatch, reads as engraving | ~2.8 s |
+| 0.25 | flat tint; the screen structure is gone, so why halftone | too fine to read as hatch | 5.3 s |
+
+Default moved from 0.6 to **0.35 mm** for `geom_halftone()`, `with_halftone()` and `geom_spot()`. The map is the clearest
+win (it now looks like the printed original), the stipple is a real stipple, and the engraving gains its fine line.
+Gallery figures that set a pitch explicitly were scaled with it (B&W KM 0.5 because three hatches overlap). Whole gallery
+renders in ~25 s. Also fixed in the same round: hatch strips stopped at the last lattice centre inside the shape, which
+on a hex lattice combed the ends and left a white margin inside every hatched bar (the "snaking tube"); runs now extend
+a pitch past the last cell and are clipped.

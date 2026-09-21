@@ -1,6 +1,6 @@
 # gghalftone — hand-off TODO
 
-Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 74 regression tests pass; `R CMD check` clean. Git repo initialised. Defaults pass done (see `design_review.md`, review 2): bare `with_halftone()` / `geom_halftone()` calls now produce the gallery in `figures/v2/` (`prototypes/gallery2.R`). API considered stable for `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `km_steps()`, the `screen` aesthetic, `theme_halftone()`. No Rd docs yet.
+Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 75 regression tests pass; `R CMD check` clean. Git repo initialised. Full gallery renders in ~25 s at the 0.35 mm default. Defaults pass done (see `design_review.md`, review 2): bare `with_halftone()` / `geom_halftone()` calls now produce the gallery in `figures/v2/` (`prototypes/gallery2.R`). API considered stable for `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `km_steps()`, the `screen` aesthetic, `theme_halftone()`. No Rd docs yet.
 
 ## Priority order
 
@@ -23,12 +23,12 @@ Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 74 regressi
 - Editorial style (`options(halftone.style = "editorial")`) has had less attention than journal since loop 9.
 
 ## Design rules (non-negotiable unless a side-by-side at 600 dpi proves otherwise)
-- Physical pitch in mm; 0.45–0.6 mm for journal figures, 0.9–1.2 for editorial.
+- Physical pitch in mm; 0.35 mm (73 lpi) is the default and the journal register: it reads as tone with a visible screen. 0.6 reads as dots (poster/editorial); 0.25 collapses into a flat tint and costs 5x the draw time.
 - Continuous tone by default (`levels = NULL`); quantise only for a stipple or a poster. Nothing below 2 % tone is drawn.
 - No lattice axis horizontal or vertical: 15° on hex (default), 45° on square.
 - Profile follows geometry: flat for bars/areas/polygons/maps, centre for ribbons, vignette for densities/violins. A mapped `screen` is a pattern, and patterns are flat.
 - Dot shapes are area-matched; one tonal register (flat 0.45, polygons/maps 0.6, centre 0.6, vignette 0.7; hatched intervals hairline 0.15, other hatching 0.4; binary stipple capped at 0.55).
-- Line screens: 0.45 mm pitch, 0.15 mm halo on lines crossing them (0.08 is invisible against hatch).
+- Line screens: same 0.35 mm pitch; 0.15 mm halo on lines crossing them (0.08 is invisible against hatch). Hatch runs extend a pitch past the last cell so strips reach the outline.
 - Dots fade (gaussian, soft edge); line screens are flat with a hard edge.
 - Outline-defined shapes (density, violin) are edge-weighted; bands/bars/areas/maps are not.
 - Overlap is a panel property: overprint (woven) by default; `stack` only for nested intervals / ridgelines.

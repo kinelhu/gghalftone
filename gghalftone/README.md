@@ -21,7 +21,7 @@ ggplot(s, aes(time, group = strata)) +
   theme_halftone()                                                         # also makes the ink palette the default
 
 # 2. a continuous field -> dot screen; colour scales apply to the field, dots inherit
-ggplot(field, aes(x, y, z = value, colour = value)) + geom_halftone()   # 0.6 mm hex, continuous tone
+ggplot(field, aes(x, y, z = value, colour = value)) + geom_halftone()   # 0.35 mm hex, continuous tone
 
 # 3. per-point tone discs
 ggplot(markers, aes(cluster, gene, tone = expression, size = pct)) + geom_spot() + scale_tone() + scale_radius()
@@ -42,7 +42,7 @@ ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", angle = 30)
 - **Continuous tone by default.** Dot area follows tone exactly; `levels = k` quantises and dithers for a stipple. Nothing below 2 % tone is drawn.
 - **No lattice axis horizontal or vertical.** 15° on the hex lattice (default), 45° on square, so bar tops and step plateaus never alias against a row of dots.
 - **Overlap is a panel property.** Groups sharing a lattice must be overprinted (`overlap = "overprint"`, woven by default) or the last group erases the others. Flat screens hide this best, which is why they are not the default.
-- **Physical pitch or nothing.** 0.45–0.6 mm at 600 dpi reads as continuous tone; 0.9–1.2 mm reads as a pattern. Journal figures want the former; editorial covers want the latter.
+- **Physical pitch or nothing.** 0.35 mm (73 lines per inch, the default) reads as tone with a visible screen; 0.6 mm reads as a dot pattern; 0.9–1.2 mm is a poster. Journal figures want the default; editorial covers want it coarse.
 - **Angle alone distinguishes three screens.** Beyond that, vary shape and tone (`scale_screen_discrete()` does), or add a second ink.
 - **Bayer for graded tone, blue noise for binary stipple, Floyd–Steinberg for photographs.**
 - **Overlap weave.** Two inks → checkerboard; three → the hex lattice's exact 3-colouring, so each ink gets a third of the cells with no same-ink neighbours; more → phase cycling. Region identity is readable to three inks, tolerable at four, gone at five — switch to hatch angles or facet beyond that.

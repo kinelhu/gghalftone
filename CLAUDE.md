@@ -13,6 +13,7 @@ R package: print-style halftone / dither / line-screen fills for ggplot2. Dots a
 - Every bug found gets a test in `test-regressions.R` (pixel-level, via ragg + png).
 - New scripts use `library(gghalftone)` after `R CMD INSTALL`; the older prototype scripts `source()` copies of the R files and are not kept in sync.
 - Defaults are the product: before adding an argument to a gallery call, ask whether the default should change instead (see `design_review.md`, review 2).
+- Default pitch is 0.35 mm; the pitch ladder in `design_review.md` is the evidence. Coarsen only for a deliberate poster/editorial look.
 - Journal style is the default theme; `options(halftone.style = "editorial")` for the cream/Garamond look.
 
 ## Key functions
