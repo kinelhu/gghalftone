@@ -6,8 +6,8 @@
 #'
 #' Draws the layer twice: first in paper colour with `width` mm added to each side of every stroke, then as is. A
 #' line crossing a dot field needs this to stay readable; a step curve over a screened confidence band, contours
-#' over an elevation field. Keep it a hairline: 0.08 mm against dots, 0.15 mm against a line screen. Wider and it
-#' reads as a second line.
+#' over an elevation field. Keep it a hairline: 0.09 mm (0.25 pt, the printable minimum) against dots, 0.15 mm against
+#' a line screen. Wider and it reads as a second line.
 #' @param layer A ggplot2 layer drawing lines, paths, steps, contours or points.
 #' @param width Halo width in mm on each side of the stroke.
 #' @param colour Halo colour; `NULL` uses white, or the editorial paper colour under
@@ -16,7 +16,7 @@
 #' @examples
 #' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + with_halo(ggplot2::geom_line())
 #' @export
-with_halo <- function(layer, width = 0.08, colour = NULL) {
+with_halo <- function(layer, width = 0.09, colour = NULL) {
   parent <- layer$geom
   paper <- colour %||% if (identical(getOption("halftone.style", "journal"), "editorial")) halftone_paper else "white"
   extra <- 2 * width * 96 / 25.4   # grid lwd is in 1/96 inch

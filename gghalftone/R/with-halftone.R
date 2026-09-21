@@ -76,7 +76,7 @@ makeContent.halftone_fill <- function(x) {
     tk <- if (p$tone == "flat") inp * 1 else {
       # distance transform on a fine raster of the polygon, then sample at lattice points
       rx <- seq(min(q$x) - cellmm, max(q$x) + cellmm, by = cellmm); ry <- seq(min(q$y) - cellmm, max(q$y) + cellmm, by = cellmm)
-      R <- matrix(pip_cpp(rep(rx, each = length(ry)), rep(ry, times = length(rx)), q$x, q$y), length(ry), length(rx))
+      R <- scan_fill_cpp(rx, ry, q$x, q$y)   # rows = ry, cols = rx; scanline, not per-cell point-in-polygon
       if (p$profile == "vertical") Dn <- dt_col_cpp(R) else {
         D <- dt_cpp(R) * cellmm
         norm <- if (p$local && p$profile == "vertical") matrix(pmax(apply(D, 2, max), 1e-9), nrow(D), ncol(D), byrow = TRUE) else max(D, 1e-9)
@@ -84,18 +84,21 @@ makeContent.halftone_fill <- function(x) {
       ix <- pmin(pmax(round((X - rx[1]) / cellmm) + 1, 1), length(rx)); iy <- pmin(pmax(round((Y - ry[1]) / cellmm) + 1, 1), length(ry))
       dd <- matrix(Dn[cbind(as.vector(iy), as.vector(ix))], nrow(X))
       # dd in [0,1]: 0 at the edge, 1 on the medial line. "centre" is the gaussian profile that won the KM comparison (soft edge, not a tent)
-      v <- switch(p$tone, centre = exp(-2 * (1 - dd)^2), tent = dd, edge = 1 - dd, vignette = 1 - 0.55 * dd, "centre-soft" = sqrt(dd)); v * inp }
+      # likelihood: the normal density of the estimate across a (1 - alpha) interval, 1 on the estimate, dnorm(z)/dnorm(0) at
+      # the limit (0.146 for 95 %). "centre" is the older exp(-2 u^2), within a hair of the same curve.
+      zq <- stats::qnorm(1 - (1 - p$level) / 2)
+      v <- switch(p$tone, likelihood = exp(-0.5 * (zq * (1 - dd))^2), centre = exp(-2 * (1 - dd)^2), tent = dd, edge = 1 - dd, vignette = 1 - 0.55 * dd, "centre-soft" = sqrt(dd)); v * inp }
     tk <- tk^p$gamma * p$tone_max * q$cov
     owner2[inp & cnt > 0] <- k; owner[inp & cnt == 0] <- k; cnt[inp] <- cnt[inp] + 1L; tone[inp] <- pmax(tone[inp], tk[inp]); mask[inp] <- mask[inp] + 2^(k - 1)
   }
   if (p$shape == "line") {
     COL <- matrix(NA_character_, nrow(X), ncol(X)); ok <- owner > 0
     COL[ok] <- vapply(owner[ok], function(k) scales::alpha(polys[[k]]$fill, polys[[k]]$alpha), "")
-    kids <- gList(line_strips_grob(X, Y, tone, COL, ok, p$angle, p$dot_max * p$pitch * 0.9, if (p$clip) p$pitch else p$pitch / 2))
+    kids <- gList(line_strips_grob(X, Y, tone, COL, ok, p$angle, p$dot_max * p$pitch * 0.9, if (p$clip) p$pitch else p$pitch / 2, p$min_feature))
     if (p$clip) kids <- gList(gTree(children = kids, vp = viewport(clip = clip_from_polys(polys))))
     if (p$outline) kids <- gList(kids, strip_fill(x$orig)); return(setChildren(x, kids)) }
   Dm <- quantise_tone(tone, p$levels, p$algorithm, p$bayer_n)
-  keep <- owner > 0 & Dm > tone_floor
+  Dm <- floor_dither(Dm, dot_floor(p), row(Dm), col(Dm)); keep <- owner > 0 & Dm > tone_floor
   kids <- gList()
   if (any(keep)) {
     who <- owner[keep]; multi <- cnt[keep] > 1 & p$overlap == "overprint"
@@ -126,22 +129,27 @@ makeContent.halftone_fill <- function(x) {
 #' @section Tone profile:
 #' `tone = NULL` picks a profile from the geometry, which is the rule the design work converged on:
 #' * bars, columns, tiles, areas, polygons and sf: `"flat"`, because there the interior *is* the value;
-#' * ribbons (intervals): `"centre"`, a gaussian that peaks on the estimate and fades to the limit;
+#' * ribbons (intervals): `"likelihood"`, the normal density of the estimate across the interval, so the fade is the
+#'   evidence: 1 on the estimate, 0.146 at a 95 % limit (`level`);
 #' * densities and violins: `"vignette"`, a soft fade towards the outline so overlapping groups stay legible;
 #' * line screens: always `"flat"` (a tapered hatch reads as fringe);
 #' * a mapped `screen` is a categorical pattern, and patterns are flat.
 #'
 #' @section Register:
 #' `tone_max = NULL` sets one ink weight across figure types: flat 0.45 (polygons and sf 0.6), centre 0.6, vignette
-#' 0.7, hatching 0.4, hatched intervals hairline 0.15. Alpha on the fill is folded into tone (a 30 % alpha prints as a
-#' 30 % screen); nothing translucent reaches the page.
+#' 0.7, hatching 0.4, hatched intervals a hairline (the strip width that equals `min_feature`). Alpha on the fill is folded
+#' into tone (a 30 % alpha prints as a 30 % screen); nothing translucent reaches the page.
 #'
 #' @inheritParams geom_halftone
 #' @param layer A ggplot2 layer, e.g. `geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))`.
 #' @param pitch Lattice spacing in mm (0.35, 73 lines per inch). Coarsen deliberately for a poster or editorial look.
 #' @param angle Lattice angle in degrees; `NULL` means 15 for dots and 45 for hatching.
-#' @param tone Tone profile: `NULL` (from the geometry, see below), `"flat"`, `"centre"`, `"vignette"`, `"edge"`,
-#'   `"tent"` or `"centre-soft"`.
+#' @param tone Tone profile: `NULL` (from the geometry, see below), `"likelihood"`, `"flat"`, `"vignette"`, `"centre"`
+#'   (the older gaussian, within a hair of likelihood), `"edge"`, `"tent"` or `"centre-soft"`.
+#' @param level Confidence level the ribbon represents, for the `"likelihood"` profile.
+#' @param redundant Also give each fill group its own screen (angle and shape), so colour is never the only encoding.
+#'   `NULL` means yes for geoms whose groups tile the plane (bars, areas, polygons, tiles, sf) and no for intervals and
+#'   densities, whose overlapping groups are woven on one lattice; separate lattices there moire.
 #' @param profile Distance used by the non-flat profiles: `"vertical"` (distance to the top and bottom edge along
 #'   each column, right for ribbons and densities) or `"radial"` (Euclidean distance to the outline).
 #' @param local For `"vertical"`, normalise each column by its own height (`TRUE`) or by the tallest.
@@ -160,23 +168,32 @@ makeContent.halftone_fill <- function(x) {
 #' @export
 with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone = NULL, profile = c("vertical", "radial"), local = TRUE,
                           levels = NULL, bayer_n = 4, dot_max = 0.9, gamma = 1, tone_max = NULL, outline = TRUE,
-                          shape = "circle", algorithm = "bayer", clip = TRUE, overlap = c("overprint", "stack")) {
+                          shape = "circle", algorithm = "bayer", clip = TRUE, overlap = c("overprint", "stack"), level = 0.95, min_feature = 0.09,
+                          redundant = NULL) {
   overlap <- match.arg(overlap)
   angle_user <- !is.null(angle); angle <- angle %||% if (shape == "line") 45 else 15   # hatching at 45; dots on a hex lattice at 15 so no lattice axis is horizontal or vertical
   # defaults encode the print rules: line screens are constant weight with a hard edge; outline-defined shapes
   # (densities, violins) are edge-weighted so overlaps stay legible; everything else fades from the centre (gaussian)
   parent0 <- layer$geom; tone_user <- !is.null(tone); tone_max_user <- !is.null(tone_max)
   tone <- tone %||% if (shape == "line") "flat" else if (inherits(parent0, c("GeomDensity", "GeomViolin"))) "vignette" else
-    if (inherits(parent0, c("GeomRect", "GeomTile", "GeomArea", "GeomPolygon", "GeomSf"))) "flat" else "centre"   # GeomBar/GeomCol inherit GeomRect
-  tone <- match.arg(tone, c("centre", "flat", "tent", "edge", "vignette", "centre-soft")); profile <- match.arg(profile); parent <- layer$geom
+    if (inherits(parent0, c("GeomRect", "GeomTile", "GeomArea", "GeomPolygon", "GeomSf"))) "flat" else "likelihood"   # GeomBar/GeomCol inherit GeomRect
+  tone <- match.arg(tone, c("likelihood", "centre", "flat", "tent", "edge", "vignette", "centre-soft")); profile <- match.arg(profile); parent <- layer$geom
+  # colour is redundant by default where groups tile the plane (bars, areas, polygons, tiles): each group also gets its
+  # own screen, so the figure survives greyscale. Not for intervals and densities: there overlapping groups are woven
+  # on ONE lattice, and separate lattices at different angles moire (tested; see design_review.md)
+  is_flat_geom <- inherits(parent0, c("GeomRect", "GeomTile", "GeomArea", "GeomPolygon", "GeomSf"))
+  redundant <- redundant %||% is_flat_geom
   # one tonal register. flat: 0.45 (hatch 0.4), but 0.6 for polygons/sf whose fill colour is the value; centre 0.6 so three
   # overprinted intervals stay light; vignette 0.7. Hatched intervals (ribbons) are hairline (0.15): several overlap, and
   # the hatch must sit under the estimate lines, not compete with them
   is_map <- inherits(parent0, c("GeomPolygon", "GeomSf")); is_interval <- inherits(parent0, "GeomRibbon") && !inherits(parent0, "GeomArea")
-  tone_max <- tone_max %||% switch(tone, flat = if (shape == "line") (if (is_interval) 0.15 else 0.4) else if (is_map) 0.6 else 0.45, centre = 0.6, vignette = 0.7, 1)
+  hairline <- min_feature / (dot_max * pitch * 0.9)   # the strip width that is exactly the printable minimum
+  tone_max <- tone_max %||% switch(tone, flat = if (shape == "line") (if (is_interval) hairline else 0.4) else if (is_map) 0.6 else 0.45, likelihood = 0.6, centre = 0.6, vignette = 0.7, 1)
+  if (shape == "line" && tone_max_user && tone_max < hairline) message(sprintf("with_halftone(): hatch strips at tone_max = %.2f would be %.3f mm wide, under the printable minimum (%.2f mm); they are drawn at the minimum", tone_max, tone_max * dot_max * pitch * 0.9, min_feature))
   if (shape == "line" && tone != "flat") message("with_halftone(): line screens usually look better with tone = \"flat\" (hard edge); tapered strokes read as fringe")
-  P <- list(pitch = pitch, angle = angle, grid = grid, tone = tone, profile = profile, local = local, levels = levels, bayer_n = bayer_n, dot_max = dot_max, gamma = gamma, tone_max = tone_max, outline = outline, shape = shape, algorithm = algorithm, clip = clip, overlap = overlap,
+  P <- list(pitch = pitch, angle = angle, grid = grid, tone = tone, profile = profile, local = local, levels = levels, bayer_n = bayer_n, dot_max = dot_max, gamma = gamma, tone_max = tone_max, outline = outline, shape = shape, algorithm = algorithm, clip = clip, overlap = overlap, level = level, min_feature = min_feature,
             tone_auto = !tone_user, tone_max_auto = !tone_max_user, angle_user = angle_user)
+  keymap <- new.env(parent = emptyenv())   # fill colour -> auto screen spec, written at draw time, read by the legend key
   wrapped <- ggproto(NULL, parent,
     default_aes = do.call(aes, c(as.list(parent$default_aes), list(screen = NA))),
     draw_panel = function(self, data, panel_params, coord, ...) {
@@ -189,9 +206,21 @@ with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone 
           if (P$tone_auto && P$tone != "flat") { Pk$tone <- "flat"; if (P$tone_max_auto) Pk$tone_max <- 0.45 }
           gTree(orig = ggproto_parent(parent, self)$draw_panel(d, panel_params, coord, ...), params = Pk, cl = "halftone_fill") })
         return(do.call(grobTree, kids)) }
+      groups <- split(data, data$group)
+      if (redundant && length(groups) > 1 && !is.null(data$fill) && length(unique(data$fill)) > 1) {
+        # auto-redundant screens: the k-th group gets the k-th screen of the recipe; the tone profile is kept
+        specs <- screen_recipe(length(groups), if (grid == "hex") 60 else 90)
+        kids <- lapply(seq_along(groups), function(k) { d <- groups[[k]]; sp <- parse_screen(specs[k]); Pk <- P
+          if (!is.null(sp$shape) && (P$shape != "line" || sp$shape == "line")) Pk$shape <- sp$shape
+          Pk$angle <- (if (P$angle_user) P$angle else 0) + screen_angle(sp, Pk$shape)
+          assign(as.character(d$fill[1]), specs[k], envir = keymap)
+          gTree(orig = ggproto_parent(parent, self)$draw_panel(d, panel_params, coord, ...), params = Pk, cl = "halftone_fill") })
+        return(do.call(grobTree, kids)) }
       orig <- ggproto_parent(parent, self)$draw_panel(data, panel_params, coord, ...)
       gTree(orig = orig, params = P, cl = "halftone_fill")
     },
-    draw_key = function(data, params, size) { data$colour <- data$fill %||% data$colour; draw_key_halftone(data, utils::modifyList(params, P[c("shape", "angle", "angle_user")]), size) })
+    draw_key = function(data, params, size) { data$colour <- data$fill %||% data$colour
+      if ((is.null(data$screen) || is.na(data$screen)) && !is.null(data$fill) && exists(as.character(data$fill), envir = keymap, inherits = FALSE)) data$screen <- get(as.character(data$fill), envir = keymap)
+      draw_key_halftone(data, utils::modifyList(params, P[c("shape", "angle", "angle_user")]), size) })
   layer$geom <- wrapped; layer
 }

@@ -46,3 +46,19 @@ NumericMatrix dt_col_cpp(LogicalMatrix m) {
       for (int k = s; k <= e; k++) { double dd = std::min(k - s + 1, e - k + 1); d(k, j) = dd / half; } } }
   return d;
 }
+
+// Scanline rasteriser: for each raster row y in ry, even-odd fill between sorted edge crossings. Replaces per-point
+// point-in-polygon on the fine raster (O(rows * edges) instead of O(cells * edges)).
+// [[Rcpp::export]]
+LogicalMatrix scan_fill_cpp(NumericVector rx, NumericVector ry, NumericVector vx, NumericVector vy) {
+  int nr = ry.size(), nc = rx.size(), m = vx.size(); LogicalMatrix out(nr, nc);
+  std::vector<double> xs; xs.reserve(m);
+  for (int i = 0; i < nr; i++) { double y = ry[i]; xs.clear();
+    for (int a = 0, b = m - 1; a < m; b = a++) {
+      if ((vy[a] > y) != (vy[b] > y)) xs.push_back((vx[b] - vx[a]) * (y - vy[a]) / (vy[b] - vy[a]) + vx[a]); }
+    if (xs.empty()) continue; std::sort(xs.begin(), xs.end());
+    for (size_t k = 0; k + 1 < xs.size(); k += 2) { double x0 = xs[k], x1 = xs[k + 1];
+      int j0 = (int)(std::lower_bound(rx.begin(), rx.end(), x0) - rx.begin());
+      for (int j = j0; j < nc && rx[j] < x1; j++) out(i, j) = true; } }
+  return out;
+}

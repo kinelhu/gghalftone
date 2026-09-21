@@ -5,6 +5,7 @@
 \alias{halftone_paper}
 \alias{halftone_ink}
 \alias{halftone_widths}
+\alias{halftone_process}
 \alias{halftone_ramp}
 \title{Inks, paper, ramp and column widths}
 \format{
@@ -19,11 +20,14 @@ halftone_ink
 
 halftone_widths
 
+halftone_process
+
 halftone_ramp
 }
 \description{
 Named constants shared by the geoms and \code{\link[=theme_halftone]{theme_halftone()}}. \code{halftone_inks} is the six-ink palette that the theme
 makes the default for mapped colour and fill on ggplot2 >= 4.0 (red, blue, ochre, green, violet, grey);
+\code{halftone_process} is the press-native alternative, each ink one or two process plates at 100 \% (K, M+Y, C+M, C+Y, C, M);
 \code{halftone_ramp} is the default continuous ramp (paper, ochre, red, near-black); \code{halftone_paper} and \code{halftone_ink}
 are the editorial paper and ink colours; \code{halftone_widths} are journal column widths in mm.
 }

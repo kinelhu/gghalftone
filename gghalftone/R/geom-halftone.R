@@ -122,7 +122,19 @@ quantise_tone <- function(Z, levels = NULL, algorithm = "bayer", bayer_n = 4) {
   if (is.null(levels) || !is.finite(levels) || levels <= 0) return(pmin(pmax(Z, 0), 1))
   switch(algorithm, bayer = dither_bayer(Z, levels, bayer_n), floyd_steinberg = dither_floyd_steinberg(Z, levels), blue_noise = dither_blue_noise(Z, levels))
 }
-tone_floor <- 0.02   # cells below this tone are not drawn: sub-0.05 mm dots read as dirt, not tone
+tone_floor <- 0.02   # absolute floor; the working floor is the printable minimum feature, see dot_floor()
+# smallest tone whose dot (diameter dot_max * pitch * sqrt(tone)) is at least min_feature mm across. Journals ask for
+# nothing finer than 0.25 pt (0.09 mm) at final size: below that a dot is a grey pixel on screen and mud on a press.
+dot_floor <- function(p) max(tone_floor, (p$min_feature / (p$dot_max * p$pitch))^2)
+# Enforce the floor by dithering, not clipping: a cell below the floor is drawn AT the floor with probability tone/floor
+# (blue-noise threshold), else not at all. Mean coverage stays equal to tone, no feature is sub-printable, and light
+# regions dissolve into sparse minimum-size dots or broken hairlines, which is what a press does too.
+floor_dither <- function(D, floor, rows, cols) {
+  if (floor <= tone_floor) return(D)
+  bn <- blue_noise_matrix(32); low <- D > tone_floor & D < floor
+  if (any(low)) { thr <- bn[cbind(((rows[low] - 1) %% 32) + 1, ((cols[low] - 1) %% 32) + 1)]; D[low] <- ifelse(thr < D[low] / floor, floor, 0) }
+  D
+}
 norm01 <- function(z, rng) { if (!is.finite(diff(rng)) || diff(rng) <= 0) return(ifelse(is.na(z), 0, 1)); pmin(pmax((z - rng[1]) / diff(rng), 0), 1) }
 halftone_lattice <- function(p, W, H, phase = c(0, 0)) {
   pitch <- p$pitch; px <- pitch; py <- if (p$grid == "hex") pitch * sqrt(3) / 2 else pitch
@@ -159,7 +171,7 @@ makeContent.halftone <- function(x) {
   pitch <- p$pitch
   lat <- halftone_lattice(p, W, H, phase = p$phase); X <- lat$X; Y <- lat$Y
   r0 <- halftone_dither_group(d, lat, p, W, H); D <- r0$D; idx <- r0$idx
-  keep <- D > tone_floor
+  D <- floor_dither(D, dot_floor(p), row(D), col(D)); keep <- D > tone_floor
   if (!any(keep)) return(setChildren(x, gList()))
   if (p$shape == "line") return(setChildren(x, gList(line_screen_grob(lat, r0, d, p, W, H))))
   r <- p$dot_max * pitch / 2 * sqrt(D[keep])   # dot AREA proportional to tone (print-correct)
@@ -175,15 +187,19 @@ makeContent.halftone <- function(x) {
 # shape and, on a hex lattice where alternate rows are offset by half a pitch, the ends comb: a white margin with a
 # ragged edge inside the outline. A clipped fill extends by a full pitch (the last centre can be anywhere within a pitch
 # of the edge; the clip removes the excess); an unclipped field by half a pitch, the cell boundary.
-line_strips_grob <- function(X, Y, Z, COL, on, angle, wmax, extend) {
+# Strip width is wmax * tone, clamped below to min_feature (the printable minimum, 0.25 pt); cells whose strip would be
+# under half of that are not drawn. A burin does not cut thinner than it can: light tone shortens lines, not thins them.
+line_strips_grob <- function(X, Y, Z, COL, on, angle, wmax, extend, min_feature = 0) {
   a <- angle * pi / 180; nx <- -sin(a); ny <- cos(a); ex <- cos(a) * extend; ey <- sin(a) * extend
+  zfloor <- max(tone_floor, min_feature / wmax)
+  if (zfloor > tone_floor) Z <- floor_dither(Z, zfloor, row(Z), col(Z))   # light tone: broken hairlines, not thinner ones
   polys_x <- list(); polys_y <- list(); cols <- character(0)
   for (i in seq_len(nrow(X))) {
-    z <- Z[i, ]; oo <- on[i, ] & z > 0.02
+    z <- Z[i, ]; oo <- on[i, ] & z > tone_floor   # after floor_dither, z is 0 or >= zfloor
     if (!any(oo)) next
     runs <- rle(oo); ends <- cumsum(runs$lengths); starts <- ends - runs$lengths + 1
     for (k in which(runs$values)) { s <- starts[k]:ends[k]
-      w <- wmax * z[s] / 2; xs <- X[i, s]; ys <- Y[i, s]
+      w <- pmax(wmax * z[s], min_feature) / 2; xs <- X[i, s]; ys <- Y[i, s]
       w <- c(w[1], w, w[length(w)]); xs <- c(xs[1] - ex, xs, xs[length(xs)] + ex); ys <- c(ys[1] - ey, ys, ys[length(ys)] + ey)
       polys_x[[length(polys_x) + 1]] <- c(xs + nx * w, rev(xs - nx * w)); polys_y[[length(polys_y) + 1]] <- c(ys + ny * w, rev(ys - ny * w))
       cols <- c(cols, if (is.matrix(COL)) COL[i, s[1]] else COL[1]) }
@@ -195,7 +211,7 @@ line_screen_grob <- function(lat, r0, d, p, W, H) {
   X <- lat$X; Y <- lat$Y; idx <- r0$idx; has <- !is.na(idx)
   Z <- matrix(0, nrow(X), ncol(X)); Z[has] <- d$z01[idx[has]]
   COL <- matrix(NA_character_, nrow(X), ncol(X)); COL[has] <- scales::alpha(d$colour[idx[has]], d$alpha[idx[has]])
-  line_strips_grob(X, Y, Z, COL, has, p$angle, p$dot_max * p$pitch * 0.9, p$pitch / 2)
+  line_strips_grob(X, Y, Z, COL, has, p$angle, p$dot_max * p$pitch * 0.9, p$pitch / 2, p$min_feature)
 }
 
 # weave phase for k inks on the hex lattice. k = 3 has an exact 3-colouring (no same-ink neighbours). A triangular
@@ -221,7 +237,7 @@ make_overprint <- function(x, W, H) {
   lat <- halftone_lattice(p, W, H); X <- lat$X; Y <- lat$Y
   res <- lapply(gs, function(d) halftone_dither_group(d, lat, p, W, H))
   Dmax <- Reduce(pmax, lapply(res, `[[`, "D")); nk <- Reduce(`+`, lapply(res, function(r) r$D > 0))
-  keep <- Dmax > tone_floor
+  Dmax <- floor_dither(Dmax, dot_floor(p), row(Dmax), col(Dmax)); keep <- Dmax > tone_floor
   # colour per cell: single ink, or multiply-blend of all inks present
   cols <- character(sum(keep)); cells <- which(keep)
   colmat <- sapply(seq_along(gs), function(k) { cc <- rep(NA_character_, length(cells)); ok <- res[[k]]$D[cells] > 0
@@ -245,7 +261,7 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
   draw_key = function(data, params, size) draw_key_halftone(data, params, size),
   draw_panel = function(data, panel_params, coord, pitch = NULL, angle = NULL, grid = "hex",
                         levels = NULL, algorithm = "bayer", bayer_n = 4, dot_max = 0.9, range = NULL,
-                        shape = "circle", gamma = 1, overlap = c("stack", "interleave", "overprint"), blend = "mix", tone_max = NULL) {
+                        shape = "circle", gamma = 1, overlap = c("stack", "interleave", "overprint"), blend = "mix", tone_max = NULL, min_feature = 0.09) {
     pitch <- pitch %||% 0.35   # 73 lpi: reads as tone with a visible screen; 0.6 read as dots (pitch ladder, review 2)
     tone_max <- tone_max %||% if (isTRUE(levels == 1)) 0.55 else 1       # a binary stipple must never saturate into the bare lattice
     overlap <- match.arg(overlap); angle_user <- !is.null(angle); angle <- angle %||% 15   # screen specs are absolute unless the user gave an angle offset
@@ -256,7 +272,7 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
       t01 <- if (use_tone) pmin(pmax(d$tone, 0), 1) else norm01(d$z, rng); t01[is.na(t01)] <- 0
       cc$z01 <- t01^gamma * tone_max; cc$alpha[is.na(cc$alpha)] <- 1; cc }
     P <- list(pitch = pitch, angle = angle, grid = grid, levels = levels, algorithm = algorithm, bayer_n = bayer_n,
-              dot_max = dot_max, shape = shape, phase = c(0, 0), blend = blend)
+              dot_max = dot_max, shape = shape, phase = c(0, 0), blend = blend, min_feature = min_feature)
     groups <- split(data, data$group)
     has_screen <- !all(is.na(data$screen))
     if (overlap == "overprint" && length(groups) > 1 && !has_screen && shape != "line")
@@ -312,6 +328,8 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #' @param blend Colour of a cell carrying several inks under `"overprint"`: `"alternate"` (weave, default), `"mix"`
 #'   or `"multiply"`.
 #' @param tone_max Tone ceiling in `[0, 1]`. `NULL` means 1, or 0.55 for a binary stipple.
+#' @param min_feature Smallest printable feature in mm (0.09, i.e. 0.25 pt, the usual journal minimum). Dots that would
+#'   be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.
 #' @param na.rm Remove missing values silently.
 #' @return A ggplot2 layer.
 #' @order 1
@@ -326,18 +344,18 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #' @export
 geom_halftone <- function(mapping = NULL, data = NULL, stat = "identity", position = "identity", ...,
                           pitch = NULL, angle = NULL, grid = "hex", levels = NULL, algorithm = "bayer",
-                          bayer_n = 4, dot_max = 0.9, range = NULL, shape = "circle", gamma = 1, overlap = "overprint", blend = "alternate", tone_max = NULL,
+                          bayer_n = 4, dot_max = 0.9, range = NULL, shape = "circle", gamma = 1, overlap = "overprint", blend = "alternate", tone_max = NULL, min_feature = 0.09,
                           na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
   layer(geom = GeomHalftone, mapping = mapping, data = data, stat = stat, position = position,
         show.legend = show.legend, inherit.aes = inherit.aes,
         params = list(pitch = pitch, angle = angle, grid = grid, levels = levels, algorithm = algorithm,
-                      bayer_n = bayer_n, dot_max = dot_max, range = range, shape = shape, gamma = gamma, overlap = overlap, blend = blend, tone_max = tone_max, na.rm = na.rm, ...))
+                      bayer_n = bayer_n, dot_max = dot_max, range = range, shape = shape, gamma = gamma, overlap = overlap, blend = blend, tone_max = tone_max, min_feature = min_feature, na.rm = na.rm, ...))
 }
 
 # ---- geom_spot: each point is a disc of radius r (mm) filled with a halftone whose tone is the value ----------------
 # tone: aes(tone = ) through scale_tone_continuous() (0..1, with a guide), or aes(z = ) normalised in the geom (no guide).
 # Each disc gets its own hex lattice centred on the disc (a symmetric rosette), and the dots are clipped to the disc.
-spot_grob <- function(cx, cy, rad, tone, col, pitch, dot_max, ring, ring_lwd, levels = NULL, bayer_n = 4) {
+spot_grob <- function(cx, cy, rad, tone, col, pitch, dot_max, ring, ring_lwd, levels = NULL, bayer_n = 4, min_feature = 0.09) {
   py <- pitch * sqrt(3) / 2; k <- ceiling(rad / pitch) + 1
   us <- seq(-k, k) * pitch; vs <- seq(-k, k) * py
   U <- matrix(us, length(vs), length(us), byrow = TRUE); V <- matrix(vs, length(vs), length(us)); U <- U + (row(U) %% 2) * pitch / 2
@@ -345,7 +363,7 @@ spot_grob <- function(cx, cy, rad, tone, col, pitch, dot_max, ring, ring_lwd, le
   D <- if (is.null(levels)) rep(tone, sum(inside)) else {
     b <- bayer_matrix(bayer_n); thr <- b[cbind((row(U)[inside] - 1) %% bayer_n + 1, (col(U)[inside] - 1) %% bayer_n + 1)]
     pmin(pmax(floor(tone * levels + thr) / levels, 0), 1) }
-  keep <- D > tone_floor
+  D <- floor_dither(D, max(tone_floor, (min_feature / (dot_max * pitch))^2), row(U)[inside], col(U)[inside]); keep <- D > tone_floor
   kids <- gList()
   if (any(keep)) {
     dots <- circleGrob(x = unit(cx + U[inside][keep], "mm"), y = unit(cy + V[inside][keep], "mm"), r = unit(dot_max * pitch / 2 * sqrt(D[keep]), "mm"), gp = gpar(fill = col, col = NA))
@@ -362,7 +380,7 @@ makeContent.spot <- function(x) {
   d <- x$data; p <- x$params
   W <- convertWidth(unit(1, "npc"), "mm", valueOnly = TRUE); H <- convertHeight(unit(1, "npc"), "mm", valueOnly = TRUE)
   cx <- d$x * W; cy <- d$y * H; rad <- if (is.null(d$size)) rep(p$r, nrow(d)) else d$size   # size aes = radius (mm)
-  kids <- lapply(seq_len(nrow(d)), function(k) spot_grob(cx[k], cy[k], rad[k], d$z01[k], scales::alpha(d$colour[k], d$alpha[k]), p$pitch, p$dot_max, p$ring, p$ring_lwd, p$levels, p$bayer_n))
+  kids <- lapply(seq_len(nrow(d)), function(k) spot_grob(cx[k], cy[k], rad[k], d$z01[k], scales::alpha(d$colour[k], d$alpha[k]), p$pitch, p$dot_max, p$ring, p$ring_lwd, p$levels, p$bayer_n, p$min_feature))
   setChildren(x, do.call(gList, kids))
 }
 GeomSpot <- ggproto("GeomSpot", Geom,
@@ -370,7 +388,7 @@ GeomSpot <- ggproto("GeomSpot", Geom,
   default_aes = aes(colour = "#151515", alpha = 1, size = NA, tone = NA, z = NA),
   draw_key = function(data, params, size) draw_key_spot(data, params, size),
   draw_panel = function(data, panel_params, coord, r = 3, pitch = 0.35, levels = NULL, bayer_n = 4, dot_max = 0.9,
-                        range = NULL, ring = TRUE, ring_lwd = 0.3) {
+                        range = NULL, ring = TRUE, ring_lwd = 0.3, min_feature = 0.09) {
     coords <- coord$transform(data, panel_params)
     if (!all(is.na(data$tone))) coords$z01 <- pmin(pmax(data$tone, 0), 1)
     else if (!all(is.na(data$z))) { rng <- if (is.null(range)) range(data$z, na.rm = TRUE) else range; coords$z01 <- norm01(data$z, rng) }
@@ -378,7 +396,7 @@ GeomSpot <- ggproto("GeomSpot", Geom,
     coords$z01[is.na(coords$z01)] <- 0
     coords$alpha[is.na(coords$alpha)] <- 1
     if (all(is.na(coords$size))) coords$size <- NULL
-    gTree(data = coords, params = list(r = r, pitch = pitch, levels = levels, bayer_n = bayer_n, dot_max = dot_max, ring = ring, ring_lwd = ring_lwd), cl = "spot")
+    gTree(data = coords, params = list(r = r, pitch = pitch, levels = levels, bayer_n = bayer_n, dot_max = dot_max, ring = ring, ring_lwd = ring_lwd, min_feature = min_feature), cl = "spot")
   }
 )
 #' Tone discs
@@ -403,11 +421,11 @@ GeomSpot <- ggproto("GeomSpot", Geom,
 #'   scale_tone_continuous() + ggplot2::scale_radius(range = c(1, 2.2)) + theme_halftone(axes = "none")
 #' @export
 geom_spot <- function(mapping = NULL, data = NULL, stat = "identity", position = "identity", ..., r = 3, pitch = 0.35,
-                      levels = NULL, bayer_n = 4, dot_max = 0.9, range = NULL, ring = TRUE, ring_lwd = 0.3,
+                      levels = NULL, bayer_n = 4, dot_max = 0.9, range = NULL, ring = TRUE, ring_lwd = 0.3, min_feature = 0.09,
                       na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
   layer(geom = GeomSpot, mapping = mapping, data = data, stat = stat, position = position, show.legend = show.legend,
         inherit.aes = inherit.aes, params = list(r = r, pitch = pitch, levels = levels, bayer_n = bayer_n, dot_max = dot_max,
-        range = range, ring = ring, ring_lwd = ring_lwd, na.rm = na.rm, ...))
+        range = range, ring = ring, ring_lwd = ring_lwd, min_feature = min_feature, na.rm = na.rm, ...))
 }
 # tone as a real aesthetic: a continuous scale onto [0, 1] (or a narrower range) with a legend of tone discs at the breaks
 #' Tone scale
@@ -516,7 +534,7 @@ draw_key_spot <- function(data, params, size) {
   # own size (attr width/height, cm) so labels never sit on the disc.
   rad <- if (is.null(data$size) || is.na(data$size)) min(params$r %||% 3, 2.4) else data$size
   tone <- if (is.null(data$tone) || is.na(data$tone)) 0.55 else data$tone
-  g <- spot_grob(0, 0, rad, tone, data$colour %||% "black", params$pitch %||% 0.35, params$dot_max %||% 0.9, TRUE, params$ring_lwd %||% 0.3, params$levels, params$bayer_n %||% 4)
+  g <- spot_grob(0, 0, rad, tone, data$colour %||% "black", params$pitch %||% 0.35, params$dot_max %||% 0.9, TRUE, params$ring_lwd %||% 0.3, params$levels, params$bayer_n %||% 4, params$min_feature %||% 0.09)
   key <- gTree(children = gList(g), vp = viewport(x = 0.5, y = 0.5, width = unit(0, "mm"), height = unit(0, "mm"), clip = "off"))
   attr(key, "width") <- attr(key, "height") <- (2 * rad + 1.2) / 10
   key

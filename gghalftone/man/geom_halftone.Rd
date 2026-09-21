@@ -24,6 +24,7 @@ geom_halftone(
   overlap = "overprint",
   blend = "alternate",
   tone_max = NULL,
+  min_feature = 0.09,
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = TRUE
@@ -113,6 +114,9 @@ the screen.}
 or \code{"multiply"}.}
 
 \item{tone_max}{Tone ceiling in \verb{[0, 1]}. \code{NULL} means 1, or 0.55 for a binary stipple.}
+
+\item{min_feature}{Smallest printable feature in mm (0.09, i.e. 0.25 pt, the usual journal minimum). Dots that would
+be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.}
 
 \item{na.rm}{Remove missing values silently.}
 

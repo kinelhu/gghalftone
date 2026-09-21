@@ -3,6 +3,7 @@
 \name{theme_halftone}
 \alias{theme_halftone}
 \alias{ggsave_journal}
+\alias{halftone_proof}
 \title{Halftone theme and journal export}
 \usage{
 theme_halftone(
@@ -12,7 +13,8 @@ theme_halftone(
   mono_family = NULL,
   paper = if (style[1] == "journal") "white" else halftone_paper,
   ink = halftone_ink,
-  axes = c("left-bottom", "box", "none")
+  axes = c("left-bottom", "box", "none"),
+  palette = c("inks", "process")
 )
 
 ggsave_journal(
@@ -21,7 +23,19 @@ ggsave_journal(
   width = c("double", "single", "onehalf"),
   height = 100,
   dpi = 600,
+  format = NULL,
   ...
+)
+
+halftone_proof(
+  plot,
+  width = "single",
+  height = 62,
+  dir = tempdir(),
+  centre = c(0.5, 0.5),
+  size = 20,
+  zoom = 4,
+  dpi = 600
 )
 }
 \arguments{
@@ -35,26 +49,38 @@ ggsave_journal(
 
 \item{axes}{\code{"left-bottom"} (two axis rules), \code{"box"} (panel border) or \code{"none"}.}
 
+\item{palette}{Default discrete palette on ggplot2 >= 4.0: \code{"inks"} (\link{halftone_inks}, muted, for screen and RGB
+workflows) or \code{"process"} (\link{halftone_process}, one or two press plates at 100 \%, for CMYK print).}
+
 \item{filename, plot, dpi, ...}{Passed to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}.}
 
 \item{width}{\code{"single"} (89 mm), \code{"onehalf"} (120 mm), \code{"double"} (183 mm) or a width in mm.}
 
 \item{height}{Height in mm.}
+
+\item{format}{\code{"png"}, \code{"tiff"} or \code{"pdf"}; \code{NULL} takes it from the extension of \code{filename}.}
+
+\item{dir, centre, size, zoom}{For \code{halftone_proof()}: output directory, the crop centre as a fraction of width and height,
+the crop size in mm, and the magnification.}
 }
 \value{
 A ggplot2 theme; \code{ggsave_journal()} is called for its side effect.
 }
 \description{
 \code{theme_halftone()} is a print theme on one skeleton with two registers. \code{"journal"} (default): sans, absolute
-point sizes for 89 or 183 mm figures (ticks 7 pt, axis titles 8 pt, tags 10 pt bold, legend 7 pt grey), white
-paper, no gridlines, hard axis rules, outward ticks. \code{"editorial"}: cream paper, a serif for titles, a monospace
+point sizes for 89 or 183 mm figures (ticks 7 pt, axis titles 8 pt, tags 8 pt bold, legend 7 pt grey), white
+paper, no gridlines, 0.7 pt axis rules, outward ticks. \code{"editorial"}: cream paper, a serif for titles, a monospace
 for labels. Font families are resolved from what is installed (journal: Liberation Sans, Helvetica, Arial;
 editorial: EB Garamond, Garamond, Georgia, Times; mono: Inconsolata, Menlo, Courier New). Helvetica precedes
 Arial because the pdf device knows it as a base family. On ggplot2 >= 4.0 the theme
 also makes \link{halftone_inks} the default discrete palette and \link{halftone_ramp} the default continuous one.
 }
 \details{
-\code{ggsave_journal()} saves at a journal column width in mm at 600 dpi with ragg.
+\code{ggsave_journal()} saves at a journal column width in mm: PNG (proofs) or TIFF at 600 dpi through ragg, or a vector
+PDF through \code{cairo_pdf()}, which most journals prefer for line art and which this package suits, every dot being a
+geometric object at physical size. The format follows the file extension. \code{halftone_proof()} renders a plot at true
+size and a magnified crop of one region (default the panel centre, 4x), which is how every default in this package
+was judged; it returns the two file paths.
 }
 \examples{
 ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() + theme_halftone()

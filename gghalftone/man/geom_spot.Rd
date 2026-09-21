@@ -19,6 +19,7 @@ geom_spot(
   range = NULL,
   ring = TRUE,
   ring_lwd = 0.3,
+  min_feature = 0.09,
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = TRUE
@@ -93,6 +94,9 @@ the screen.}
 \item{ring}{Draw the disc outline.}
 
 \item{ring_lwd}{Line width of the ring.}
+
+\item{min_feature}{Smallest printable feature in mm (0.09, i.e. 0.25 pt, the usual journal minimum). Dots that would
+be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.}
 
 \item{na.rm}{Remove missing values silently.}
 

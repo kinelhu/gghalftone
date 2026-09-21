@@ -58,12 +58,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// scan_fill_cpp
+LogicalMatrix scan_fill_cpp(NumericVector rx, NumericVector ry, NumericVector vx, NumericVector vy);
+RcppExport SEXP _gghalftone_scan_fill_cpp(SEXP rxSEXP, SEXP rySEXP, SEXP vxSEXP, SEXP vySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type rx(rxSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type ry(rySEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type vx(vxSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type vy(vySEXP);
+    rcpp_result_gen = Rcpp::wrap(scan_fill_cpp(rx, ry, vx, vy));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_gghalftone_fs_cpp", (DL_FUNC) &_gghalftone_fs_cpp, 2},
     {"_gghalftone_pip_cpp", (DL_FUNC) &_gghalftone_pip_cpp, 4},
     {"_gghalftone_dt_cpp", (DL_FUNC) &_gghalftone_dt_cpp, 1},
     {"_gghalftone_dt_col_cpp", (DL_FUNC) &_gghalftone_dt_col_cpp, 1},
+    {"_gghalftone_scan_fill_cpp", (DL_FUNC) &_gghalftone_scan_fill_cpp, 4},
     {NULL, NULL, 0}
 };
 

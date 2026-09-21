@@ -11,7 +11,7 @@ s <- relabel(km_steps(fit)); cens <- relabel(km_censor(fit)); risk <- relabel(km
 xs <- scale_x_continuous(breaks = seq(0, 1000, 250), limits = c(-40, 1040), expand = c(0, 0))
 pA <- ggplot(s, aes(time, group = strata)) +
   with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi, fill = strata))) +
-  with_halo(geom_step(aes(y = surv, colour = strata), linewidth = 0.5)) +
+  with_halo(geom_step(aes(y = surv, colour = strata), linewidth = 0.35)) +
   geom_point(data = cens, aes(time, surv, colour = strata), shape = "|", size = 1.6, stroke = 0.4) +
   scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, 0.25), expand = expansion(c(0, 0.02))) + xs + coord_cartesian(clip = "off") +
   guides(colour = "none") + labs(x = NULL, y = "Overall survival", fill = NULL, tag = "A") + theme_halftone() +
@@ -25,7 +25,7 @@ out("km", pA / rtab + plot_layout(heights = c(10, 2.4)), height = 78)
 ## 2 The same KM in one ink: line screens + linetypes --------------------------------------------------------------------
 pK <- ggplot(s, aes(time, group = strata, screen = strata)) +
   with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), shape = "line", pitch = 0.5) +   # hatched intervals are hairline by default; coarser than default because three overlap
-  with_halo(geom_step(aes(y = surv, linetype = strata), linewidth = 0.5)) +
+  with_halo(geom_step(aes(y = surv, linetype = strata), linewidth = 0.35)) +
   geom_point(data = cens, aes(time, surv), shape = "|", size = 1.6, stroke = 0.4) +
   scale_screen_manual(values = c(45, 135, 0), name = NULL) + scale_linetype_manual(values = c("solid", "42", "12"), name = NULL) +
   scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, 0.25), expand = expansion(c(0, 0.02))) + xs + coord_cartesian(clip = "off") +
@@ -35,22 +35,22 @@ out("km_bw", pK)
 ## 3 Smooth with CI ---------------------------------------------------------------------------------------------------------
 m <- mgcv::gam(accel ~ s(times, k = 20), data = mcycle); nd <- data.frame(times = seq(2.4, 57.6, length.out = 160)); pr <- predict(m, nd, se.fit = TRUE)
 nd$fit <- pr$fit; nd$lo <- pr$fit - 1.96 * pr$se.fit; nd$hi <- pr$fit + 1.96 * pr$se.fit
-pB <- ggplot(nd, aes(times)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = ink[["blue"]])) + with_halo(geom_line(aes(y = fit), colour = ink[["blue"]], linewidth = 0.5)) +
+pB <- ggplot(nd, aes(times)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = ink[["blue"]])) + with_halo(geom_line(aes(y = fit), colour = ink[["blue"]], linewidth = 0.35)) +
   geom_point(data = mcycle, aes(times, accel), shape = 21, fill = W, colour = "black", size = 0.8, stroke = 0.3) +
   labs(x = "Time after impact (ms)", y = "Head acceleration (g)") + theme_halftone()
 out("smooth", pB)
 
 ## 4 Densities, colour (vignette) and one ink (line screens) --------------------------------------------------------------
-pD <- ggplot(iris, aes(Sepal.Length, fill = Species, group = Species)) + with_halftone(geom_density(linewidth = 0.3)) +
+pD <- ggplot(iris, aes(Sepal.Length, fill = Species, group = Species)) + with_halftone(geom_density(linewidth = 0.25)) +
   labs(x = "Sepal length (cm)", y = "Density", fill = NULL) + theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.85))
 out("densities", pD)
-pD2 <- ggplot(iris, aes(Sepal.Length, screen = Species, group = Species)) + with_halftone(geom_density(fill = "black", linewidth = 0.3), shape = "line") + scale_screen_discrete(name = NULL) +
+pD2 <- ggplot(iris, aes(Sepal.Length, screen = Species, group = Species)) + with_halftone(geom_density(fill = "black", linewidth = 0.25), shape = "line") + scale_screen_discrete(name = NULL) +
   labs(x = "Sepal length (cm)", y = "Density") + theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.85), legend.key.size = unit(5, "mm"))
 out("densities_bw", pD2)
 
 ## 5 Bars: hatched (one ink) and dot-screened (colour) -------------------------------------------------------------------
 d <- data.frame(g = factor(c("BOS", "RAS", "Mixed", "Undef."), c("BOS", "RAS", "Mixed", "Undef.")), n = c(52, 21, 14, 13))
-pB1 <- ggplot(d, aes(g, n, screen = g)) + with_halftone(geom_col(width = 0.7, fill = "black", colour = "black", linewidth = 0.3), shape = "line") + scale_screen_discrete(guide = "none") +
+pB1 <- ggplot(d, aes(g, n, screen = g)) + with_halftone(geom_col(width = 0.7, fill = "black", colour = "black", linewidth = 0.25), shape = "line") + scale_screen_discrete(guide = "none") +
   scale_y_continuous(expand = expansion(c(0, 0.08))) + labs(x = NULL, y = "Patients (%)") + theme_halftone()
 pB2 <- ggplot(d, aes(g, n, fill = g)) + with_halftone(geom_col(width = 0.7)) + guides(fill = "none") +
   scale_y_continuous(expand = expansion(c(0, 0.08))) + labs(x = NULL, y = "Patients (%)") + theme_halftone()
@@ -59,8 +59,9 @@ out("bars", (pB1 + labs(tag = "A")) | (pB2 + labs(tag = "B")), width = "double",
 ## 6 Stacked area, colour: each ink gets its own screen (angle x shape), as in print ---------------------------------------------------------------------------------------------------
 tt <- 1:40; set.seed(4); s6 <- data.frame(t = tt, a = 10 + 4 * sin(tt / 5) + rnorm(40, 0, 0.6), b = 6 + tt / 6 + rnorm(40, 0, 0.5), c = 5 + 3 * cos(tt / 7) + rnorm(40, 0, 0.5))
 long <- data.frame(t = rep(tt, 3), v = c(s6$a, s6$b, s6$c), series = rep(c("Series A", "Series B", "Series C"), each = 40))
-pS <- ggplot(long, aes(t, v, fill = series, screen = series)) + with_halftone(geom_area(colour = "black", linewidth = 0.25)) + scale_screen_discrete(name = NULL) + scale_y_continuous(expand = c(0, 0)) + scale_x_continuous(expand = c(0, 0)) +
-  labs(x = "Time", y = "Stacked value", fill = NULL) + guides(fill = "none") + theme_halftone() + theme(legend.position = "bottom", legend.justification = "left")
+# screens are assigned automatically to the fills (colour is redundant); the legend keys show both
+pS <- ggplot(long, aes(t, v, fill = series)) + with_halftone(geom_area(colour = "black", linewidth = 0.25)) + scale_y_continuous(expand = c(0, 0)) + scale_x_continuous(expand = c(0, 0)) +
+  labs(x = "Time", y = "Stacked value", fill = NULL) + theme_halftone() + theme(legend.position = "bottom", legend.justification = "left")
 out("area", pS)
 
 ## 7 Choropleth (default sepia ramp) --------------------------------------------------------------------------------------------

@@ -22,7 +22,10 @@ with_halftone(
   shape = "circle",
   algorithm = "bayer",
   clip = TRUE,
-  overlap = c("overprint", "stack")
+  overlap = c("overprint", "stack"),
+  level = 0.95,
+  min_feature = 0.09,
+  redundant = NULL
 )
 
 \method{makeContent}{halftone_fill}(x)
@@ -36,8 +39,8 @@ with_halftone(
 
 \item{grid}{\code{"hex"} (default) or \code{"square"}. A 45-degree square lattice is the classic map and photo screen.}
 
-\item{tone}{Tone profile: \code{NULL} (from the geometry, see below), \code{"flat"}, \code{"centre"}, \code{"vignette"}, \code{"edge"},
-\code{"tent"} or \code{"centre-soft"}.}
+\item{tone}{Tone profile: \code{NULL} (from the geometry, see below), \code{"likelihood"}, \code{"flat"}, \code{"vignette"}, \code{"centre"}
+(the older gaussian, within a hair of likelihood), \code{"edge"}, \code{"tent"} or \code{"centre-soft"}.}
 
 \item{profile}{Distance used by the non-flat profiles: \code{"vertical"} (distance to the top and bottom edge along
 each column, right for ribbons and densities) or \code{"radial"} (Euclidean distance to the outline).}
@@ -69,6 +72,15 @@ of the screen at 100 \% tone. For line screens it is the full-tone strip width, 
 \item{overlap}{\code{"overprint"} weaves all inks present in a cell (default); \code{"stack"} lets the last-drawn shape win,
 for nested intervals and ridgelines.}
 
+\item{level}{Confidence level the ribbon represents, for the \code{"likelihood"} profile.}
+
+\item{min_feature}{Smallest printable feature in mm (0.09, i.e. 0.25 pt, the usual journal minimum). Dots that would
+be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.}
+
+\item{redundant}{Also give each fill group its own screen (angle and shape), so colour is never the only encoding.
+\code{NULL} means yes for geoms whose groups tile the plane (bars, areas, polygons, tiles, sf) and no for intervals and
+densities, whose overlapping groups are woven on one lattice; separate lattices there moire.}
+
 \item{x}{A \code{halftone_fill} grob (internal; \code{makeContent} method).}
 }
 \value{
@@ -85,7 +97,8 @@ ribbons, areas, bars and columns, densities and violins, polygons, tiles and \co
 \code{tone = NULL} picks a profile from the geometry, which is the rule the design work converged on:
 \itemize{
 \item bars, columns, tiles, areas, polygons and sf: \code{"flat"}, because there the interior \emph{is} the value;
-\item ribbons (intervals): \code{"centre"}, a gaussian that peaks on the estimate and fades to the limit;
+\item ribbons (intervals): \code{"likelihood"}, the normal density of the estimate across the interval, so the fade is the
+evidence: 1 on the estimate, 0.146 at a 95 \% limit (\code{level});
 \item densities and violins: \code{"vignette"}, a soft fade towards the outline so overlapping groups stay legible;
 \item line screens: always \code{"flat"} (a tapered hatch reads as fringe);
 \item a mapped \code{screen} is a categorical pattern, and patterns are flat.
@@ -95,8 +108,8 @@ ribbons, areas, bars and columns, densities and violins, polygons, tiles and \co
 \section{Register}{
 
 \code{tone_max = NULL} sets one ink weight across figure types: flat 0.45 (polygons and sf 0.6), centre 0.6, vignette
-0.7, hatching 0.4, hatched intervals hairline 0.15. Alpha on the fill is folded into tone (a 30 \% alpha prints as a
-30 \% screen); nothing translucent reaches the page.
+0.7, hatching 0.4, hatched intervals a hairline (the strip width that equals \code{min_feature}). Alpha on the fill is folded
+into tone (a 30 \% alpha prints as a 30 \% screen); nothing translucent reaches the page.
 }
 
 \examples{

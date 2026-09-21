@@ -13,6 +13,7 @@ NULL
 #'
 #' Named constants shared by the geoms and [theme_halftone()]. `halftone_inks` is the six-ink palette that the theme
 #' makes the default for mapped colour and fill on ggplot2 >= 4.0 (red, blue, ochre, green, violet, grey);
+#' `halftone_process` is the press-native alternative, each ink one or two process plates at 100 % (K, M+Y, C+M, C+Y, C, M);
 #' `halftone_ramp` is the default continuous ramp (paper, ochre, red, near-black); `halftone_paper` and `halftone_ink`
 #' are the editorial paper and ink colours; `halftone_widths` are journal column widths in mm.
 #' @format Character vectors of hex colours, or a named numeric vector of widths.
@@ -27,6 +28,9 @@ halftone_ink <- "#151515"
 #' @rdname halftone_inks
 #' @export
 halftone_widths <- c(single = 89, onehalf = 120, double = 183)
+#' @rdname halftone_inks
+#' @export
+halftone_process <- c(black = "#231F20", red = "#ED1C24", blue = "#2E3192", green = "#00A651", cyan = "#00AEEF", magenta = "#EC008C")   # K, M+Y, C+M, C+Y, C, M at 100 %: one or two plates, no tints, so a 0.3 mm dot survives the press
 #' @rdname halftone_inks
 #' @export
 halftone_ramp <- c("#E7D9B8", "#A8741C", "#8B1A1A", "#3A0A0A")   # paper -> ochre -> red -> near-black (review 1: "best colour figure in the set")

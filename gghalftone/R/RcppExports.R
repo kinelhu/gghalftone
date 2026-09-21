@@ -17,3 +17,7 @@ dt_col_cpp <- function(m) {
     .Call(`_gghalftone_dt_col_cpp`, m)
 }
 
+scan_fill_cpp <- function(rx, ry, vx, vy) {
+    .Call(`_gghalftone_scan_fill_cpp`, rx, ry, vx, vy)
+}
+

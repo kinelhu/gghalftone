@@ -142,3 +142,23 @@ Gallery figures that set a pitch explicitly were scaled with it (B&W KM 0.5 beca
 renders in ~25 s. Also fixed in the same round: hatch strips stopped at the last lattice centre inside the shape, which
 on a hex lattice combed the ends and left a white margin inside every hatched bar (the "snaking tube"); runs now extend
 a pitch past the last cell and are clipped.
+
+## Press-honest pass (same day)
+
+Author asked whether the figures follow journal practice and how the idea could improve; then "OK on everything".
+
+- **Minimum feature.** The 2 % tone floor produced 0.13 pt dots and a 0.12 pt hairline hatch, under the 0.25 pt journal
+  minimum: one pixel at 600 dpi, mud on a press. `min_feature = 0.09` mm now governs dots, strips, spot dots and the halo.
+  Clipping at the floor was tried first and gave the engraving a hard shelf with a uniform hairline plateau; the floor
+  is now enforced by dithering (draw at the floor with probability tone/floor, blue-noise thresholded), which keeps
+  mean coverage and lets light tone dissolve into sparse dots or broken hairlines, as a press does.
+- **Likelihood profile.** The interval profile is the normal density of the estimate (0.146 at a 95 % limit, `level`);
+  the old "centre" gaussian was within a hair of it, so the look is unchanged and the fade now means something.
+- **Redundant screens.** Fills on tiling geoms get automatic screens; legend keys read them from a map written at draw
+  time. Intervals and densities are excluded on the evidence of the earlier moire test.
+- **Export.** PNG for proofs, TIFF (LZW) and vector PDF (cairo) by extension. A TIFF wrapper that hid ragg's formals
+  behind `...` produced a 72 dpi thumbnail: ggsave reads the device's formals to decide what to pass.
+- **Theme.** Rules 0.25 mm (0.7 pt, were 1.1 pt), tags 8 pt, gallery data lines 0.35 mm (1 pt, were 1.4 pt).
+- **Process palette.** K, M+Y, C+M, C+Y, C, M at 100 % beside the muted inks on the KM and bars: legible, harsher.
+  Opt-in via `theme_halftone(palette = "process")`; the muted inks stay the screen default.
+- **Performance.** Scanline rasteriser for the tone-profile raster: gallery 25 s -> 11 s.

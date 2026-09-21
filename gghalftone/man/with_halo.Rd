@@ -4,7 +4,7 @@
 \alias{with_halo}
 \title{Paper halo under a line or point layer}
 \usage{
-with_halo(layer, width = 0.08, colour = NULL)
+with_halo(layer, width = 0.09, colour = NULL)
 }
 \arguments{
 \item{layer}{A ggplot2 layer drawing lines, paths, steps, contours or points.}
@@ -20,8 +20,8 @@ The layer, with its geom replaced by a halo-drawing subclass.
 \description{
 Draws the layer twice: first in paper colour with \code{width} mm added to each side of every stroke, then as is. A
 line crossing a dot field needs this to stay readable; a step curve over a screened confidence band, contours
-over an elevation field. Keep it a hairline: 0.08 mm against dots, 0.15 mm against a line screen. Wider and it
-reads as a second line.
+over an elevation field. Keep it a hairline: 0.09 mm (0.25 pt, the printable minimum) against dots, 0.15 mm against
+a line screen. Wider and it reads as a second line.
 }
 \examples{
 ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + with_halo(ggplot2::geom_line())

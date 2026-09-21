@@ -39,7 +39,10 @@ ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", angle = 30)
 
 - **Dots fade, lines don't.** Dot halftones want a gaussian tone profile (peak on the estimate, soft edge). Line screens want constant weight and a hard edge; tapered strokes read as fringe.
 - **Profile follows geometry.** Ribbons fade from the estimate (`tone = "centre"`); densities and violins get a soft vignette; bars, areas, polygons and maps are flat, because there the interior *is* the value. A mapped `screen` is a pattern, and patterns are flat.
-- **Continuous tone by default.** Dot area follows tone exactly; `levels = k` quantises and dithers for a stipple. Nothing below 2 % tone is drawn.
+- **Continuous tone by default.** Dot area follows tone exactly; `levels = k` quantises and dithers for a stipple.
+- **Nothing below 0.25 pt.** `min_feature = 0.09` mm is the journal minimum; it is enforced by dithering (a sub-minimum cell prints at the minimum with probability tone/floor), so light tone becomes sparse dots or broken hairlines rather than grey pixels.
+- **The fade is the likelihood.** An interval's tone is the normal density of the estimate: 1 on the estimate, 0.146 at a 95 % limit.
+- **Colour is redundant.** Fills on bars, areas, polygons and tiles get their own screens automatically; the figure survives greyscale.
 - **No lattice axis horizontal or vertical.** 15° on the hex lattice (default), 45° on square, so bar tops and step plateaus never alias against a row of dots.
 - **Overlap is a panel property.** Groups sharing a lattice must be overprinted (`overlap = "overprint"`, woven by default) or the last group erases the others. Flat screens hide this best, which is why they are not the default.
 - **Physical pitch or nothing.** 0.35 mm (73 lines per inch, the default) reads as tone with a visible screen; 0.6 mm reads as a dot pattern; 0.9–1.2 mm is a poster. Journal figures want the default; editorial covers want it coarse.
@@ -61,7 +64,7 @@ Maunga Whau from `geom_contour()` plus one `shape = "line"` layer.
 
 ## Theme
 
-`theme_halftone()` defaults to a journal style (Liberation Sans, absolute 7–8 pt sizes, bold tags, sentence case, no gridlines); `style = "editorial"` gives the cream-paper/Garamond/monospace look used for the cover-style pieces. `ggsave_journal(p, "double")` saves at 183 mm and 600 dpi.
+`theme_halftone()` defaults to a journal style (Liberation Sans, absolute 7–8 pt sizes, bold tags, sentence case, no gridlines); `style = "editorial"` gives the cream-paper/Garamond/monospace look used for the cover-style pieces. `ggsave_journal("fig.pdf", p, "double")` saves at 183 mm: vector PDF, or PNG/TIFF at 600 dpi by extension. `halftone_proof()` renders true size plus a magnified crop. `theme_halftone(palette = "process")` swaps the muted inks for one-or-two-plate press colours.
 
 ![](inst/figures/editorial.png)
 

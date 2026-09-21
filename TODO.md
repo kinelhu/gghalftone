@@ -1,6 +1,6 @@
 # gghalftone — hand-off TODO
 
-Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 75 regression tests pass; `R CMD check` clean. Git repo initialised. Full gallery renders in ~25 s at the 0.35 mm default. Defaults pass done (see `design_review.md`, review 2): bare `with_halftone()` / `geom_halftone()` calls now produce the gallery in `figures/v2/` (`prototypes/gallery2.R`). API considered stable for `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `km_steps()`, the `screen` aesthetic, `theme_halftone()`. No Rd docs yet.
+Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 84 regression tests pass; `R CMD check` clean. Git repo initialised. Full gallery renders in ~11 s at the 0.35 mm default. Defaults pass done (see `design_review.md`, review 2): bare `with_halftone()` / `geom_halftone()` calls now produce the gallery in `figures/v2/` (`prototypes/gallery2.R`). API considered stable for `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `km_steps()`, the `screen` aesthetic, `theme_halftone()`. No Rd docs yet.
 
 ## Priority order
 
@@ -9,7 +9,7 @@ Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 75 regressi
 3. ~~`scale_tone()`~~ Done: `aes(tone = )` + `scale_tone_continuous()` on both `geom_spot()` and `geom_halftone()`; `halftone_tone_legend()` removed.
 4. **Blue-noise tiling**: the 32x32 void-and-cluster matrix repeats visibly on large flat fills (bars specimen, tile 7). Options: 64x64 (generation is 0.1 s at 32, scales ~n^2 log n), or a per-row phase offset from a second matrix.
 5. **`geom_spot()` parity**: accept `aes(screen = )` and `shape = "line"` (hatched discs for B&W dot plots); reuse `dot_grob()`/`line_strips_grob()`.
-6. **Performance**: nothing profiled. Worst case = facets x groups x 0.45 mm on 183 mm. Candidates: `sample_index()` binning, `pip_cpp` per polygon on the full lattice (bbox filter exists), `mapply` in the weave (vectorise with the bitmask).
+6. **Performance**: profiled (2026-09-21). The fine-raster point-in-polygon was 40 % of a KM draw; replaced by a scanline rasteriser (`scan_fill_cpp`), whole gallery 25 s -> 11 s. What remains is grid drawing the circles (unavoidable) and `matrix()` allocations; the weave `mapply` and `sample_index()` binning are the next candidates.
 7. **Vignettes**: the five specimen scripts (`prototypes/specimen.R`, `specimens2.R`) are the vignette bodies; add prose. Then pkgdown.
 8. ~~git init~~ Done (2026-09-21, branch `main`).
 
@@ -24,9 +24,13 @@ Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 75 regressi
 
 ## Design rules (non-negotiable unless a side-by-side at 600 dpi proves otherwise)
 - Physical pitch in mm; 0.35 mm (73 lpi) is the default and the journal register: it reads as tone with a visible screen. 0.6 reads as dots (poster/editorial); 0.25 collapses into a flat tint and costs 5x the draw time.
-- Continuous tone by default (`levels = NULL`); quantise only for a stipple or a poster. Nothing below 2 % tone is drawn.
+- Continuous tone by default (`levels = NULL`); quantise only for a stipple or a poster.
+- **No feature below 0.09 mm (0.25 pt)**, the journal minimum: `min_feature`. Enforced by dithering, not clipping: a cell below the floor prints at the floor with probability tone/floor, so coverage stays honest and light tone dissolves into sparse minimum dots or broken hairlines. Hairline hatch = the minimum, derived from pitch.
 - No lattice axis horizontal or vertical: 15° on hex (default), 45° on square.
-- Profile follows geometry: flat for bars/areas/polygons/maps, centre for ribbons, vignette for densities/violins. A mapped `screen` is a pattern, and patterns are flat.
+- Profile follows geometry: flat for bars/areas/polygons/maps, **likelihood** for ribbons (normal density of the estimate: 1 on the estimate, 0.146 at a 95 % limit, so the fade is the evidence), vignette for densities/violins. A mapped `screen` is a pattern, and patterns are flat.
+- Colour is redundant on tiling geoms (bars, areas, polygons, tiles, sf): fills get their own screens automatically and the keys show both. Not on intervals/densities: separate lattices at different angles moire; those weave on one lattice.
+- Journal theme: 0.7 pt rules, 8 pt bold tags, data lines 1 pt (linewidth 0.35). `ggsave_journal()` writes png/tiff/pdf by extension; PDF is vector. `halftone_proof()` renders true size plus a 4x crop.
+- Inks: `halftone_inks` (muted sRGB, default) or `theme_halftone(palette = "process")` for one-or-two-plate press colours. One ink (black) is the headline workflow.
 - Dot shapes are area-matched; one tonal register (flat 0.45, polygons/maps 0.6, centre 0.6, vignette 0.7; hatched intervals hairline 0.15, other hatching 0.4; binary stipple capped at 0.55).
 - Line screens: same 0.35 mm pitch; 0.15 mm halo on lines crossing them (0.08 is invisible against hatch). Hatch runs extend a pitch past the last cell so strips reach the outline.
 - Dots fade (gaussian, soft edge); line screens are flat with a hard edge.

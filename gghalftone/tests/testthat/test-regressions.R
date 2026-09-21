@@ -198,12 +198,12 @@ test_that("register: centre profile prints lighter (0.6) than before; polygons f
   expect_equal(r_bar, 0.9 / 2 * sqrt(0.45), tolerance = 1e-6); expect_equal(r_pol, 0.9 / 2 * sqrt(0.6), tolerance = 1e-6)
 })
 
-test_that("hatched ribbons are hairline (tone_max 0.15) while hatched bars keep 0.4", {
+test_that("hatched ribbons are a hairline (min_feature) while hatched bars keep 0.4", {
   strip_w <- function(p) { k <- content(p, "halftone_fill"); g <- find_grob(k, "polygon"); x <- as.numeric(g$x); y <- as.numeric(g$y); n <- g$id.lengths[1]
     sqrt((x[1] - x[n])^2 + (y[1] - y[n])^2) }   # first strip: first and last vertex are the two edges at the same end
   w_rib <- strip_w(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1, shape = "line", outline = FALSE) + theme_void())
   w_bar <- strip_w(ggplot(data.frame(g = "a", n = 1), aes(g, n)) + with_halftone(geom_col(fill = "black"), pitch = 1, shape = "line", outline = FALSE) + theme_void())
-  expect_equal(w_rib, 0.15 * 0.9 * 0.9, tolerance = 1e-6); expect_equal(w_bar, 0.4 * 0.9 * 0.9, tolerance = 1e-6)
+  expect_equal(w_rib, 0.09, tolerance = 1e-6); expect_equal(w_bar, 0.4 * 0.9 * 0.9, tolerance = 1e-6)
 })
 
 test_that("a line-screen layer with a mapped screen recipe stays hatched (the recipe's dot shapes do not override shape = 'line')", {
@@ -237,4 +237,77 @@ test_that("hatch strips reach the outline: every run is extended by half a pitch
   # a single-cell run still draws a strip
   k <- gghalftone:::line_strips_grob(matrix(c(0, 5), 1), matrix(c(0, 0), 1), matrix(c(1, 0), 1), "black", matrix(c(TRUE, FALSE), 1), 0, 0.5, 0.5)
   expect_s3_class(k, "polygon"); expect_equal(diff(range(as.numeric(k$x))), 1)
+})
+
+# ---- press-honest pass ----------------------------------------------------------------------------------------------------
+test_that("no drawn feature is smaller than min_feature (0.09 mm): dots, spot dots, hatch strips; 0 disables it", {
+  r_rib <- radii(content(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 0.35, outline = FALSE) + theme_void(), "halftone_fill"))
+  expect_gte(min(2 * r_rib), 0.09 - 1e-9)
+  r_off <- radii(content(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 0.35, outline = FALSE, min_feature = 0, tone = "tent") + theme_void(), "halftone_fill"))   # tent goes to 0 at the edge; likelihood bottoms out at 0.146
+  expect_lt(min(2 * r_off), 0.09)
+  vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
+  expect_gte(min(2 * radii(content(ggplot(vol, aes(x, y, z = z)) + geom_halftone() + theme_void(), "halftone"))), 0.09 - 1e-9)
+  k <- gghalftone:::line_strips_grob(matrix(c(0, 1, 2, 3), 1), matrix(0, 1, 4), matrix(c(0.5, 0.05, 0.3, 0.3), 1), "black", matrix(TRUE, 1, 4), 0, 0.2, 0, 0.09)
+  ys <- as.numeric(k$y); w <- sapply(split(ys, rep(seq_along(k$id.lengths), k$id.lengths)), function(v) diff(range(v)))
+  expect_true(all(w >= 0.09 - 1e-9))   # strips below the minimum are drawn at the minimum (dithered by tone) or not at all
+  expect_true(length(w) %in% 1:3)
+  # the floor is enforced by dithering: mean coverage of a light flat field is preserved to within the blue-noise error
+  D <- matrix(0.03, 40, 40); Dd <- gghalftone:::floor_dither(D, 0.1, row(D), col(D))
+  expect_true(all(Dd %in% c(0, 0.1))); expect_equal(mean(Dd), 0.03, tolerance = 0.15)
+})
+
+test_that("hatched intervals are a hairline equal to min_feature; the interval profile is the likelihood, 0.146 at a 95% limit", {
+  strip_w <- function(p) { k <- content(p, "halftone_fill"); g <- find_grob(k, "polygon"); x <- as.numeric(g$x); y <- as.numeric(g$y); n <- g$id.lengths[1]; sqrt((x[1] - x[n])^2 + (y[1] - y[n])^2) }
+  expect_equal(strip_w(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 0.5, shape = "line", outline = FALSE) + theme_void()), 0.09, tolerance = 1e-6)
+  expect_message(with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi)), shape = "line", tone_max = 0.05), "printable minimum")
+  r <- radii(content(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1, outline = FALSE, min_feature = 0) + theme_void(), "halftone_fill"))
+  expect_equal(max(r), 0.9 / 2 * sqrt(0.6), tolerance = 1e-3)                     # 1 on the estimate, times the register
+  r99 <- radii(content(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1, outline = FALSE, min_feature = 0, level = 0.99) + theme_void(), "halftone_fill"))
+  expect_lt(min(r99), min(r))                                                       # a 99 % band fades further at its limit
+})
+
+test_that("colour is redundant by default on tiling geoms (bars get distinct screens; keys follow) and not on intervals", {
+  angles <- function(p) { g <- ggplotGrob(p); pan <- g$grobs[[grep("^panel", g$layout$name)[1]]]; out <- c()
+    walk <- function(x) { if (inherits(x, "halftone_fill")) out <<- c(out, x$params$angle) else if (inherits(x, "gTree")) for (k in x$children) walk(k) else if (inherits(x, "gList")) for (k in x) walk(k) }
+    walk(pan); out }
+  d <- data.frame(g = c("a", "b", "c"), n = 3:1)
+  a_bar <- angles(ggplot(d, aes(g, n, fill = g)) + with_halftone(geom_col(), pitch = 1) + theme_void())
+  expect_equal(length(a_bar), 3); expect_equal(length(unique(a_bar)), 3)
+  expect_equal(length(angles(ggplot(d, aes(g, n, fill = g)) + with_halftone(geom_col(), pitch = 1, redundant = FALSE) + theme_void())), 1)
+  d2 <- data.frame(x = rep(0:1, 2), lo = 0, hi = 1, g = rep(c("a", "b"), each = 2))
+  expect_equal(length(angles(ggplot(d2, aes(x, group = g)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi, fill = g)), pitch = 1) + theme_void())), 1)
+  # legend keys pick up the auto screens: three keys, hatched at distinct angles for a line layer
+  p <- ggplot(d, aes(g, n, fill = g)) + with_halftone(geom_col(), pitch = 1, shape = "line") + theme_halftone()
+  g <- ggplotGrob(p); keys <- c(); walk <- function(x) { if (inherits(x, "segments")) keys <<- c(keys, atan2(as.numeric(x$y1[1]) - as.numeric(x$y0[1]), as.numeric(x$x1[1]) - as.numeric(x$x0[1])))
+    kids <- if (inherits(x, "gtable")) x$grobs else if (inherits(x, "gTree")) x$children else if (inherits(x, "gList")) x else NULL; for (k in kids) walk(k) }
+  for (gr in g$grobs[grep("guide-box", g$layout$name)]) walk(gr)
+  expect_equal(length(keys), 3); expect_equal(length(unique(round(keys, 3))), 3)
+})
+
+test_that("ggsave_journal writes png, tiff and vector pdf by extension; halftone_proof returns full and zoom files", {
+  p <- ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1) + theme_halftone()
+  td <- tempdir()
+  for (ext in c("png", "tiff", "pdf")) { f <- file.path(td, paste0("j.", ext)); ggsave_journal(f, p, "single", height = 30); expect_gt(file.size(f), 1000) }
+  # vector, not an embedded raster: the file grows with the number of dots (cairo compresses streams, so grep for operators is useless)
+  p_fine <- ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 0.4) + theme_halftone()
+  ggsave_journal(file.path(td, "fine.pdf"), p_fine, "single", height = 30); expect_gt(file.size(file.path(td, "fine.pdf")), 3 * file.size(file.path(td, "j.pdf")))
+  info <- png::readPNG(file.path(td, "j.png")); expect_equal(dim(info)[2], round(89 / 25.4 * 600))   # 600 dpi at 89 mm
+  skip_if_not_installed("magick")
+  pf <- halftone_proof(p, "single", height = 30, dir = td, size = 10); expect_true(all(file.exists(pf))); expect_named(pf, c("full", "zoom"))
+})
+
+test_that("journal theme: 0.25 mm rules, 8 pt tags; process palette is one or two plates and switchable", {
+  t <- theme_halftone(); expect_equal(t$axis.line$linewidth, 0.25); expect_equal(t$plot.tag$size, 8)
+  expect_equal(length(halftone_process), 6); expect_true(all(grepl("^#[0-9A-F]{6}$", halftone_process)))
+  skip_if(utils::packageVersion("ggplot2") < "4.0.0")
+  b <- ggplot_build(ggplot(mtcars, aes(wt, mpg, fill = factor(cyl))) + geom_point(shape = 21) + theme_halftone(palette = "process"))
+  expect_true(all(unique(b$data[[1]]$fill) %in% halftone_process))
+})
+
+test_that("scanline fill agrees with point-in-polygon on a concave polygon (the fine raster of the tone profile)", {
+  vx <- c(0, 10, 10, 6, 6, 4, 4, 0); vy <- c(0, 0, 8, 8, 3, 3, 8, 8)   # a U shape
+  rx <- seq(-1, 11, by = 0.37); ry <- seq(-1, 9, by = 0.41)
+  a <- gghalftone:::scan_fill_cpp(rx, ry, vx, vy)
+  b <- matrix(gghalftone:::pip_cpp(rep(rx, each = length(ry)), rep(ry, times = length(rx)), vx, vy), length(ry), length(rx))
+  expect_equal(dim(a), c(length(ry), length(rx))); expect_gt(mean(a), 0.3); expect_equal(a, b)
 })
