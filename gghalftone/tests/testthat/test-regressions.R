@@ -224,3 +224,17 @@ test_that("geom_halftone takes aes(tone = ) through scale_tone_continuous(), and
   r <- radii(content(p, "halftone")); expect_gt(length(unique(round(r, 4))), 10)
   expect_error(content(ggplot(f, aes(x, y)) + geom_halftone(pitch = 1) + theme_void(), "halftone"), "tone")
 })
+
+test_that("hatch strips reach the outline: every run is extended by half a pitch at each end and clipped, so no white margin combs inside a bar", {
+  # horizontal hatch in a bar: the ink must reach within a hairline of both vertical edges on every strip row
+  d <- data.frame(g = "a", n = 1)
+  p <- ggplot(d, aes(g, n)) + with_halftone(geom_col(fill = "black", width = 0.6), shape = "line", angle = 0, pitch = 1, outline = FALSE) + scale_y_continuous(expand = c(0, 0)) + theme_void()
+  im <- px(render(p, w = 40, h = 40)); ink <- im[, , 1] < 0.5
+  cols <- which(colSums(ink) > 0); left <- min(cols); right <- max(cols)
+  rows <- which(rowSums(ink) > 0)
+  reach <- sapply(rows, function(r) { on <- which(ink[r, ]); c(min(on) - left, right - max(on)) })   # px short of the bar's extreme ink columns
+  expect_lt(max(reach), 3)     # at 300 dpi, 3 px = 0.25 mm; the old code left up to pitch/2 = 0.5 mm (6 px) on alternate rows
+  # a single-cell run still draws a strip
+  k <- gghalftone:::line_strips_grob(matrix(c(0, 5), 1), matrix(c(0, 0), 1), matrix(c(1, 0), 1), "black", matrix(c(TRUE, FALSE), 1), 0, 0.5, 0.5)
+  expect_s3_class(k, "polygon"); expect_equal(diff(range(as.numeric(k$x))), 1)
+})

@@ -171,15 +171,20 @@ makeContent.halftone <- function(x) {
 
 # line screen: every lattice row becomes a strip whose width follows the (continuous) tone; rotated with the lattice.
 # Z: tone matrix on the lattice; COL: colour matrix (or single colour); on: logical matrix of cells to draw
-line_strips_grob <- function(X, Y, Z, COL, on, angle, wmax) {
-  a <- angle * pi / 180; nx <- -sin(a); ny <- cos(a)
+# Every run is extended by `extend` mm at both ends. Without this the strips stop at the last cell centre inside the
+# shape and, on a hex lattice where alternate rows are offset by half a pitch, the ends comb: a white margin with a
+# ragged edge inside the outline. A clipped fill extends by a full pitch (the last centre can be anywhere within a pitch
+# of the edge; the clip removes the excess); an unclipped field by half a pitch, the cell boundary.
+line_strips_grob <- function(X, Y, Z, COL, on, angle, wmax, extend) {
+  a <- angle * pi / 180; nx <- -sin(a); ny <- cos(a); ex <- cos(a) * extend; ey <- sin(a) * extend
   polys_x <- list(); polys_y <- list(); cols <- character(0)
   for (i in seq_len(nrow(X))) {
     z <- Z[i, ]; oo <- on[i, ] & z > 0.02
     if (!any(oo)) next
     runs <- rle(oo); ends <- cumsum(runs$lengths); starts <- ends - runs$lengths + 1
-    for (k in which(runs$values)) { s <- starts[k]:ends[k]; if (length(s) < 2) next
+    for (k in which(runs$values)) { s <- starts[k]:ends[k]
       w <- wmax * z[s] / 2; xs <- X[i, s]; ys <- Y[i, s]
+      w <- c(w[1], w, w[length(w)]); xs <- c(xs[1] - ex, xs, xs[length(xs)] + ex); ys <- c(ys[1] - ey, ys, ys[length(ys)] + ey)
       polys_x[[length(polys_x) + 1]] <- c(xs + nx * w, rev(xs - nx * w)); polys_y[[length(polys_y) + 1]] <- c(ys + ny * w, rev(ys - ny * w))
       cols <- c(cols, if (is.matrix(COL)) COL[i, s[1]] else COL[1]) }
   }
@@ -190,7 +195,7 @@ line_screen_grob <- function(lat, r0, d, p, W, H) {
   X <- lat$X; Y <- lat$Y; idx <- r0$idx; has <- !is.na(idx)
   Z <- matrix(0, nrow(X), ncol(X)); Z[has] <- d$z01[idx[has]]
   COL <- matrix(NA_character_, nrow(X), ncol(X)); COL[has] <- scales::alpha(d$colour[idx[has]], d$alpha[idx[has]])
-  line_strips_grob(X, Y, Z, COL, has, p$angle, p$dot_max * p$pitch * 0.9)
+  line_strips_grob(X, Y, Z, COL, has, p$angle, p$dot_max * p$pitch * 0.9, p$pitch / 2)
 }
 
 # weave phase for k inks on the hex lattice. k = 3 has an exact 3-colouring (no same-ink neighbours). A triangular

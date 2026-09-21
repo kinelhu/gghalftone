@@ -91,7 +91,7 @@ makeContent.halftone_fill <- function(x) {
   if (p$shape == "line") {
     COL <- matrix(NA_character_, nrow(X), ncol(X)); ok <- owner > 0
     COL[ok] <- vapply(owner[ok], function(k) scales::alpha(polys[[k]]$fill, polys[[k]]$alpha), "")
-    kids <- gList(line_strips_grob(X, Y, tone, COL, ok, p$angle, p$dot_max * p$pitch * 0.9))
+    kids <- gList(line_strips_grob(X, Y, tone, COL, ok, p$angle, p$dot_max * p$pitch * 0.9, if (p$clip) p$pitch else p$pitch / 2))
     if (p$clip) kids <- gList(gTree(children = kids, vp = viewport(clip = clip_from_polys(polys))))
     if (p$outline) kids <- gList(kids, strip_fill(x$orig)); return(setChildren(x, kids)) }
   Dm <- quantise_tone(tone, p$levels, p$algorithm, p$bayer_n)
