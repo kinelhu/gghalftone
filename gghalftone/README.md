@@ -67,4 +67,4 @@ Maunga Whau from `geom_contour()` plus one `shape = "line"` layer.
 
 ## Status
 
-Prototype. API considered stable for `geom_halftone()`, `geom_spot()`, `with_halftone()`, the screen aesthetic and the theme. Known gaps: no `scale_tone()` legend yet (use `halftone_tone_legend()`); `geom_spot()` ignores `shape = "line"` and `screen`.
+Prototype. API considered stable for `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, the `screen` and `tone` aesthetics, `km_steps()` and the theme. Every export is documented (`?with_halftone` is the place to start). Known gap: `geom_spot()` ignores `shape = "line"` and `screen`.

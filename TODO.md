@@ -1,12 +1,12 @@
 # gghalftone — hand-off TODO
 
-Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 72 regression tests pass. Git repo initialised. Defaults pass done (see `design_review.md`, review 2): bare `with_halftone()` / `geom_halftone()` calls now produce the gallery in `figures/v2/` (`prototypes/gallery2.R`). API considered stable for `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `km_steps()`, the `screen` aesthetic, `theme_halftone()`. No Rd docs yet.
+Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 74 regression tests pass; `R CMD check` clean. Git repo initialised. Defaults pass done (see `design_review.md`, review 2): bare `with_halftone()` / `geom_halftone()` calls now produce the gallery in `figures/v2/` (`prototypes/gallery2.R`). API considered stable for `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `km_steps()`, the `screen` aesthetic, `theme_halftone()`. No Rd docs yet.
 
 ## Priority order
 
 1. ~~Use it on real data.~~ Done on `survival::lung` (`figures/v2/km.png`, `km_bw.png`): `km_steps()` + `with_halftone(geom_ribbon())` + `with_halo(geom_step())` + `km_censor()` + `km_risk()`. Next: run it on your own cohort and see what breaks.
-2. **Rd documentation** for every export (`roxygen2`). While doing it, rationalise overlapping arguments: `dot_max`, `tone_max`, `gamma`, `gain` (ink weight / tone ceiling / tone curve / dot spread) — decide which survive and document the difference. `levels` is now NULL (continuous) by default; `algorithm`/`bayer_n` only matter when it is set. Then `R CMD check` should be clean apart from figure size.
-3. ~~`scale_tone()`~~ Done for `geom_spot()` (`aes(tone = )` + `scale_tone_continuous()`, legend of discs at the breaks). Still to do: let `geom_halftone()` take `tone` too, and retire `halftone_tone_legend()`.
+2. ~~Rd documentation~~ Done: every export documented, `R CMD check --no-manual` is clean (0 errors, 0 warnings, 0 notes). Arguments rationalised: `dot_max` (ink weight at full tone), `tone_max` (tone ceiling), `gamma` (tone curve) survive; `gain` (dot spread) and `size_map` (radius mapping) were removed, both unused and both wrong for print. `levels = NULL` is continuous; `algorithm`/`bayer_n` only matter when it is set.
+3. ~~`scale_tone()`~~ Done: `aes(tone = )` + `scale_tone_continuous()` on both `geom_spot()` and `geom_halftone()`; `halftone_tone_legend()` removed.
 4. **Blue-noise tiling**: the 32x32 void-and-cluster matrix repeats visibly on large flat fills (bars specimen, tile 7). Options: 64x64 (generation is 0.1 s at 32, scales ~n^2 log n), or a per-row phase offset from a second matrix.
 5. **`geom_spot()` parity**: accept `aes(screen = )` and `shape = "line"` (hatched discs for B&W dot plots); reuse `dot_grob()`/`line_strips_grob()`.
 6. **Performance**: nothing profiled. Worst case = facets x groups x 0.45 mm on 183 mm. Candidates: `sample_index()` binning, `pip_cpp` per polygon on the full lattice (bbox filter exists), `mapply` in the weave (vectorise with the bitmask).
@@ -14,8 +14,7 @@ Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 72 regressi
 8. ~~git init~~ Done (2026-09-21, branch `main`).
 
 ## Known issues / open design questions
-- Ochre (`halftone_inks[["ochre"]]`) is the weakest ink at low tone in a three-ink weave; a deeper amber (#9C6A0F was used in the old keepset) may be the better default.
-- Fonts: none of Liberation Sans / EB Garamond / Inconsolata are installed on this machine; the theme falls back to Arial / Georgia / Menlo. Install the intended families before final renders.
+- Fonts: none of Liberation Sans / EB Garamond / Inconsolata are installed on this machine; the theme falls back to Helvetica / Georgia / Menlo (Helvetica before Arial so the pdf device, which R CMD check uses for examples, gets a base family). Install the intended families before final renders.
 - Two-ink weave has no perfect solution on a hex lattice (odd cycles); blue-noise assignment is used for k != 3. Fine at 600 dpi; document.
 - KM lower-half density: overprint makes each stratum's lower half denser (it overlaps the neighbour's core). Not a bug; `overlap = "stack"` if it must be symmetric.
 - Line screens + gaussian tone read as fringe; the wrapper warns. Keep the rule.

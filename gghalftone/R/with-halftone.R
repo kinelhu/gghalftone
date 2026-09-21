@@ -51,6 +51,9 @@ clip_from_polys <- function(polys) {
   xs <- unlist(lapply(polys, `[[`, "x")); ys <- unlist(lapply(polys, `[[`, "y")); ids <- rep(seq_along(polys), lengths(lapply(polys, `[[`, "x")))
   pathGrob(x = unit(xs, "mm"), y = unit(ys, "mm"), id = ids, rule = "winding", gp = gpar(fill = "black", col = NA))
 }
+#' @rdname with_halftone
+#' @order 2
+#' @param x A `halftone_fill` grob (internal; `makeContent` method).
 #' @export
 makeContent.halftone_fill <- function(x) {
   p <- x$params; W <- convertWidth(unit(1, "npc"), "mm", TRUE); H <- convertHeight(unit(1, "npc"), "mm", TRUE)
@@ -104,7 +107,7 @@ makeContent.halftone_fill <- function(x) {
       who[multi] <- mapply(function(m, r, c) { ks <- which(bitwAnd(as.integer(m), 2^(0:30)) > 0); k <- length(ks); ks[(weave_phase(r, c, k) %% k) + 1] }, mask[ii], ri, ci)
     }
     cols <- vapply(who, function(k) scales::alpha(polys[[k]]$fill, polys[[k]]$alpha), "")
-    r <- p$dot_max * p$pitch / 2 * (if (p$size_map == "area") sqrt(Dm[keep]) else Dm[keep]) * (1 + p$gain * Dm[keep])
+    r <- p$dot_max * p$pitch / 2 * sqrt(Dm[keep])
     kids <- gList(dot_grob(X[keep], Y[keep], r, cols, p$shape))
   }
   # clip the screen to the exact fill region (grid clipping paths, R >= 4.1; honoured by ragg/cairo/pdf)
@@ -113,10 +116,51 @@ makeContent.halftone_fill <- function(x) {
   setChildren(x, kids)
 }
 
+#' Screen the fill of any layer
+#'
+#' Wraps a ggplot2 layer so that its fill is printed as a halftone. The wrapped geom draws as usual; at draw time every
+#' filled polygon, rectangle or path in its grob tree is rasterised onto a millimetre lattice, given a tone field
+#' derived from its own geometry, and drawn as dots (or hatch) in its fill colour, clipped to the shape. Works with
+#' ribbons, areas, bars and columns, densities and violins, polygons, tiles and `geom_sf()`.
+#'
+#' @section Tone profile:
+#' `tone = NULL` picks a profile from the geometry, which is the rule the design work converged on:
+#' * bars, columns, tiles, areas, polygons and sf: `"flat"`, because there the interior *is* the value;
+#' * ribbons (intervals): `"centre"`, a gaussian that peaks on the estimate and fades to the limit;
+#' * densities and violins: `"vignette"`, a soft fade towards the outline so overlapping groups stay legible;
+#' * line screens: always `"flat"` (a tapered hatch reads as fringe);
+#' * a mapped `screen` is a categorical pattern, and patterns are flat.
+#'
+#' @section Register:
+#' `tone_max = NULL` sets one ink weight across figure types: flat 0.45 (polygons and sf 0.6), centre 0.6, vignette
+#' 0.7, hatching 0.4, hatched intervals hairline 0.15. Alpha on the fill is folded into tone (a 30 % alpha prints as a
+#' 30 % screen); nothing translucent reaches the page.
+#'
+#' @inheritParams geom_halftone
+#' @param layer A ggplot2 layer, e.g. `geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))`.
+#' @param pitch Lattice spacing in mm (0.6).
+#' @param angle Lattice angle in degrees; `NULL` means 15 for dots and 45 for hatching.
+#' @param tone Tone profile: `NULL` (from the geometry, see below), `"flat"`, `"centre"`, `"vignette"`, `"edge"`,
+#'   `"tent"` or `"centre-soft"`.
+#' @param profile Distance used by the non-flat profiles: `"vertical"` (distance to the top and bottom edge along
+#'   each column, right for ribbons and densities) or `"radial"` (Euclidean distance to the outline).
+#' @param local For `"vertical"`, normalise each column by its own height (`TRUE`) or by the tallest.
+#' @param tone_max Tone ceiling; `NULL` picks the register above.
+#' @param outline Keep the layer's own outline (with its fill removed) on top of the screen.
+#' @param clip Clip the screen to the exact fill region (grid clipping path; ragg, cairo and pdf honour it).
+#' @param overlap `"overprint"` weaves all inks present in a cell (default); `"stack"` lets the last-drawn shape win,
+#'   for nested intervals and ridgelines.
+#' @return The layer, with its geom replaced by a halftone-drawing subclass.
+#' @order 1
+#' @examples
+#' x <- seq(0, 10, length.out = 60); d <- data.frame(x, y = sin(x), lo = sin(x) - 0.5, hi = sin(x) + 0.5)
+#' ggplot2::ggplot(d, ggplot2::aes(x)) +
+#'   with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), fill = halftone_inks[["blue"]])) +
+#'   with_halo(ggplot2::geom_line(ggplot2::aes(y = y), colour = halftone_inks[["blue"]])) + theme_halftone()
 #' @export
 with_halftone <- function(layer, pitch = 0.6, angle = NULL, grid = "hex", tone = NULL, profile = c("vertical", "radial"), local = TRUE,
-                          levels = NULL, bayer_n = 4, dot_max = 0.9, size_map = "area", gamma = 1, tone_max = NULL, outline = TRUE,
-                          shape = "circle", algorithm = "bayer", clip = TRUE, overlap = c("overprint", "stack"), gain = 0) {
+                          levels = NULL, bayer_n = 4, dot_max = 0.9, gamma = 1, tone_max = NULL, outline = TRUE,
+                          shape = "circle", algorithm = "bayer", clip = TRUE, overlap = c("overprint", "stack")) {
   overlap <- match.arg(overlap)
   angle_user <- !is.null(angle); angle <- angle %||% if (shape == "line") 45 else 15   # hatching at 45; dots on a hex lattice at 15 so no lattice axis is horizontal or vertical
   # defaults encode the print rules: line screens are constant weight with a hard edge; outline-defined shapes
@@ -131,7 +175,7 @@ with_halftone <- function(layer, pitch = 0.6, angle = NULL, grid = "hex", tone =
   is_map <- inherits(parent0, c("GeomPolygon", "GeomSf")); is_interval <- inherits(parent0, "GeomRibbon") && !inherits(parent0, "GeomArea")
   tone_max <- tone_max %||% switch(tone, flat = if (shape == "line") (if (is_interval) 0.15 else 0.4) else if (is_map) 0.6 else 0.45, centre = 0.6, vignette = 0.7, 1)
   if (shape == "line" && tone != "flat") message("with_halftone(): line screens usually look better with tone = \"flat\" (hard edge); tapered strokes read as fringe")
-  P <- list(pitch = pitch, angle = angle, grid = grid, tone = tone, profile = profile, local = local, levels = levels, bayer_n = bayer_n, dot_max = dot_max, size_map = size_map, gamma = gamma, tone_max = tone_max, outline = outline, shape = shape, algorithm = algorithm, clip = clip, overlap = overlap, gain = gain,
+  P <- list(pitch = pitch, angle = angle, grid = grid, tone = tone, profile = profile, local = local, levels = levels, bayer_n = bayer_n, dot_max = dot_max, gamma = gamma, tone_max = tone_max, outline = outline, shape = shape, algorithm = algorithm, clip = clip, overlap = overlap,
             tone_auto = !tone_user, tone_max_auto = !tone_max_user, angle_user = angle_user)
   wrapped <- ggproto(NULL, parent,
     default_aes = do.call(aes, c(as.list(parent$default_aes), list(screen = NA))),

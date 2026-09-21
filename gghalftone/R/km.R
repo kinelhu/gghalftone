@@ -1,6 +1,25 @@
 # km.R — survfit -> data frames ready for with_halftone(geom_ribbon()) + with_halo(geom_step()).
 # Every KM script in the prototypes rebuilt the step-ribbon frame by hand; this is that frame, once.
 
+#' Kaplan-Meier frames for halftone survival plots
+#'
+#' Turn a `survival::survfit` object into data frames ready for `with_halftone(geom_ribbon())` and
+#' `with_halo(geom_step())`. `km_steps()` returns the step outline with one row per corner (`time`, `surv`, `lo`,
+#' `hi`, `strata`), starting at `(0, 1)`, so a ribbon between `lo` and `hi` follows the staircase exactly.
+#' `km_censor()` returns the censoring marks (`time`, `surv`, `strata`); `km_risk()` the number at risk at `times`.
+#' Strata labels are the level values without the variable name (`"ph.ecog=1"` becomes `"1"`).
+#' @param fit A `survfit` object.
+#' @param conf Include the confidence limits (`lo`, `hi`); otherwise both equal `surv`.
+#' @param times Times at which to report the number at risk.
+#' @return A data frame.
+#' @examples
+#' if (requireNamespace("survival", quietly = TRUE)) {
+#'   fit <- survival::survfit(survival::Surv(time, status) ~ sex, data = survival::lung)
+#'   s <- km_steps(fit)
+#'   ggplot2::ggplot(s, ggplot2::aes(time, group = strata)) +
+#'     with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi, fill = strata))) +
+#'     with_halo(ggplot2::geom_step(ggplot2::aes(y = surv, colour = strata))) + theme_halftone()
+#' }
 #' @export
 km_steps <- function(fit, conf = TRUE) {
   stopifnot(inherits(fit, "survfit"))

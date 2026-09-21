@@ -8,12 +8,34 @@
 # params: pitch (mm), angle (deg), grid ("square"/"hex"), levels, algorithm, bayer_n, dot_max (fraction of pitch)
 
 
+#' Threshold matrices and dithering
+#'
+#' The threshold matrices behind `levels = k` quantisation. `bayer_matrix()` is the ordered-dither matrix of size
+#' `n` (a power of two); `blue_noise_matrix()` is a void-and-cluster matrix (cached, seeded) whose thresholds are evenly
+#' spread with no periodic structure. `dither_bayer()` and `dither_blue_noise()` quantise a tone matrix `z` in `[0, 1]`
+#' to `levels` steps and dither the remainder with the tiled matrix.
+#'
+#' Bayer for graded tone, blue noise for a binary stipple (`levels = 1`). Most users never call these: pass
+#' `levels` and `algorithm` to [geom_halftone()] or [with_halftone()] instead. By default tone is continuous and no
+#' dithering takes place.
+#' @param n Matrix size (Bayer: 2, 4, 8, ...; blue noise: 32 by default).
+#' @param sigma Gaussian width, in cells, of the energy filter used to build the blue-noise matrix.
+#' @param z Numeric matrix of tone in `[0, 1]`.
+#' @param levels Number of quantisation steps.
+#' @return A numeric matrix of thresholds in `(0, 1)` (matrices), or a quantised tone matrix (dither functions).
+#' @examples
+#' bayer_matrix(2)
+#' range(blue_noise_matrix(32))
+#' @name dither
+NULL
+#' @rdname dither
 #' @export
 bayer_matrix <- function(n = 4) {
   m <- matrix(0, 1, 1)
   while (nrow(m) < n) m <- rbind(cbind(4 * m, 4 * m + 2), cbind(4 * m + 3, 4 * m + 1))
   (m + 0.5) / (n * n)
 }
+#' @rdname dither
 #' @export
 blue_noise_matrix <- local({
   cache <- NULL
@@ -33,12 +55,14 @@ blue_noise_matrix <- local({
     cache <<- (rank + 0.5) / N; cache
   }
 })
+#' @rdname dither
 #' @export
 dither_blue_noise <- function(z, levels = 1, n = 32) {
   b <- blue_noise_matrix(n); nr <- nrow(z); nc <- ncol(z)
   thr <- b[((seq_len(nr) - 1) %% n) + 1, ((seq_len(nc) - 1) %% n) + 1, drop = FALSE]
   pmin(pmax(floor(z * levels + thr) / levels, 0), 1)
 }
+#' @rdname dither
 #' @export
 dither_bayer <- function(z, levels = 1, n = 4) {
   b <- bayer_matrix(n); nr <- nrow(z); nc <- ncol(z)
@@ -124,6 +148,9 @@ blend_inks <- function(cols, blend = "mix") {   # overprint colour for a cell ca
   grDevices::rgb(v[1], v[2], v[3])
 }
 
+#' @rdname geom_halftone
+#' @order 2
+#' @param x A `halftone` grob (internal; `makeContent` method).
 #' @export
 makeContent.halftone <- function(x) {
   d <- x$data; p <- x$params
@@ -135,8 +162,7 @@ makeContent.halftone <- function(x) {
   keep <- D > tone_floor
   if (!any(keep)) return(setChildren(x, gList()))
   if (p$shape == "line") return(setChildren(x, gList(line_screen_grob(lat, r0, d, p, W, H))))
-  tone <- if (p$size_map == "area") sqrt(D[keep]) else D[keep]   # area (print-correct) or radius (bolder)
-  r <- p$dot_max * pitch / 2 * tone * (1 + p$gain * D[keep])   # gain: ink spread grows with tone
+  r <- p$dot_max * pitch / 2 * sqrt(D[keep])   # dot AREA proportional to tone (print-correct)
   src <- idx[keep]
   col <- scales::alpha(d$colour[src], d$alpha[src])
   xs <- X[keep]; ys <- Y[keep]
@@ -204,25 +230,28 @@ make_overprint <- function(x, W, H) {
       cols[!single] <- mapply(function(i, pr) { r <- colmat[i, ]; r <- r[!is.na(r)]; r[(pr %% length(r)) + 1] }, which(!single), par)
     } else cols[!single] <- apply(colmat[!single, , drop = FALSE], 1, function(r) blend_inks(r[!is.na(r)], p$blend))
   }
-  tone <- if (p$size_map == "area") sqrt(Dmax[keep]) else Dmax[keep]
-  r <- p$dot_max * pitch / 2 * tone * (1 + p$gain * Dmax[keep])
+  r <- p$dot_max * pitch / 2 * sqrt(Dmax[keep])
   setChildren(x, gList(circleGrob(x = unit(X[keep], "mm"), y = unit(Y[keep], "mm"), r = unit(r, "mm"), gp = gpar(fill = cols, col = NA))))
 }
 
 GeomHalftone <- ggproto("GeomHalftone", Geom,
-  required_aes = c("x", "y", "z"),
-  default_aes = aes(colour = "#8B1A1A", alpha = 1, screen = NA),
+  required_aes = c("x", "y"), optional_aes = c("z", "tone"),
+  default_aes = aes(colour = "#8B1A1A", alpha = 1, screen = NA, z = NA, tone = NA),
   draw_key = function(data, params, size) draw_key_halftone(data, params, size),
   draw_panel = function(data, panel_params, coord, pitch = NULL, angle = NULL, grid = "hex",
-                        levels = NULL, algorithm = "bayer", bayer_n = 4, dot_max = 0.9, range = NULL, size_map = "area",
-                        shape = "circle", gamma = 1, gain = 0, overlap = c("stack", "interleave", "overprint"), blend = "mix", tone_max = NULL) {
+                        levels = NULL, algorithm = "bayer", bayer_n = 4, dot_max = 0.9, range = NULL,
+                        shape = "circle", gamma = 1, overlap = c("stack", "interleave", "overprint"), blend = "mix", tone_max = NULL) {
     pitch <- pitch %||% if (shape == "line") 0.45 else 0.6              # line screens read coarse above 0.5 mm
     tone_max <- tone_max %||% if (isTRUE(levels == 1)) 0.55 else 1       # a binary stipple must never saturate into the bare lattice
     overlap <- match.arg(overlap); angle_user <- !is.null(angle); angle <- angle %||% 15   # screen specs are absolute unless the user gave an angle offset
+    use_tone <- !all(is.na(data$tone))
+    if (!use_tone && all(is.na(data$z))) stop("geom_halftone() needs aes(z = ) or aes(tone = ) (through scale_tone_continuous())")
     rng <- if (is.null(range)) range(data$z, na.rm = TRUE) else range
-    prep <- function(d) { cc <- coord$transform(d, panel_params); cc$z01 <- norm01(d$z, rng)^gamma * tone_max; cc$alpha[is.na(cc$alpha)] <- 1; cc }
+    prep <- function(d) { cc <- coord$transform(d, panel_params)
+      t01 <- if (use_tone) pmin(pmax(d$tone, 0), 1) else norm01(d$z, rng); t01[is.na(t01)] <- 0
+      cc$z01 <- t01^gamma * tone_max; cc$alpha[is.na(cc$alpha)] <- 1; cc }
     P <- list(pitch = pitch, angle = angle, grid = grid, levels = levels, algorithm = algorithm, bayer_n = bayer_n,
-              dot_max = dot_max, size_map = size_map, shape = shape, gain = gain, phase = c(0, 0), blend = blend)
+              dot_max = dot_max, shape = shape, phase = c(0, 0), blend = blend)
     groups <- split(data, data$group)
     has_screen <- !all(is.na(data$screen))
     if (overlap == "overprint" && length(groups) > 1 && !has_screen && shape != "line")
@@ -237,15 +266,67 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
   }
 )
 
+#' Halftone screen of a gridded field
+#'
+#' Draws a gridded field (`x`, `y` and a value) as a print halftone: dots, or hatch lines, placed at draw time on a
+#' lattice with a physical pitch in millimetres, each dot sized so that its *area* follows the tone at that point. The
+#' screen is therefore identical whether the figure is saved at 89 mm or 183 mm. Colour and fill scales apply to the
+#' field as usual; every dot inherits the colour of the cell it samples.
+#'
+#' The value can be given two ways. `aes(z = )` is normalised to `[0, 1]` inside the geom (over `range`, or the data
+#' range); `aes(tone = )` goes through [scale_tone_continuous()], which gives it a legend. Groups (through `colour`,
+#' `fill` or `group`) that share the panel are *overprinted* by default: their dots are woven on one lattice so every
+#' ink stays visible where they overlap.
+#'
+#' @section Defaults:
+#' A 0.6 mm hex lattice rotated 15 degrees (so no lattice axis is horizontal or vertical), continuous tone, circular
+#' dots. Line screens (`shape = "line"`) default to 0.45 mm. A binary stipple (`levels = 1`) is capped at 55 % tone so
+#' the densest region still reads as a stipple rather than a bare lattice; set `tone_max` to override.
+#'
+#' @inheritParams ggplot2::layer
+#' @param ... Other arguments passed to [ggplot2::layer()], such as fixed aesthetics (`colour = "black"`).
+#' @param pitch Lattice spacing in mm. `NULL` picks 0.6 for dots and 0.45 for line screens. Journal figures want
+#'   0.45 to 0.6; editorial work 0.9 to 1.2.
+#' @param angle Rotation of the lattice in degrees. `NULL` means 15 for a hex lattice. When `screen` is mapped, the
+#'   screen specs are absolute and `angle` (if given) is added to them.
+#' @param grid `"hex"` (default) or `"square"`. A 45-degree square lattice is the classic map and photo screen.
+#' @param levels `NULL` for continuous tone (dot area follows tone exactly). An integer quantises tone to that many
+#'   steps and dithers the remainder with `algorithm`; `levels = 1` is a binary stipple.
+#' @param algorithm Dither used when `levels` is set: `"bayer"` (graded tone), `"blue_noise"` (stipple) or
+#'   `"floyd_steinberg"` (photographs).
+#' @param bayer_n Size of the Bayer matrix when `algorithm = "bayer"`.
+#' @param dot_max Diameter of a full-tone dot as a fraction of `pitch` (0.9). Above 1 dots merge; it is the ink weight
+#'   of the screen at 100 % tone. For line screens it is the full-tone strip width, as a fraction of pitch.
+#' @param range Value range mapped to tone 0..1 when `z` is used; `NULL` uses the data range. A wider range lightens
+#'   the screen.
+#' @param shape `"circle"`, `"square"`, `"diamond"` (area-matched, so a mixed-shape screen stays in one register) or
+#'   `"line"` for a line screen whose strip width follows tone.
+#' @param gamma Tone curve: tone is raised to this power before printing. Below 1 lifts mid-tones, above 1 deepens them.
+#' @param overlap How groups sharing the panel combine: `"overprint"` (woven on one lattice, default), `"interleave"`
+#'   (each group on its own phase-shifted lattice) or `"stack"` (last group drawn wins; hides overlaps).
+#' @param blend Colour of a cell carrying several inks under `"overprint"`: `"alternate"` (weave, default), `"mix"`
+#'   or `"multiply"`.
+#' @param tone_max Tone ceiling in `[0, 1]`. `NULL` means 1, or 0.55 for a binary stipple.
+#' @param na.rm Remove missing values silently.
+#' @return A ggplot2 layer.
+#' @order 1
+#' @seealso [with_halftone()] to screen the fill of an existing layer, [geom_spot()] for per-point discs,
+#'   [scale_screen_discrete()] for colour-free encodings, [with_halo()] for lines drawn over a screen.
+#' @examples
+#' vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
+#' ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone() + theme_halftone(axes = "box")
+#' # engraving: a line screen, plus contours with a paper halo
+#' ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone(shape = "line", angle = 30) +
+#'   with_halo(ggplot2::geom_contour(colour = "black", linewidth = 0.2), width = 0.15) + theme_halftone(axes = "box")
 #' @export
 geom_halftone <- function(mapping = NULL, data = NULL, stat = "identity", position = "identity", ...,
                           pitch = NULL, angle = NULL, grid = "hex", levels = NULL, algorithm = "bayer",
-                          bayer_n = 4, dot_max = 0.9, range = NULL, size_map = "area", shape = "circle", gamma = 1, gain = 0, overlap = "overprint", blend = "alternate", tone_max = NULL,
+                          bayer_n = 4, dot_max = 0.9, range = NULL, shape = "circle", gamma = 1, overlap = "overprint", blend = "alternate", tone_max = NULL,
                           na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
   layer(geom = GeomHalftone, mapping = mapping, data = data, stat = stat, position = position,
         show.legend = show.legend, inherit.aes = inherit.aes,
         params = list(pitch = pitch, angle = angle, grid = grid, levels = levels, algorithm = algorithm,
-                      bayer_n = bayer_n, dot_max = dot_max, range = range, size_map = size_map, shape = shape, gamma = gamma, gain = gain, overlap = overlap, blend = blend, tone_max = tone_max, na.rm = na.rm, ...))
+                      bayer_n = bayer_n, dot_max = dot_max, range = range, shape = shape, gamma = gamma, overlap = overlap, blend = blend, tone_max = tone_max, na.rm = na.rm, ...))
 }
 
 # ---- geom_spot: each point is a disc of radius r (mm) filled with a halftone whose tone is the value ----------------
@@ -268,6 +349,9 @@ spot_grob <- function(cx, cy, rad, tone, col, pitch, dot_max, ring, ring_lwd, le
   if (ring) kids <- gList(kids, circleGrob(x = unit(cx, "mm"), y = unit(cy, "mm"), r = unit(rad, "mm"), gp = gpar(fill = NA, col = col, lwd = ring_lwd)))
   gTree(children = kids)
 }
+#' @rdname geom_spot
+#' @order 2
+#' @param x A `spot` grob (internal; `makeContent` method).
 #' @export
 makeContent.spot <- function(x) {
   d <- x$data; p <- x$params
@@ -281,7 +365,7 @@ GeomSpot <- ggproto("GeomSpot", Geom,
   default_aes = aes(colour = "#151515", alpha = 1, size = NA, tone = NA, z = NA),
   draw_key = function(data, params, size) draw_key_spot(data, params, size),
   draw_panel = function(data, panel_params, coord, r = 3, pitch = 0.5, levels = NULL, bayer_n = 4, dot_max = 0.9,
-                        range = NULL, ring = TRUE, ring_lwd = 0.3, gain = 0) {
+                        range = NULL, ring = TRUE, ring_lwd = 0.3) {
     coords <- coord$transform(data, panel_params)
     if (!all(is.na(data$tone))) coords$z01 <- pmin(pmax(data$tone, 0), 1)
     else if (!all(is.na(data$z))) { rng <- if (is.null(range)) range(data$z, na.rm = TRUE) else range; coords$z01 <- norm01(data$z, rng) }
@@ -289,26 +373,63 @@ GeomSpot <- ggproto("GeomSpot", Geom,
     coords$z01[is.na(coords$z01)] <- 0
     coords$alpha[is.na(coords$alpha)] <- 1
     if (all(is.na(coords$size))) coords$size <- NULL
-    gTree(data = coords, params = list(r = r, pitch = pitch, levels = levels, bayer_n = bayer_n, dot_max = dot_max, ring = ring, ring_lwd = ring_lwd, gain = gain), cl = "spot")
+    gTree(data = coords, params = list(r = r, pitch = pitch, levels = levels, bayer_n = bayer_n, dot_max = dot_max, ring = ring, ring_lwd = ring_lwd), cl = "spot")
   }
 )
+#' Tone discs
+#'
+#' Each point becomes a disc of radius `r` mm (or `aes(size = )`, in mm) filled with a halftone whose tone is the
+#' point's value: a dot plot where a second quantity is carried by ink density instead of a colour ramp. Each disc has
+#' its own centred hex lattice (a symmetric rosette) clipped to the disc, with a ring in the disc's colour.
+#'
+#' Tone comes from `aes(tone = )` through [scale_tone_continuous()], which gives it a legend of discs at the breaks,
+#' or from `aes(z = )` normalised inside the geom.
+#'
+#' @inheritParams geom_halftone
+#' @param r Disc radius in mm when `size` is not mapped.
+#' @param pitch Lattice spacing inside the discs, in mm.
+#' @param ring Draw the disc outline.
+#' @param ring_lwd Line width of the ring.
+#' @return A ggplot2 layer.
+#' @order 1
+#' @examples
+#' d <- expand.grid(gene = c("A", "B", "C"), cluster = 1:4); d$expr <- runif(12); d$pct <- runif(12)
+#' ggplot2::ggplot(d, ggplot2::aes(cluster, gene, tone = expr, size = pct)) + geom_spot() +
+#'   scale_tone_continuous() + ggplot2::scale_radius(range = c(1, 2.2)) + theme_halftone(axes = "none")
 #' @export
 geom_spot <- function(mapping = NULL, data = NULL, stat = "identity", position = "identity", ..., r = 3, pitch = 0.5,
-                      levels = NULL, bayer_n = 4, dot_max = 0.9, range = NULL, ring = TRUE, ring_lwd = 0.3, gain = 0,
+                      levels = NULL, bayer_n = 4, dot_max = 0.9, range = NULL, ring = TRUE, ring_lwd = 0.3,
                       na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
   layer(geom = GeomSpot, mapping = mapping, data = data, stat = stat, position = position, show.legend = show.legend,
         inherit.aes = inherit.aes, params = list(r = r, pitch = pitch, levels = levels, bayer_n = bayer_n, dot_max = dot_max,
-        range = range, ring = ring, ring_lwd = ring_lwd, gain = gain, na.rm = na.rm, ...))
+        range = range, ring = ring, ring_lwd = ring_lwd, na.rm = na.rm, ...))
 }
 # tone as a real aesthetic: a continuous scale onto [0, 1] (or a narrower range) with a legend of tone discs at the breaks
+#' Tone scale
+#'
+#' Maps a continuous variable to the `tone` aesthetic of [geom_spot()] and [geom_halftone()]: ink density in
+#' `[0, 1]`. The legend shows discs (or swatches) at the scale breaks. `scale_tone()` is an alias.
+#' @inheritParams ggplot2::continuous_scale
+#' @param range Output tone range; narrow it (e.g. `c(0.1, 0.9)`) to keep the lightest value visible.
+#' @param ... Passed to [ggplot2::continuous_scale()] (`limits`, `breaks`, `labels`, `trans`, ...).
+#' @return A ggplot2 scale.
 #' @export
 scale_tone_continuous <- function(name = waiver(), ..., range = c(0, 1), guide = "legend") {
   continuous_scale("tone", palette = scales::pal_rescale(range), name = name, guide = guide, ...)
 }
+#' @rdname scale_tone_continuous
 #' @export
 scale_tone <- scale_tone_continuous
 
 # ---- legend keys: a small dithered swatch (geom_halftone) / a mid-tone disc (geom_spot) ------------------------
+#' Legend keys
+#'
+#' `draw_key_halftone()` draws a mid-tone dot swatch (or hatch for line screens) at the layer's screen angle and shape;
+#' `draw_key_spot()` draws a disc at the break's tone or, for a size legend, at the break's radius. Both are the
+#' default keys of the corresponding geoms and are exported for use with `key_glyph`.
+#' @inheritParams ggplot2::draw_key
+#' @return A grob.
+#' @name draw_key_halftone
 #' @export
 draw_key_halftone <- function(data, params, size) {
   n <- 9; g <- expand.grid(i = 1:n, j = 1:n); tone <- rep(0.55, n * n)   # uniform mid-tone swatch
@@ -353,13 +474,37 @@ screen_recipe <- function(n, period = 60) {   # up to 9 distinct screens; the fi
 # hatching angles for line screens: diagonal, counter-diagonal, horizontal, vertical, then the half-steps (absolute degrees)
 line_recipe <- function(n) rep_len(c(45, 135, 0, 90, 22.5, 112.5, 67.5, 157.5), n)
 # screen scales: map a discrete variable to lattice angles (square lattice repeats every 90°, hex every 60°)
+#' Screen scales: colour-free encodings
+#'
+#' Map a discrete variable to the `screen` aesthetic of [geom_halftone()] and any layer wrapped in
+#' [with_halftone()]. A screen spec is `"angle|shape|tone|line_angle"`: the lattice angle in degrees, the dot shape
+#' (`circle`, `square`, `diamond`, or `line` to hatch that group), a tone multiplier, and the hatching angle used
+#' when the layer is a line screen. A bare number is an angle. Specs are absolute; the layer's `angle`, if given, is
+#' added.
+#'
+#' `scale_screen_discrete()` uses a recipe in which consecutive screens differ in both angle and shape (three angles
+#' spaced over the lattice period, 60 degrees for hex), and hatch angles 45, 135, 0, 90, ... for line screens.
+#' `scale_screen_manual()` takes your own specs, e.g. `c("45|line", "135|line", "15|circle")` to mix hatching and
+#' dots in one layer. Angle alone distinguishes three screens; beyond that vary shape and tone, or add a second ink.
+#' @inheritParams ggplot2::discrete_scale
+#' @param grid Lattice of the layer, which sets the angle period.
+#' @param values Character or numeric vector of screen specs, one per level.
+#' @param ... Passed to [ggplot2::discrete_scale()].
+#' @return A ggplot2 scale.
+#' @examples
+#' d <- data.frame(g = c("a", "b", "c"), n = c(3, 2, 1))
+#' ggplot2::ggplot(d, ggplot2::aes(g, n, screen = g)) +
+#'   with_halftone(ggplot2::geom_col(fill = "black", colour = "black"), shape = "line") +
+#'   scale_screen_discrete(name = NULL) + theme_halftone()
 #' @export
 scale_screen_discrete <- function(..., grid = c("hex", "square"), name = waiver()) {
   grid <- match.arg(grid); period <- if (grid == "hex") 60 else 90
   discrete_scale("screen", "screen_d", palette = function(n) screen_recipe(n, period), name = name, ...)
 }
+#' @rdname scale_screen_discrete
 #' @export
 scale_screen_manual <- function(values, ..., name = waiver()) discrete_scale("screen", "screen_m", palette = function(n) values[seq_len(n)], name = name, ...)
+#' @rdname draw_key_halftone
 #' @export
 draw_key_spot <- function(data, params, size) {
   # a tone key shows the disc at the break's tone; a size key shows a mid-tone disc at that radius. The key reports its

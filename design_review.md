@@ -116,3 +116,10 @@ Author's notes on the v2 proofs, and what changed:
 | map | "straight downgrade from the previous one" | Agreed. The continuous ramp is back to paper - ochre - red - near-black (`halftone_ramp`), polygons/sf print at 0.6, gallery uses the 45° square lattice. |
 | smooth | "looks quite good" | unchanged |
 | stipple | "you need to look at that one" | A binary stipple at full tone printed the bare lattice in the density core. `levels = 1` now caps tone at 0.55 by default (`tone_max` overrides), so the densest region stays a stipple. |
+
+## Closing the open items (same day)
+
+- **Ochre**: four candidates side by side on the three-strata KM (ochre #A8741C, amber #9C6A0F, umber #8A5A12, green). Amber wins: clearly heavier than ochre at the band edge, still a distinct hue from red, unlike umber which drifts towards it. `halftone_inks[["ochre"]]` is now #9C6A0F; the continuous ramp keeps the lighter ochre as its mid stop.
+- **Arguments**: `gain` and `size_map` removed. Dot area, not radius, follows tone, and ink spread is a press property that has no place in a figure.
+- **Tone aesthetic** on `geom_halftone()` too; `halftone_tone_legend()` retired.
+- **Docs**: every export has an Rd page; check is clean.

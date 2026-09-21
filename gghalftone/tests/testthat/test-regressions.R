@@ -216,3 +216,11 @@ test_that("a line-screen layer with a mapped screen recipe stays hatched (the re
   expect_false(is.null(find_grob(mixed(c("45|line", "15|circle")), "polygon")))   # first group hatched (content() renders the first group)
   expect_false(is.null(find_grob(mixed(c("15|circle", "45|line")), "circle")))    # first group dotted
 })
+
+test_that("geom_halftone takes aes(tone = ) through scale_tone_continuous(), and errors without z or tone", {
+  f <- expand.grid(x = 1:20, y = 1:20); f$v <- f$x * 5
+  p <- ggplot(f, aes(x, y, tone = v)) + geom_halftone(pitch = 1) + scale_tone_continuous() + theme_void()
+  expect_equal(range(ggplot_build(p)$data[[1]]$tone), c(0, 1))
+  r <- radii(content(p, "halftone")); expect_gt(length(unique(round(r, 4))), 10)
+  expect_error(content(ggplot(f, aes(x, y)) + geom_halftone(pitch = 1) + theme_void(), "halftone"), "tone")
+})

@@ -12,18 +12,40 @@ halftone_font <- function(prefer, fallback = "") {
   if (length(hit)) hit[1] else fallback
 }
 
+#' Halftone theme and journal export
+#'
+#' `theme_halftone()` is a print theme on one skeleton with two registers. `"journal"` (default): sans, absolute
+#' point sizes for 89 or 183 mm figures (ticks 7 pt, axis titles 8 pt, tags 10 pt bold, legend 7 pt grey), white
+#' paper, no gridlines, hard axis rules, outward ticks. `"editorial"`: cream paper, a serif for titles, a monospace
+#' for labels. Font families are resolved from what is installed (journal: Liberation Sans, Helvetica, Arial;
+#' editorial: EB Garamond, Garamond, Georgia, Times; mono: Inconsolata, Menlo, Courier New). Helvetica precedes
+#' Arial because the pdf device knows it as a base family. On ggplot2 >= 4.0 the theme
+#' also makes [halftone_inks] the default discrete palette and [halftone_ramp] the default continuous one.
+#'
+#' `ggsave_journal()` saves at a journal column width in mm at 600 dpi with ragg.
+#' @param style `"journal"` or `"editorial"`; the default follows `options(halftone.style = )`.
+#' @param base_size Base font size in pt (7 journal, 11 editorial).
+#' @param base_family,mono_family Font families; `NULL` resolves the first installed family from the lists above.
+#' @param paper,ink Paper and ink colours.
+#' @param axes `"left-bottom"` (two axis rules), `"box"` (panel border) or `"none"`.
+#' @param filename,plot,dpi,... Passed to [ggplot2::ggsave()].
+#' @param width `"single"` (89 mm), `"onehalf"` (120 mm), `"double"` (183 mm) or a width in mm.
+#' @param height Height in mm.
+#' @return A ggplot2 theme; `ggsave_journal()` is called for its side effect.
+#' @examples
+#' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() + theme_halftone()
 #' @export
 theme_halftone <- function(style = getOption("halftone.style", c("journal", "editorial")), base_size = NULL, base_family = NULL, mono_family = NULL,
                            paper = if (style[1] == "journal") "white" else halftone_paper, ink = halftone_ink,
                            axes = c("left-bottom", "box", "none")) {
   style <- match.arg(style); axes <- match.arg(axes)
   if (style == "journal") {
-    base_size <- base_size %||% 7; base_family <- base_family %||% halftone_font(c("Liberation Sans", "Arial", "Helvetica"), "sans")
+    base_size <- base_size %||% 7; base_family <- base_family %||% halftone_font(c("Liberation Sans", "Helvetica", "Arial"), "sans")
     lab_family <- base_family
     sizes <- list(axis_text = 7, axis_title = 8, title = 9, subtitle = 7, caption = 6, legend_title = 7, legend_text = 7, strip = 8, tag = 10); legend_ink <- "#444444"
     case <- identity
   } else {
-    legend_ink <- ink; base_size <- base_size %||% 11; base_family <- base_family %||% halftone_font(c("EB Garamond", "Garamond", "Georgia"), "serif")
+    legend_ink <- ink; base_size <- base_size %||% 11; base_family <- base_family %||% halftone_font(c("EB Garamond", "Garamond", "Georgia", "Times"), "serif")
     mono_family <- mono_family %||% halftone_font(c("Inconsolata", "Menlo", "Courier New"), "mono")
     lab_family <- mono_family
     sizes <- list(axis_text = base_size * 0.85, axis_title = base_size * 0.8, title = base_size * 1.6, subtitle = base_size * 0.85,
@@ -62,6 +84,7 @@ theme_halftone <- function(style = getOption("halftone.style", c("journal", "edi
 }
 
 # save at a journal column width; height in mm; dpi 600 for line/halftone art per most author guidelines
+#' @rdname theme_halftone
 #' @export
 ggsave_journal <- function(filename, plot, width = c("double", "single", "onehalf"), height = 100, dpi = 600, ...) {
   w <- if (is.character(width)) halftone_widths[[match.arg(width)]] else width
