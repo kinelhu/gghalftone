@@ -99,3 +99,20 @@ eleven bare-default plots at 600 dpi (`prototypes/gallery2.R` is the successor),
 - Profile follows geometry: flat for shapes whose interior is the value, centre for intervals, vignette for outline-defined shapes.
 - A mapped screen is a pattern, and patterns are flat.
 - Shapes are area-matched.
+
+## Review 2, feedback round (same day)
+
+Author's notes on the v2 proofs, and what changed:
+
+| Figure | Note | Change |
+|---|---|---|
+| area | "hard to read without black lines; the pattern is the same for all three colours, intended?" | It was: groups shared one lattice so overlaps could weave. For stacked series nothing overlaps, so the gallery now maps `screen = series` and each ink gets its own angle and shape, as in print. Ink hairline between series. |
+| bars | "quite mature, like the pattern variation in b&w" | unchanged |
+| densities | "cute job on both" | unchanged |
+| dotplot | "lackluster, white holes around the pattern within circles" | `geom_spot()` rewritten: one hex lattice per disc, centred (a symmetric rosette), dots clipped to the disc, no gap ring. `scale_tone_continuous()` gives tone a real legend of discs at the breaks; keys size themselves so labels never sit on the disc. |
+| elevation | "hurts a little when you concentrate; maybe the halo?" | The 0.08 mm halo was invisible against 0.6 mm hatch, so lines and hatch fused. Engraving: default line-screen pitch is now 0.45 mm, halo 0.15 mm. Dots: back to the 45° square lattice with gamma 0.6, and the ochre-to-red ramp. |
+| km colour | "lighter shades for the CIs?" | Centre profile register lowered from 0.85 to 0.6. Tinted inks were tried and rejected: they wash the legend out. |
+| km b&w | "busy and difficult on the eyes" | Hatched intervals are now hairline by default (tone_max 0.15) and the gallery uses 0.8 mm because three overlap; dashed and dotted steps with a 0.1 mm halo. Dot screens at three angles were tried: the moire rosettes in the overlaps were worse. |
+| map | "straight downgrade from the previous one" | Agreed. The continuous ramp is back to paper - ochre - red - near-black (`halftone_ramp`), polygons/sf print at 0.6, gallery uses the 45° square lattice. |
+| smooth | "looks quite good" | unchanged |
+| stipple | "you need to look at that one" | A binary stipple at full tone printed the bare lattice in the density core. `levels = 1` now caps tone at 0.55 by default (`tone_max` overrides), so the densest region stays a stipple. |

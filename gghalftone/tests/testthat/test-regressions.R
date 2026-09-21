@@ -197,3 +197,11 @@ test_that("register: centre profile prints lighter (0.6) than before; polygons f
   r_pol <- radii(content(ggplot(data.frame(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1)), aes(x, y)) + with_halftone(geom_polygon(fill = "black"), pitch = 1, outline = FALSE) + theme_void(), "halftone_fill"))[1]
   expect_equal(r_bar, 0.9 / 2 * sqrt(0.45), tolerance = 1e-6); expect_equal(r_pol, 0.9 / 2 * sqrt(0.6), tolerance = 1e-6)
 })
+
+test_that("hatched ribbons are hairline (tone_max 0.15) while hatched bars keep 0.4", {
+  strip_w <- function(p) { k <- content(p, "halftone_fill"); g <- find_grob(k, "polygon"); x <- as.numeric(g$x); y <- as.numeric(g$y); n <- g$id.lengths[1]
+    sqrt((x[1] - x[n])^2 + (y[1] - y[n])^2) }   # first strip: first and last vertex are the two edges at the same end
+  w_rib <- strip_w(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1, shape = "line", outline = FALSE) + theme_void())
+  w_bar <- strip_w(ggplot(data.frame(g = "a", n = 1), aes(g, n)) + with_halftone(geom_col(fill = "black"), pitch = 1, shape = "line", outline = FALSE) + theme_void())
+  expect_equal(w_rib, 0.15 * 0.9 * 0.9, tolerance = 1e-6); expect_equal(w_bar, 0.4 * 0.9 * 0.9, tolerance = 1e-6)
+})

@@ -24,7 +24,7 @@ out("km", pA / rtab + plot_layout(heights = c(10, 2.4)), height = 78)
 
 ## 2 The same KM in one ink: line screens + linetypes --------------------------------------------------------------------
 pK <- ggplot(s, aes(time, group = strata, screen = strata)) +
-  with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), shape = "line", pitch = 0.8, tone_max = 0.25) +   # three overlapping hatches: coarser and lighter than one
+  with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), shape = "line", pitch = 0.8) +   # hatched intervals are hairline by default; 0.8 mm because three overlap
   with_halo(geom_step(aes(y = surv, linetype = strata), linewidth = 0.5)) +
   geom_point(data = cens, aes(time, surv), shape = "|", size = 1.6, stroke = 0.4) +
   scale_screen_manual(values = c(45, 135, 0), name = NULL) + scale_linetype_manual(values = c("solid", "42", "12"), name = NULL) +
@@ -56,10 +56,10 @@ pB2 <- ggplot(d, aes(g, n, fill = g)) + with_halftone(geom_col(width = 0.7)) + g
   scale_y_continuous(expand = expansion(c(0, 0.08))) + labs(x = NULL, y = "Patients (%)") + theme_halftone()
 out("bars", (pB1 + labs(tag = "A")) | (pB2 + labs(tag = "B")), width = "double", height = 60)
 
-## 6 Stacked area, colour ---------------------------------------------------------------------------------------------------
+## 6 Stacked area, colour: each ink gets its own screen (angle x shape), as in print ---------------------------------------------------------------------------------------------------
 tt <- 1:40; set.seed(4); s6 <- data.frame(t = tt, a = 10 + 4 * sin(tt / 5) + rnorm(40, 0, 0.6), b = 6 + tt / 6 + rnorm(40, 0, 0.5), c = 5 + 3 * cos(tt / 7) + rnorm(40, 0, 0.5))
 long <- data.frame(t = rep(tt, 3), v = c(s6$a, s6$b, s6$c), series = rep(c("Series A", "Series B", "Series C"), each = 40))
-pS <- ggplot(long, aes(t, v, fill = series, screen = series)) + with_halftone(geom_area(colour = "black", linewidth = 0.25)) + scale_screen_discrete(name = NULL)   # each ink its own screen, as in print + scale_y_continuous(expand = c(0, 0)) + scale_x_continuous(expand = c(0, 0)) +
+pS <- ggplot(long, aes(t, v, fill = series, screen = series)) + with_halftone(geom_area(colour = "black", linewidth = 0.25)) + scale_screen_discrete(name = NULL) + scale_y_continuous(expand = c(0, 0)) + scale_x_continuous(expand = c(0, 0)) +
   labs(x = "Time", y = "Stacked value", fill = NULL) + guides(fill = "none") + theme_halftone() + theme(legend.position = "bottom", legend.justification = "left")
 out("area", pS)
 

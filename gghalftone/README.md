@@ -24,7 +24,7 @@ ggplot(s, aes(time, group = strata)) +
 ggplot(field, aes(x, y, z = value, colour = value)) + geom_halftone()   # 0.6 mm hex, continuous tone
 
 # 3. per-point tone discs
-ggplot(markers, aes(cluster, gene, z = expression, size = pct)) + geom_spot() + scale_radius()
+ggplot(markers, aes(cluster, gene, tone = expression, size = pct)) + geom_spot() + scale_tone() + scale_radius()
 
 # 4. colour-free encodings: screen angle x dot shape x tone, up to ~6 distinguishable
 ggplot(f, aes(x, y, z = z, screen = series)) + geom_halftone() + scale_screen_discrete()

@@ -126,9 +126,10 @@ with_halftone <- function(layer, pitch = 0.6, angle = NULL, grid = "hex", tone =
     if (inherits(parent0, c("GeomRect", "GeomTile", "GeomArea", "GeomPolygon", "GeomSf"))) "flat" else "centre"   # GeomBar/GeomCol inherit GeomRect
   tone <- match.arg(tone, c("centre", "flat", "tent", "edge", "vignette", "centre-soft")); profile <- match.arg(profile); parent <- layer$geom
   # one tonal register. flat: 0.45 (hatch 0.4), but 0.6 for polygons/sf whose fill colour is the value; centre 0.6 so three
-  # overprinted intervals stay light; vignette 0.7
-  is_map <- inherits(parent0, c("GeomPolygon", "GeomSf"))
-  tone_max <- tone_max %||% switch(tone, flat = if (shape == "line") 0.4 else if (is_map) 0.6 else 0.45, centre = 0.6, vignette = 0.7, 1)
+  # overprinted intervals stay light; vignette 0.7. Hatched intervals (ribbons) are hairline (0.15): several overlap, and
+  # the hatch must sit under the estimate lines, not compete with them
+  is_map <- inherits(parent0, c("GeomPolygon", "GeomSf")); is_interval <- inherits(parent0, "GeomRibbon") && !inherits(parent0, "GeomArea")
+  tone_max <- tone_max %||% switch(tone, flat = if (shape == "line") (if (is_interval) 0.15 else 0.4) else if (is_map) 0.6 else 0.45, centre = 0.6, vignette = 0.7, 1)
   if (shape == "line" && tone != "flat") message("with_halftone(): line screens usually look better with tone = \"flat\" (hard edge); tapered strokes read as fringe")
   P <- list(pitch = pitch, angle = angle, grid = grid, tone = tone, profile = profile, local = local, levels = levels, bayer_n = bayer_n, dot_max = dot_max, size_map = size_map, gamma = gamma, tone_max = tone_max, outline = outline, shape = shape, algorithm = algorithm, clip = clip, overlap = overlap, gain = gain,
             tone_auto = !tone_user, tone_max_auto = !tone_max_user, angle_user = angle_user)
