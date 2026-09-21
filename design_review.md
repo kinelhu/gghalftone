@@ -1,0 +1,101 @@
+# Design review — gghalftone gallery (review_panel.png, 15 items)
+
+Reviewer stance: outside designer, print background, no knowledge of the build history. Judged at the intended size (89 mm single column, 600 dpi) and at the panel's downscaled view. Ratings: **keep / rework / cut**.
+
+## Overall
+
+The set has a real idea — tone as texture, physically pitched, honest about overlap — and the best items (1A, 5, 11, 12, 14) prove it. But the gallery as a whole is not yet a *system*. Three things undercut it:
+
+1. **Inconsistent ink weight.** Dot screens range from feather-light (4, 6) to fully saturated blocks (8, parts of 1A). A print series needs one tonal register; right now each figure was tuned alone.
+2. **The halftone is often decorative.** In 2, 7, 13, 15 it encodes nothing a flat fill wouldn't. A reviewer will ask "why dots?" and the answer needs to be more than "it looks printed."
+3. **Typography is competent but generic.** Liberation Sans at 7 pt is fine for submission; it is not a design. Panel tags, axis titles and legend titles are all the same weight and nearly the same size — there is no hierarchy inside a figure.
+
+## Item by item
+
+| # | Item | Verdict | Notes |
+|---|------|---------|-------|
+| 1 | Fig. 1 (KM · GAM · dot plot) | **keep**, tighten | A is the strongest argument in the set: three overlapping CIs stay readable. But the woven overlap zone at 500–900 d is the busiest region on the page and the ochre ink is still the weakest of the three. B is clean. C: the tone encoding inside discs is legible only above ~1.5 mm radius; the small discs carry no information — either enlarge or drop tone for small discs. The three panels have three different y-axis conventions (%, g, none). |
+| 2 | Bars, dot fill | **cut or rework** | Dots add nothing. If kept, the only defensible version is 15 (hatching as categorical encoding) — one of the two should go. |
+| 3 | Densities, dot fill | **rework** | Edge-fade fill on densities looks like a rendering gradient, not a screen. The overlap weave is honest but muddy. Compare 13: the same data with line screens is far more legible; prefer that. |
+| 4 | Forecast fan (co2) | **keep** | Correct chart, correct data, one ink deepening inward. The 80%/95% distinction is faint — separate the alpha steps more (0.15 / 0.45 / 1). Legend keys are too small to show the difference; make them at least 5 mm. |
+| 5 | Choropleth | **keep** | Best colour figure in the set. The 45° screen reads as a printed map. Legend title "Murder per 100k" wraps awkwardly; shorten. |
+| 6 | Facets + groups | **cut from gallery** | Fine as a regression test, weak as a showcase: bands are barely visible at this size and the four class colours fight. |
+| 7 | Ridgelines | **rework or cut** | At 0.5 mm the fills read as solid; nothing halftone about it. Either coarsen deliberately (0.9 mm, editorial style) or drop. |
+| 8 | Expression heatmap | **rework** | Grey cell grid + dots + diverging colour is three textures. Remove the grid; let the dot area carry magnitude and colour carry sign only (two inks, no gradient). The saturated red/blue blocks are correct but the mid-tones are noise. |
+| 9 | Screens: angle × shape | **keep** | Reads correctly now; legend keys show the difference. Slightly heavy at the bottom series — lighten the base screen by ~15%. |
+| 10 | Elevation, dots | **keep** | Good tonal range, contours crisp. Legend bar is oversized relative to the panel. |
+| 11 | Engraving, lines | **keep** — the hero | The only item that looks like it belongs in a book. Use it as the first image of the README. |
+| 12 | KM one ink, crosshatch | **keep** | Legitimate B&W figure. The subtitle text overlaps the tag "B"; fix. Consider 0.7 mm pitch — at 0.6 the crosshatch moirés slightly where three strata overlap. |
+| 13 | Densities, line screens | **keep** | Better than 3 by a distance. Combine colour + angle only when you have to; here angle alone would suffice and the colour could go. |
+| 14 | Blue-noise stipple | **keep** | Excellent. Add the KDE outline (one contour) so it reads as a density and not a scatter. |
+| 15 | Hatched bars | **keep** (instead of 2) | Classic and correct. Bar outlines are heavier than the hatch; match weights. |
+
+## System-level fixes (do these before adding anything)
+
+- **One tonal register.** Pick a target ink coverage for mid-tone (say 35–45%) and calibrate `tone_max`/`dot_max` defaults so every figure lands near it. Right now 4 is ~20% and 8's blocks are ~90%.
+- **Hierarchy inside figures.** Tag 10 pt bold, axis titles 8 pt regular, tick labels 7 pt, legend 7 pt *light* (or grey). Legend titles should not be bold if the axis titles are not.
+- **Kill the grey ground everywhere.** 8 is the only offender left; grey under halftone reads as a printing error.
+- **Consistent legend geometry.** Colourbars in 5, 8, 10 are three different sizes. Fix one size (e.g. 2.5 × 18 mm).
+- **Decide what dots are for.** Keep dot screens for tone-carrying fills (CIs, densities, fields, maps). Use line screens for categorical hatching. Never use either purely as a fill texture — that is 2 and 7's problem.
+- **Halo width** is now right (hairline). Keep it there; do not let it creep back up for "visibility."
+
+## What would make this stand out
+
+- A single, deliberately *editorial* piece in the gallery (the cover) beside the journal set, to show the same engine at two registers.
+- 11 rendered at poster scale with a real DEM.
+- A figure where halftone is the *only* way to show the data: three overlapping CIs in one ink with crosshatch (12) is already that — lead with it in the README's B&W section.
+
+---
+
+# Brief for forwarding
+
+> Attached: `review_panel.png`, 15 figures from an R/ggplot2 package that renders fills as print-style halftone (dot and line screens, physical mm pitch, overlaps woven rather than hidden). Target: journal figures at 89/183 mm, 600 dpi, and a secondary editorial style. Please review as a print designer: (1) which items earn their halftone and which are decorative; (2) tonal consistency across the set; (3) typographic hierarchy inside figures; (4) legend and colourbar consistency; (5) anything that reads as a rendering artefact rather than a design choice. Be specific about pitch, ink weight and halo width where relevant. Do not grade on effort or novelty — only on what a reader of a journal or a book would see.
+
+---
+
+# Design review 2 — defaults pass (2026-09-21)
+
+Stance: same as review 1, but judged on what the package draws with **no arguments**. The gallery script overrode pitch,
+levels, dot_max, gamma, tone and tone_max in every call, which meant the defaults had never been looked at. Rendered
+eleven bare-default plots at 600 dpi (`prototypes/gallery2.R` is the successor), compared against the tuned keepset.
+
+## What was wrong with the bare defaults
+
+| Problem | Cause | Fix |
+|---|---|---|
+| `geom_halftone()` looked like a 1980s dot-matrix print: 1.2 mm square lattice, 4 quantised levels, Bayer dither visible as a 4x4 crosshatch texture | `pitch = 1.2, grid = "square", levels = 4` | 0.6 mm hex, **continuous tone** (`levels = NULL`): dot area follows tone exactly, no dither. `levels = k` still quantises and dithers for a stipple look. |
+| Ribbons and densities carried dust: hundreds of sub-0.05 mm dots at the tone edge, reading as dirt | no floor on drawn tone | cells below 2 % tone are not drawn |
+| Dot lattice had a horizontal axis, so every horizontal edge (bar tops, step plateaus) aliased against the rows | `angle = 0` | default 15 deg on hex: no lattice axis is horizontal or vertical (the hex analogue of the classic 45 deg square screen) |
+| Bars, areas and polygons were drawn with the gaussian centre profile: bars faded to nothing at their edges | one profile for every geom | profile follows the geometry: bars / tiles / areas / polygons / sf are **flat**; ribbons **centre**; densities and violins a soft **vignette** (was "edge", which reviewer 1 rightly called a rendering gradient) |
+| Every figure sat at a different ink weight | `tone_max = 1` everywhere | one register: flat 0.45, centre 0.85, vignette 0.7, so mid-tone lands at ~35–45 % coverage across the set |
+| Square and diamond dots printed heavier than circles at the same tone | shapes sized by radius, not area | shapes are area-matched (square half-side sqrt(pi)/2 r, diamond sqrt(pi/2) r) |
+| A mapped `screen` on a density still faded, so the pattern and the vignette fought | tone profile applied regardless | a mapped screen is a categorical pattern, hence flat, unless `tone` is given explicitly |
+| Line-screen legend keys showed dots; hatch angles 0/30/60 made "horizontal" the first pattern | one recipe for dots and lines | screen specs carry a 4th field, the hatching angle (45, 135, 0, 90, ...); keys hatch when the layer is a line screen; specs are absolute, so `angle=` on the layer is an offset only when given |
+| Theme requested Liberation Sans / EB Garamond / Inconsolata, none installed here; ragg silently substituted | hard-coded families | `theme_halftone()` resolves the first installed family from a preference list via systemfonts (journal: Liberation Sans, Arial, Helvetica; editorial: EB Garamond, Garamond, Georgia; mono: Inconsolata, Menlo, Courier New) |
+| Default ggplot2 hues under a print halftone | no palette hook | on ggplot2 >= 4.0 the theme sets the ink palette for discrete colour/fill and a sepia ramp (`halftone_ramp`) for continuous scales |
+| Every KM script re-implemented the step-ribbon frame and the hairline halo by hand | missing helpers | `km_steps()`, `km_censor()`, `km_risk()` (survfit -> frames), `with_halo(layer, width = 0.08)` (paper stroke under any line or point layer) |
+
+## Verdicts on the new gallery (`figures/v2/`)
+
+| Figure | Verdict | Notes |
+|---|---|---|
+| km | keep | Three CIs, three inks, woven overlap; haloed steps; censor ticks; risk table. This is the README lead. Ochre is still the weakest ink at low tone; consider a deeper amber. |
+| km_bw | keep | Two hatch angles plus dots in one layer (`scale_screen_manual(c("45|line","135|line","15|circle"))`). Triple overlap is busy but honest; at 0.6 mm the 45/135 crosshatch does not moire. |
+| smooth | keep | One ink, centre profile. The band's soft edge now reads as uncertainty, not as a gradient. |
+| densities | keep | Vignette at 0.7 is the right weight: solid enough to read as a fill, open enough that three overlaps stay legible. |
+| densities_bw | keep | 45 / 135 / 0 hatching; the crosshatch in overlaps is the point. |
+| bars | keep | A hatched, B dot-screened. B's dots are decorative (reviewer 1's objection stands); A is the version to use in a paper. |
+| area | keep | Flat screen with white seams between series; no outline fighting the dots. |
+| map | keep | Sepia ramp is the default now; 45 deg square lattice reads as a printed map. |
+| elevation | keep | A continuous-tone dots; B the engraving. B remains the hero. |
+| stipple | keep | Blue-noise binary stipple, one contour set. |
+| dotplot | rework later | `geom_spot()` still needs `scale_tone()` for a proper guide (TODO 3). |
+
+## Rules added to the design list
+
+- Continuous tone by default; quantise (`levels`) only for a stipple or a poster.
+- Nothing below 2 % tone is drawn.
+- No lattice axis horizontal or vertical: 15 deg on hex, 45 deg on square.
+- Profile follows geometry: flat for shapes whose interior is the value, centre for intervals, vignette for outline-defined shapes.
+- A mapped screen is a pattern, and patterns are flat.
+- Shapes are area-matched.

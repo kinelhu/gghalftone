@@ -1,0 +1,18 @@
+Package: gghalftone
+Title: Halftone, Dither and Line-Screen Fills for 'ggplot2'
+Version: 0.0.0.9000
+Authors@R: person("Kinan", "El Husseini", role = c("aut", "cre"), email = "kinan@example.org")
+Description: Print-style halftone screens as ggplot2 layers. Dots are placed at draw time on a lattice with a physical
+    pitch in millimetres, so figures re-flow correctly at any output size. Provides geom_halftone() for continuous fields,
+    geom_spot() for per-point tone discs, with_halftone() to screen the fill of any existing layer (ribbons, areas, bars,
+    polygons, sf), a screen-angle aesthetic for colour-free encodings, line screens, Bayer/blue-noise/Floyd-Steinberg
+    dithering, overprint handling for overlapping groups, and a journal-oriented theme.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends: R (>= 4.1)
+Imports: ggplot2 (>= 3.4.0), grid, scales, Rcpp, stats, grDevices, utils
+LinkingTo: Rcpp
+Suggests: testthat (>= 3.0.0), ragg, systemfonts, magick, maps, patchwork, survival
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0

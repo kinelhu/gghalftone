@@ -1,0 +1,7 @@
+.DS_Store
+.Rproj.user
+.Rhistory
+*.Rcheck/
+gghalftone/src/*.o
+gghalftone/src/*.so
+gghalftone/src/*.dll
