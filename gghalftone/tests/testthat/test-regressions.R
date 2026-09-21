@@ -171,10 +171,10 @@ test_that("a binary stipple (levels = 1) is capped so it never saturates into th
   full <- cov(tone_max = 1); expect_lt(cov(), full * 0.65); expect_gt(cov(), full * 0.45)
 })
 
-test_that("line screens default to 0.45 mm in geom_halftone, dots to 0.6", {
+test_that("geom_halftone defaults to a 0.35 mm pitch", {
   vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
   n_strips <- function(...) { k <- content(ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", ...) + theme_void(), "halftone"); length(find_grob(k, "polygon")$id.lengths) }
-  expect_gt(n_strips(), n_strips(pitch = 0.6) * 1.15)
+  expect_gt(n_strips(), n_strips(pitch = 0.6) * 1.5); expect_equal(n_strips(), n_strips(pitch = 0.35))
 })
 
 test_that("geom_spot: per-disc lattice is clipped to the disc, tone comes from scale_tone_continuous(), keys show the break tone", {

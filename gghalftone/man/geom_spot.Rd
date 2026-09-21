@@ -12,7 +12,7 @@ geom_spot(
   position = "identity",
   ...,
   r = 3,
-  pitch = 0.5,
+  pitch = 0.35,
   levels = NULL,
   bayer_n = 4,
   dot_max = 0.9,

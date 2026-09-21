@@ -80,8 +80,7 @@ to use \code{position_jitter()}, give the position as \code{"jitter"}.
 
 \item{...}{Other arguments passed to \code{\link[ggplot2:layer]{ggplot2::layer()}}, such as fixed aesthetics (\code{colour = "black"}).}
 
-\item{pitch}{Lattice spacing in mm. \code{NULL} picks 0.6 for dots and 0.45 for line screens. Journal figures want
-0.45 to 0.6; editorial work 0.9 to 1.2.}
+\item{pitch}{Lattice spacing in mm; \code{NULL} means 0.35. Journal figures want 0.3 to 0.45; editorial work 0.6 to 1.2.}
 
 \item{angle}{Rotation of the lattice in degrees. \code{NULL} means 15 for a hex lattice. When \code{screen} is mapped, the
 screen specs are absolute and \code{angle} (if given) is added to them.}
@@ -149,8 +148,9 @@ ink stays visible where they overlap.
 }
 \section{Defaults}{
 
-A 0.6 mm hex lattice rotated 15 degrees (so no lattice axis is horizontal or vertical), continuous tone, circular
-dots. Line screens (\code{shape = "line"}) default to 0.45 mm. A binary stipple (\code{levels = 1}) is capped at 55 \% tone so
+A 0.35 mm hex lattice (73 lines per inch) rotated 15 degrees (so no lattice axis is horizontal or vertical),
+continuous tone, circular dots. Coarser pitches read as a dot pattern rather than as tone: 0.6 mm is a deliberate
+poster or editorial look. A binary stipple (\code{levels = 1}) is capped at 55 \% tone so
 the densest region still reads as a stipple rather than a bare lattice; set \code{tone_max} to override.
 }
 

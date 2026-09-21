@@ -246,7 +246,7 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
   draw_panel = function(data, panel_params, coord, pitch = NULL, angle = NULL, grid = "hex",
                         levels = NULL, algorithm = "bayer", bayer_n = 4, dot_max = 0.9, range = NULL,
                         shape = "circle", gamma = 1, overlap = c("stack", "interleave", "overprint"), blend = "mix", tone_max = NULL) {
-    pitch <- pitch %||% if (shape == "line") 0.45 else 0.6              # line screens read coarse above 0.5 mm
+    pitch <- pitch %||% 0.35   # 73 lpi: reads as tone with a visible screen; 0.6 read as dots (pitch ladder, review 2)
     tone_max <- tone_max %||% if (isTRUE(levels == 1)) 0.55 else 1       # a binary stipple must never saturate into the bare lattice
     overlap <- match.arg(overlap); angle_user <- !is.null(angle); angle <- angle %||% 15   # screen specs are absolute unless the user gave an angle offset
     use_tone <- !all(is.na(data$tone))
@@ -284,14 +284,14 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #' ink stays visible where they overlap.
 #'
 #' @section Defaults:
-#' A 0.6 mm hex lattice rotated 15 degrees (so no lattice axis is horizontal or vertical), continuous tone, circular
-#' dots. Line screens (`shape = "line"`) default to 0.45 mm. A binary stipple (`levels = 1`) is capped at 55 % tone so
+#' A 0.35 mm hex lattice (73 lines per inch) rotated 15 degrees (so no lattice axis is horizontal or vertical),
+#' continuous tone, circular dots. Coarser pitches read as a dot pattern rather than as tone: 0.6 mm is a deliberate
+#' poster or editorial look. A binary stipple (`levels = 1`) is capped at 55 % tone so
 #' the densest region still reads as a stipple rather than a bare lattice; set `tone_max` to override.
 #'
 #' @inheritParams ggplot2::layer
 #' @param ... Other arguments passed to [ggplot2::layer()], such as fixed aesthetics (`colour = "black"`).
-#' @param pitch Lattice spacing in mm. `NULL` picks 0.6 for dots and 0.45 for line screens. Journal figures want
-#'   0.45 to 0.6; editorial work 0.9 to 1.2.
+#' @param pitch Lattice spacing in mm; `NULL` means 0.35. Journal figures want 0.3 to 0.45; editorial work 0.6 to 1.2.
 #' @param angle Rotation of the lattice in degrees. `NULL` means 15 for a hex lattice. When `screen` is mapped, the
 #'   screen specs are absolute and `angle` (if given) is added to them.
 #' @param grid `"hex"` (default) or `"square"`. A 45-degree square lattice is the classic map and photo screen.
@@ -369,7 +369,7 @@ GeomSpot <- ggproto("GeomSpot", Geom,
   required_aes = c("x", "y"), optional_aes = c("z", "tone"),
   default_aes = aes(colour = "#151515", alpha = 1, size = NA, tone = NA, z = NA),
   draw_key = function(data, params, size) draw_key_spot(data, params, size),
-  draw_panel = function(data, panel_params, coord, r = 3, pitch = 0.5, levels = NULL, bayer_n = 4, dot_max = 0.9,
+  draw_panel = function(data, panel_params, coord, r = 3, pitch = 0.35, levels = NULL, bayer_n = 4, dot_max = 0.9,
                         range = NULL, ring = TRUE, ring_lwd = 0.3) {
     coords <- coord$transform(data, panel_params)
     if (!all(is.na(data$tone))) coords$z01 <- pmin(pmax(data$tone, 0), 1)
@@ -402,7 +402,7 @@ GeomSpot <- ggproto("GeomSpot", Geom,
 #' ggplot2::ggplot(d, ggplot2::aes(cluster, gene, tone = expr, size = pct)) + geom_spot() +
 #'   scale_tone_continuous() + ggplot2::scale_radius(range = c(1, 2.2)) + theme_halftone(axes = "none")
 #' @export
-geom_spot <- function(mapping = NULL, data = NULL, stat = "identity", position = "identity", ..., r = 3, pitch = 0.5,
+geom_spot <- function(mapping = NULL, data = NULL, stat = "identity", position = "identity", ..., r = 3, pitch = 0.35,
                       levels = NULL, bayer_n = 4, dot_max = 0.9, range = NULL, ring = TRUE, ring_lwd = 0.3,
                       na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
   layer(geom = GeomSpot, mapping = mapping, data = data, stat = stat, position = position, show.legend = show.legend,
@@ -516,7 +516,7 @@ draw_key_spot <- function(data, params, size) {
   # own size (attr width/height, cm) so labels never sit on the disc.
   rad <- if (is.null(data$size) || is.na(data$size)) min(params$r %||% 3, 2.4) else data$size
   tone <- if (is.null(data$tone) || is.na(data$tone)) 0.55 else data$tone
-  g <- spot_grob(0, 0, rad, tone, data$colour %||% "black", params$pitch %||% 0.5, params$dot_max %||% 0.9, TRUE, params$ring_lwd %||% 0.3, params$levels, params$bayer_n %||% 4)
+  g <- spot_grob(0, 0, rad, tone, data$colour %||% "black", params$pitch %||% 0.35, params$dot_max %||% 0.9, TRUE, params$ring_lwd %||% 0.3, params$levels, params$bayer_n %||% 4)
   key <- gTree(children = gList(g), vp = viewport(x = 0.5, y = 0.5, width = unit(0, "mm"), height = unit(0, "mm"), clip = "off"))
   attr(key, "width") <- attr(key, "height") <- (2 * rad + 1.2) / 10
   key

@@ -24,7 +24,7 @@ out("km", pA / rtab + plot_layout(heights = c(10, 2.4)), height = 78)
 
 ## 2 The same KM in one ink: line screens + linetypes --------------------------------------------------------------------
 pK <- ggplot(s, aes(time, group = strata, screen = strata)) +
-  with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), shape = "line", pitch = 0.8) +   # hatched intervals are hairline by default; 0.8 mm because three overlap
+  with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), shape = "line", pitch = 0.5) +   # hatched intervals are hairline by default; coarser than default because three overlap
   with_halo(geom_step(aes(y = surv, linetype = strata), linewidth = 0.5)) +
   geom_point(data = cens, aes(time, surv), shape = "|", size = 1.6, stroke = 0.4) +
   scale_screen_manual(values = c(45, 135, 0), name = NULL) + scale_linetype_manual(values = c("solid", "42", "12"), name = NULL) +
@@ -71,7 +71,7 @@ out("map", pM, height = 58)
 
 ## 8 Elevation: colour dots, and engraving (line screen) -----------------------------------------------------------------------
 vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
-pE <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(aes(colour = z), angle = 45, grid = "square", pitch = 0.5, gamma = 0.6) + with_halo(geom_contour(colour = "black", linewidth = 0.25, bins = 8)) +
+pE <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(aes(colour = z), angle = 45, grid = "square", gamma = 0.6) + with_halo(geom_contour(colour = "black", linewidth = 0.25, bins = 8)) +
   coord_equal(expand = FALSE) + labs(x = NULL, y = NULL, colour = "Elevation (m)") + theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
 pE2 <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", colour = "black", angle = 30, gamma = 1.4) + with_halo(geom_contour(colour = "black", linewidth = 0.2, bins = 8), width = 0.15) +
   coord_equal(expand = FALSE) + labs(x = NULL, y = NULL) + theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
@@ -79,7 +79,7 @@ out("elevation", (pE + labs(tag = "A")) | (pE2 + labs(tag = "B")), width = "doub
 
 ## 9 Blue-noise stipple of a 2-D density, one contour -----------------------------------------------------------------------------
 kd <- kde2d(faithful$eruptions, faithful$waiting, n = 150, lims = c(1.3, 5.6, 40, 100)); dens <- data.frame(expand.grid(x = kd$x, y = kd$y), z = as.vector(kd$z))
-pN <- ggplot(dens, aes(x, y, z = z)) + geom_halftone(pitch = 0.45, levels = 1, algorithm = "blue_noise", colour = "black") + with_halo(geom_contour(colour = "black", linewidth = 0.35, bins = 3)) +
+pN <- ggplot(dens, aes(x, y, z = z)) + geom_halftone(levels = 1, algorithm = "blue_noise", colour = "black") + with_halo(geom_contour(colour = "black", linewidth = 0.35, bins = 3)) +
   labs(x = "Eruption (min)", y = "Waiting (min)") + theme_halftone(axes = "box")
 out("stipple", pN)
 

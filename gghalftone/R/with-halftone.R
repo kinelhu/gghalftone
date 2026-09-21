@@ -138,7 +138,7 @@ makeContent.halftone_fill <- function(x) {
 #'
 #' @inheritParams geom_halftone
 #' @param layer A ggplot2 layer, e.g. `geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))`.
-#' @param pitch Lattice spacing in mm (0.6).
+#' @param pitch Lattice spacing in mm (0.35, 73 lines per inch). Coarsen deliberately for a poster or editorial look.
 #' @param angle Lattice angle in degrees; `NULL` means 15 for dots and 45 for hatching.
 #' @param tone Tone profile: `NULL` (from the geometry, see below), `"flat"`, `"centre"`, `"vignette"`, `"edge"`,
 #'   `"tent"` or `"centre-soft"`.
@@ -158,7 +158,7 @@ makeContent.halftone_fill <- function(x) {
 #'   with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), fill = halftone_inks[["blue"]])) +
 #'   with_halo(ggplot2::geom_line(ggplot2::aes(y = y), colour = halftone_inks[["blue"]])) + theme_halftone()
 #' @export
-with_halftone <- function(layer, pitch = 0.6, angle = NULL, grid = "hex", tone = NULL, profile = c("vertical", "radial"), local = TRUE,
+with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone = NULL, profile = c("vertical", "radial"), local = TRUE,
                           levels = NULL, bayer_n = 4, dot_max = 0.9, gamma = 1, tone_max = NULL, outline = TRUE,
                           shape = "circle", algorithm = "bayer", clip = TRUE, overlap = c("overprint", "stack")) {
   overlap <- match.arg(overlap)
