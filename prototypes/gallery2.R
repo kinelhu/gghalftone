@@ -70,11 +70,11 @@ pM <- ggplot(st, aes(long, lat, group = group, fill = murder)) + with_halftone(g
   coord_map("albers", lat0 = 30, lat1 = 45) + labs(x = NULL, y = NULL, fill = "Murders\nper 100k") + theme_halftone(axes = "none") + theme(axis.text = element_blank())
 out("map", pM, height = 58)
 
-## 8 Elevation: colour dots, and engraving (line screen) -----------------------------------------------------------------------
+## 8 Elevation: colour dots, and engraving (line screen) with illuminated contours -----------------------------------------------------------------------
 vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
 pE <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(aes(colour = z), angle = 45, grid = "square", gamma = 0.6) + with_halo(geom_contour(colour = "black", linewidth = 0.25, bins = 8)) +
   coord_equal(expand = FALSE) + labs(x = NULL, y = NULL, colour = "Elevation (m)") + theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
-pE2 <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", colour = "black", angle = 30, gamma = 1.4) + with_halo(geom_contour(colour = "black", linewidth = 0.2, bins = 8), width = 0.15) +
+pE2 <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", colour = "black", angle = 30, gamma = 1.4) + with_relief(geom_contour(bins = 10)) +   # Tanaka: lit NW in paper, shaded SE in ink
   coord_equal(expand = FALSE) + labs(x = NULL, y = NULL) + theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
 out("elevation", (pE + labs(tag = "A")) | (pE2 + labs(tag = "B")), width = "double", height = 80)
 

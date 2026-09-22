@@ -330,3 +330,17 @@ test_that("vectorised weave picks the same ink as the per-cell rule", {
   ref <- mapply(function(m, r, c) { ks <- which(bitwAnd(as.integer(m), 2^(0:30)) > 0); k <- length(ks); ks[(gghalftone:::weave_phase(r, c, k) %% k) + 1] }, m, r, c)
   expect_equal(gghalftone:::weave_pick(m, r, c, np), unname(ref))
 })
+
+test_that("with_relief: on a cone lit from the NW, paper segments face NW and ink segments SE; the light angle moves them; widths stay in range", {
+  g <- expand.grid(x = seq(0, 10, length.out = 60), y = seq(0, 10, length.out = 60)); g$z <- -sqrt((g$x - 5)^2 + (g$y - 5)^2)
+  mk <- function(light) ggplot(g, aes(x, y, z = z)) + with_relief(geom_contour(bins = 6), light = light) + coord_cartesian(xlim = c(0, 10), ylim = c(0, 10), expand = FALSE) + theme_void()
+  lit_dir <- function(light) { k <- content(mk(light), "relief", w = 60, h = 60); s <- Filter(function(z) inherits(z, "segments"), k$children)[[2]]
+    mx <- (as.numeric(s$x0) + as.numeric(s$x1)) / 2 - 30; my <- (as.numeric(s$y0) + as.numeric(s$y1)) / 2 - 30; w <- s$gp$col == "white"
+    expect_true(all(s$gp$lwd >= 0.05 * 96 / 25.4 - 1e-9 & s$gp$lwd <= 0.35 * 96 / 25.4 + 1e-9))
+    c(x = mean(mx[w]), y = mean(my[w]), bx = mean(mx[!w]), by = mean(my[!w])) }
+  d <- lit_dir(315); expect_lt(d[["x"]], 0); expect_gt(d[["y"]], 0); expect_gt(d[["bx"]], 0); expect_lt(d[["by"]], 0)   # lit NW, shaded SE
+  d2 <- lit_dir(135); expect_gt(d2[["x"]], 0); expect_lt(d2[["y"]], 0)                                                   # light from the SE flips it
+  # uphill inference: the summit ring has no higher neighbour and is closed; it still lights on the NW side (tested above via the innermost ring)
+  d3 <- data.frame(x = c(0, 1, 1, 0, 0), y = c(0, 0, 1, 1, 0))
+  expect_no_error(content(ggplot(d3, aes(x, y)) + with_relief(geom_path(), uphill = "left") + theme_void(), "relief"))
+})

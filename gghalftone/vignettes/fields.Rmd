@@ -40,6 +40,20 @@ ggplot(vol, aes(x, y, z = z)) +
   theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
 
+## Illuminated contours
+
+Kitiro Tanaka's 1950 method: each contour segment is lit or shaded by the direction of the slope it stands on relative to a light from the upper left. Lit segments print in paper and shaded ones in ink, widening where the slope faces the light squarely. Over the engraving the paper segments knock the hatch out, which is how the original was printed, from two plates. Which side is uphill is inferred per contour from its neighbours; `light` is the one parameter.
+
+```{r relief}
+ggplot(vol, aes(x, y, z = z)) +
+  geom_halftone(shape = "line", colour = "black", angle = 30, gamma = 1.4) +
+  with_relief(geom_contour(bins = 10), light = 315) +
+  coord_equal(expand = FALSE) + labs(x = NULL, y = NULL) +
+  theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
+```
+
+The symmetric hairline of `with_halo()` is the right form for a line over a confidence band: it is the printer's knockout channel, and an interval has no lit side. Relief is for surfaces.
+
 ## Stipple
 
 `levels = 1` with blue-noise dithering gives a binary stipple: every dot the same size, density carrying the value. This is the one case where dot density *is* the data. The tone is capped at 55 % so the densest region stays a stipple rather than a bare lattice.

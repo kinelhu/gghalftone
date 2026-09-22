@@ -172,3 +172,13 @@ Author asked whether the figures follow journal practice and how the idea could 
   proofs changed visibly except the editorial piece, which finally has its Garamond.
 
 - Performance closed out: the weave and the colour lookup were the last package-side hot spots; after vectorising them the draw is device-bound. CI workflows written, awaiting a remote.
+
+## Illuminated contours (2026-09-22)
+
+Author asked whether an asymmetric halo would be more authentic. Answer: a one-sided halo on a line over a screen is
+misregistration, the fault trap allowances exist to hide; the authentic asymmetry is Tanaka's illuminated contours
+(1950), where lit segments print in paper and shaded ones in ink, widening as the slope faces the light. `with_relief()`
+implements it; uphill is inferred per contour from neighbouring levels (ggplot2's contour lines are consistently
+oriented within a line but not across lines, measured on the volcano). Rendered four ways: over the hatched engraving
+(the new gallery panel B, and the best figure in the set), over the sepia dot field, and alone on a light screen. The
+symmetric `with_halo()` stays for lines over intervals.

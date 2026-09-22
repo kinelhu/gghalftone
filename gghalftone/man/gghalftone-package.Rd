@@ -8,13 +8,6 @@
 \description{
 Print-style halftone screens as ggplot2 layers. Dots are placed at draw time on a lattice with a physical pitch in millimetres, so figures re-flow correctly at any output size. Provides geom_halftone() for continuous fields, geom_spot() for per-point tone discs, with_halftone() to screen the fill of any existing layer (ribbons, areas, bars, polygons, sf), a screen-angle aesthetic for colour-free encodings, line screens, Bayer/blue-noise/Floyd-Steinberg dithering, overprint handling for overlapping groups, and a journal-oriented theme.
 }
-\seealso{
-Useful links:
-\itemize{
-  \item \url{https://github.com/kinelhu/gghalftone}
-}
-
-}
 \author{
 \strong{Maintainer}: Kinan El Husseini \email{kinelhu@gmail.com}
 

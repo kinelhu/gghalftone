@@ -39,7 +39,7 @@ Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 85 regressi
 - Overlap is a panel property: overprint (woven) by default; `stack` only for nested intervals / ridgelines.
 - Alpha is ink coverage; nothing translucent reaches the page.
 - Clip from filled polygons only (never from grobs containing open outlines).
-- Hairline halo (~0.08 mm) on lines crossing dot fields; never wider.
+- Hairline halo (0.09 mm) on lines crossing dot fields; never wider. The halo is symmetric on purpose: it is the printer's knockout channel. Asymmetry belongs to surfaces: `with_relief()` (Tanaka illuminated contours, light from 315°) for contours over a field.
 - One tonal register per figure set; typographic hierarchy: tag 10 bold > axis title 8 > ticks 7 > legend 7 grey.
 - Angle alone distinguishes three screens; beyond that vary shape and tone.
 - Never judge line art from thumbnails; render at 600 dpi and compare side-by-side with the last accepted version.
