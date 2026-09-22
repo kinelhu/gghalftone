@@ -35,8 +35,9 @@ pR <- ggplot(w, aes(dir, pct, screen = speed)) +
   scale_screen_discrete(name = "Wind speed (m/s)") + coord_polar(start = -pi / 8) +
   scale_y_continuous(limits = c(0, ring), breaks = seq(5, ring, 5), expand = c(0, 0)) +
   labs(x = NULL, y = NULL) + th(theme_minimal) +
-  theme(panel.grid.major = element_line(colour = "grey85", linewidth = 0.2),
-        axis.text.y = element_text(size = 5.5, colour = "grey45"), axis.text.x = element_text(size = 7),
+  # rings are the radial axis, so they are hairline ink like every other rule in the set, not grey furniture
+  theme(panel.grid.major.y = element_line(colour = "black", linewidth = 0.12),
+        axis.text.y = element_text(size = 5.5), axis.text.x = element_text(size = 7),
         legend.position = "bottom", legend.key.width = unit(7, "mm"), plot.margin = margin(2, 2, 2, 2))
 out("wind_rose", pR, height = 84)
 

@@ -48,6 +48,7 @@ Change a rule only when a side-by-side comparison at 600 dpi shows the change is
 - Clip from filled polygons only, never from grobs with open outlines.
 - The halo on lines crossing dot fields is a symmetric hairline (0.09 mm). It is the printer's knockout channel. Asymmetry belongs to surfaces: `with_relief()` for contours over a field, lit from 315 degrees.
 - Angle alone distinguishes three screens. Beyond that, vary shape and tone.
+- No grey chart furniture. The screen is the only texture, and rules, rings and borders are hairline ink. A polar chart's rings are its radial axis, so they are ink at 0.12 mm, not a grey grid.
 - Do not judge line art from thumbnails. Render at 600 dpi and compare side by side with the last accepted version.
 
 ## Environment

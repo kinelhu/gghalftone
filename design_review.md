@@ -264,8 +264,13 @@ Author: the wind rose looks bad apart from the shading. Two faults, both mine:
   stacked within each direction sector, which is what a wind rose is for and gives the hatch a job. Three speed bins
   rather than four, at 0.75 mm, because twenty-four hatched regions meet in one panel.
 - **The furniture floated.** The radial scale expanded well past the data, so the rings and the direction labels sat
-  far outside the rose in white space. Tight limits with no expansion, spokes as well as rings, and small grey radial
-  labels.
+  far outside the rose in white space. Tight limits with no expansion.
+
+A third fault, caught on the next proof: the rings and spokes were grey, and every other figure in the set has no grey
+at all. A polar chart still needs a radial reference, so the rings stay, but as hairline ink at 0.12 mm, which is the
+same register as every other rule in the set. Spokes went entirely. Two alternatives were rendered and rejected: an
+outer ring alone leaves the radial labels with nothing to anchor to, and a radial ruler drawn as data turns into a
+spoke, because in polar coordinates an x position is an angle.
 
 Chasing why the horizontal hatch looked heavier than the diagonals turned up a real bug in the legend key rather than
 in the screen. Ink coverage on the panel is constant across angles, measured at 0.309 to 0.310 over eight angles. The
