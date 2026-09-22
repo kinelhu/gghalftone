@@ -83,8 +83,9 @@ to use \code{position_jitter()}, give the position as \code{"jitter"}.
 
 \item{pitch}{Lattice spacing in mm; \code{NULL} means 0.35. Journal figures want 0.3 to 0.45. Coarser pitches suit posters.}
 
-\item{angle}{Rotation of the lattice in degrees. \code{NULL} means 15 for a hex lattice. When \code{screen} is mapped, the
-screen specs are absolute and \code{angle} (if given) is added to them.}
+\item{angle}{Rotation of the lattice in degrees. \code{NULL} picks the default: 45 on a square lattice and for line
+screens, 15 for hex dots, so that no lattice axis is horizontal or vertical. When \code{screen} is mapped, the screen
+specs are absolute and \code{angle} (if given) is added to them.}
 
 \item{grid}{\code{"hex"} (default) or \code{"square"}. A 45-degree square lattice is the classic map and photo screen.}
 
@@ -153,7 +154,8 @@ groups overlap.
 }
 \section{Defaults}{
 
-A 0.35 mm hex lattice (73 lines per inch) rotated 15 degrees, so that no lattice axis is horizontal or vertical.
+A 0.35 mm hex lattice (73 lines per inch) rotated 15 degrees, so that no lattice axis is horizontal or vertical
+(a square lattice, and any line screen, goes to 45).
 Continuous tone and circular dots. Coarser pitches print as a dot pattern rather than as tone; 0.6 mm suits a
 poster. A binary stipple (\code{levels = 1}) is capped at 55\% tone so that the densest region remains a stipple.
 Set \code{tone_max} to override.

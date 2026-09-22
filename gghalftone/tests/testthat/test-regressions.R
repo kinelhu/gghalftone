@@ -410,3 +410,31 @@ test_that("a legend key carries the same ink as the fill it stands for, includin
   # and the light key really is broken, not a continuous thin line: it carries far less ink than the dark one
   expect_lt(key_cov("45|line|0.10"), key_cov("45|line|1.00") * 0.5)
 })
+
+test_that("the default lattice angle follows the grid and the shape, and both geoms agree", {
+  ang_field <- function(...) content(ggplot(local({g <- expand.grid(x = 1:20, y = 1:20); g$z <- 1; g}), aes(x, y, z = z)) + geom_halftone(pitch = 1, ...) + theme_void(), "halftone")$params$angle
+  ang_fill  <- function(...) content(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1, ...) + theme_void(), "halftone_fill")$params$angle
+  for (f in list(ang_field, ang_fill)) {
+    expect_equal(f(), 15)                                   # hex dots
+    expect_equal(f(grid = "square"), 45)                    # the classic square screen angle
+    expect_equal(f(shape = "line"), 45)                     # strips must not run along the lattice rows
+    expect_equal(f(grid = "square", shape = "line"), 45)
+    expect_equal(f(angle = 30), 30)                         # an explicit angle still wins
+  }
+})
+
+test_that("each tone profile has one fixed normalisation: vertical is per column, radial is over the whole shape", {
+  # a wide body on the left, a narrow tail on the right
+  x <- seq(0, 10, length.out = 120)
+  d <- data.frame(x, lo = 0, hi = ifelse(x < 5, 1, 0.22))
+  peak <- function(profile, side) {
+    k <- content(ggplot(d, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"),
+                 profile = profile, tone = "centre", pitch = 0.5, outline = FALSE) +
+                 scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(limits = c(0, 1), expand = c(0, 0)) + theme_void(), "halftone_fill", w = 60, h = 40)
+    g <- find_grob(k, "circle"); xs <- as.numeric(g$x); rs <- as.numeric(g$r)
+    max(rs[if (side == "body") xs < 25 else xs > 35]) }
+  # per column: the narrow tail reaches the same peak tone as the body
+  expect_equal(peak("vertical", "tail"), peak("vertical", "body"), tolerance = 0.02)
+  # over the whole shape: the tail is further from its own medial line in absolute terms, so it stays lighter
+  expect_lt(peak("radial", "tail"), peak("radial", "body") * 0.8)
+})

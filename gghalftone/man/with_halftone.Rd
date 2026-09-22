@@ -12,7 +12,6 @@ with_halftone(
   grid = "hex",
   tone = NULL,
   profile = c("vertical", "radial"),
-  local = TRUE,
   levels = NULL,
   bayer_n = 4,
   dot_max = 0.9,
@@ -36,17 +35,17 @@ one, which is what \code{geom_sf()} returns.}
 
 \item{pitch}{Lattice spacing in mm (0.35, 73 lines per inch). Coarsen deliberately for a poster, or where several hatched groups overlap.}
 
-\item{angle}{Lattice angle in degrees; \code{NULL} means 15 for dots and 45 for hatching.}
+\item{angle}{Lattice angle in degrees. \code{NULL} picks 45 on a square lattice and for hatching, 15 for hex dots.}
 
 \item{grid}{\code{"hex"} (default) or \code{"square"}. A 45-degree square lattice is the classic map and photo screen.}
 
 \item{tone}{Tone profile: \code{NULL} (from the geometry, see below), \code{"likelihood"}, \code{"flat"}, \code{"vignette"}, \code{"centre"}
 (the older gaussian, within a hair of likelihood), \code{"edge"}, \code{"tent"} or \code{"centre-soft"}.}
 
-\item{profile}{Distance used by the non-flat profiles: \code{"vertical"} (distance to the top and bottom edge along
-each column, right for ribbons and densities) or \code{"radial"} (Euclidean distance to the outline).}
-
-\item{local}{For \code{"vertical"}, normalise each column by its own height (\code{TRUE}) or by the tallest.}
+\item{profile}{Distance used by the non-flat profiles. \code{"vertical"} measures to the top and bottom edge along each
+column and is normalised per column, so every column reaches full tone at its own middle; this is right for
+ribbons and densities. \code{"radial"} measures to the nearest point of the outline and is normalised over the whole
+shape, so a narrow arm stays lighter than the body.}
 
 \item{levels}{\code{NULL} for continuous tone (dot area follows tone exactly). An integer quantises tone to that many
 steps and dithers the remainder with \code{algorithm}; \code{levels = 1} is a binary stipple.}

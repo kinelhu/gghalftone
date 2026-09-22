@@ -290,3 +290,28 @@ The formula approach was the mistake. A key now runs the real lattice over a key
 it with the same grobs the panel uses, so pitch, angle, tone, quantisation, dithering and the minimum
 feature all behave identically by construction rather than by agreement. The test renders a key and the
 bar it stands for and compares ink coverage, at a tone above the minimum and at one below it.
+
+## Bug hunt on the seams (2026-09-22)
+
+Every bug this session came from a place where two code paths are meant to agree but are maintained
+apart: the legend key against the panel, twice, and the two geoms against each other. So the hunt went
+there, with invariants rather than eyeballs.
+
+Held: ink coverage does not depend on pitch (2.4 % spread for dots over 0.4 to 0.9 mm, 0.1 % for line
+screens), coverage is linear in `tone_max`, the two geoms agree to 0.0 % for the same specification,
+all three overlap modes behave (overprint prints one dot per cell, interleave 1.25x for two
+phase-shifted lattices, stack 1.01x), every dither and every tone profile renders, and the field
+helpers all run.
+
+Two real faults:
+
+- **A square lattice defaulted to 15 degrees** while the help and the design rules promise 45, the
+  classic print angle. Every square-lattice figure in the gallery passes `angle = 45` by hand, which is
+  the happy-defaults failure in miniature. Both geoms now take the angle from the grid and the shape
+  through one `default_angle()`.
+- **`local` was a dead parameter.** It was consulted only inside the branch where `profile != "vertical"`,
+  under a condition requiring `profile == "vertical"`, so it could never be true. The vertical profile is
+  normalised per column by the kernel and the radial profile over the whole shape, each unconditionally.
+  A documented knob that cannot move is worse than no knob, so it is gone, and a test pins what each
+  profile actually does: a narrow tail reaches full tone under `"vertical"` and stays lighter under
+  `"radial"`.

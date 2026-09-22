@@ -126,6 +126,9 @@ quantise_tone <- function(Z, levels = NULL, algorithm = "bayer", bayer_n = 4) {
   if (is.null(levels) || !is.finite(levels) || levels <= 0) return(pmin(pmax(Z, 0), 1))
   switch(algorithm, bayer = dither_bayer(Z, levels, bayer_n), floyd_steinberg = dither_floyd_steinberg(Z, levels), blue_noise = dither_blue_noise(Z, levels))
 }
+# Default lattice angle: no lattice axis horizontal or vertical. A square screen goes to 45, the classic
+# print angle; a hex lattice to 15 for dots, and 45 for a line screen so the strips do not run along the rows.
+default_angle <- function(grid, shape) if (identical(grid, "square")) 45 else if (identical(shape, "line")) 45 else 15
 tone_floor <- 0.02   # absolute floor; the working floor is the printable minimum feature, see dot_floor()
 # smallest tone whose dot (diameter dot_max * pitch * sqrt(tone)) is at least min_feature mm across. Journals ask for
 # nothing finer than 0.25 pt (0.09 mm) at final size: below that a dot is a grey pixel on screen and mud on a press.
@@ -268,7 +271,7 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
                         shape = "circle", gamma = 1, overlap = c("stack", "interleave", "overprint"), blend = "mix", tone_max = NULL, min_feature = 0.09) {
     pitch <- pitch %||% 0.35   # 73 lpi (pitch ladder, design_review.md)
     tone_max <- tone_max %||% if (isTRUE(levels == 1)) 0.55 else 1       # a binary stipple must never saturate into the bare lattice
-    overlap <- match.arg(overlap); angle_user <- !is.null(angle); angle <- angle %||% 15   # screen specs are absolute unless the user gave an angle offset
+    overlap <- match.arg(overlap); angle_user <- !is.null(angle); angle <- angle %||% default_angle(grid, shape)   # screen specs are absolute unless the user gave an angle offset
     use_tone <- !all(is.na(data$tone))
     if (!use_tone && all(is.na(data$z))) stop("geom_halftone() needs aes(z = ) or aes(tone = ) (through scale_tone_continuous())")
     rng <- if (is.null(range)) range(data$z, na.rm = TRUE) else range
@@ -306,7 +309,8 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #' groups overlap.
 #'
 #' @section Defaults:
-#' A 0.35 mm hex lattice (73 lines per inch) rotated 15 degrees, so that no lattice axis is horizontal or vertical.
+#' A 0.35 mm hex lattice (73 lines per inch) rotated 15 degrees, so that no lattice axis is horizontal or vertical
+#' (a square lattice, and any line screen, goes to 45).
 #' Continuous tone and circular dots. Coarser pitches print as a dot pattern rather than as tone; 0.6 mm suits a
 #' poster. A binary stipple (`levels = 1`) is capped at 55% tone so that the densest region remains a stipple.
 #' Set `tone_max` to override.
@@ -314,8 +318,9 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #' @inheritParams ggplot2::layer
 #' @param ... Other arguments passed to [ggplot2::layer()], such as fixed aesthetics (`colour = "black"`).
 #' @param pitch Lattice spacing in mm; `NULL` means 0.35. Journal figures want 0.3 to 0.45. Coarser pitches suit posters.
-#' @param angle Rotation of the lattice in degrees. `NULL` means 15 for a hex lattice. When `screen` is mapped, the
-#'   screen specs are absolute and `angle` (if given) is added to them.
+#' @param angle Rotation of the lattice in degrees. `NULL` picks the default: 45 on a square lattice and for line
+#'   screens, 15 for hex dots, so that no lattice axis is horizontal or vertical. When `screen` is mapped, the screen
+#'   specs are absolute and `angle` (if given) is added to them.
 #' @param grid `"hex"` (default) or `"square"`. A 45-degree square lattice is the classic map and photo screen.
 #' @param levels `NULL` for continuous tone (dot area follows tone exactly). An integer quantises tone to that many
 #'   steps and dithers the remainder with `algorithm`; `levels = 1` is a binary stipple.

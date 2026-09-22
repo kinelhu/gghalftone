@@ -16,6 +16,9 @@ Two scripts render figures: `prototypes/gallery2.R` for the defaults gallery and
 
 ## Open
 
+- Vector output is checked for size and structure but never read as a page. Open a PDF at 800 % and confirm the clipping paths and the minimum feature survive; that is the one output path no test looks at.
+- `blend = "mix"` and `"multiply"` render but nobody has judged them against `"alternate"` at 600 dpi.
+
 - Blue-noise tiling: the 32 by 32 void-and-cluster matrix repeats visibly on large flat fills. Options: a 64 by 64 matrix, or a per-row phase offset from a second matrix.
 
 ## Known behaviour

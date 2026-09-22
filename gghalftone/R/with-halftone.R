@@ -86,10 +86,9 @@ makeContent.halftone_fill <- function(x) {
       # distance transform on a fine raster of the polygon, then sample at lattice points
       rx <- seq(min(q$x) - cellmm, max(q$x) + cellmm, by = cellmm); ry <- seq(min(q$y) - cellmm, max(q$y) + cellmm, by = cellmm)
       R <- scan_fill_cpp(rx, ry, q$x, q$y)   # rows = ry, cols = rx; scanline, not per-cell point-in-polygon
-      if (p$profile == "vertical") Dn <- dt_col_cpp(R) else {
-        D <- dt_cpp(R) * cellmm
-        norm <- if (p$local && p$profile == "vertical") matrix(pmax(apply(D, 2, max), 1e-9), nrow(D), ncol(D), byrow = TRUE) else max(D, 1e-9)
-        Dn <- D / norm }
+      # "vertical" is normalised per column by the kernel, so every column reaches full tone at its own middle.
+      # "radial" is normalised over the whole shape, so a narrow arm stays lighter than the body.
+      Dn <- if (p$profile == "vertical") dt_col_cpp(R) else { D <- dt_cpp(R) * cellmm; D / max(D, 1e-9) }
       ix <- pmin(pmax(round((X - rx[1]) / cellmm) + 1, 1), length(rx)); iy <- pmin(pmax(round((Y - ry[1]) / cellmm) + 1, 1), length(ry))
       dd <- matrix(Dn[cbind(as.vector(iy), as.vector(ix))], nrow(X))
       # dd in [0,1]: 0 at the edge, 1 on the medial line. "centre" is the gaussian profile that won the KM comparison (soft edge, not a tent)
@@ -153,16 +152,17 @@ makeContent.halftone_fill <- function(x) {
 #' @param layer A ggplot2 layer, for example `geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))`, or a list holding
 #'   one, which is what `geom_sf()` returns.
 #' @param pitch Lattice spacing in mm (0.35, 73 lines per inch). Coarsen deliberately for a poster, or where several hatched groups overlap.
-#' @param angle Lattice angle in degrees; `NULL` means 15 for dots and 45 for hatching.
+#' @param angle Lattice angle in degrees. `NULL` picks 45 on a square lattice and for hatching, 15 for hex dots.
 #' @param tone Tone profile: `NULL` (from the geometry, see below), `"likelihood"`, `"flat"`, `"vignette"`, `"centre"`
 #'   (the older gaussian, within a hair of likelihood), `"edge"`, `"tent"` or `"centre-soft"`.
 #' @param level Confidence level the ribbon represents, for the `"likelihood"` profile.
 #' @param redundant Also give each fill group its own screen (angle and shape), so colour is never the only encoding.
 #'   `NULL` means yes for geoms whose groups tile the plane (bars, areas, polygons, tiles, sf) and no for intervals and
 #'   densities, whose overlapping groups are woven on one lattice; separate lattices there moire.
-#' @param profile Distance used by the non-flat profiles: `"vertical"` (distance to the top and bottom edge along
-#'   each column, right for ribbons and densities) or `"radial"` (Euclidean distance to the outline).
-#' @param local For `"vertical"`, normalise each column by its own height (`TRUE`) or by the tallest.
+#' @param profile Distance used by the non-flat profiles. `"vertical"` measures to the top and bottom edge along each
+#'   column and is normalised per column, so every column reaches full tone at its own middle; this is right for
+#'   ribbons and densities. `"radial"` measures to the nearest point of the outline and is normalised over the whole
+#'   shape, so a narrow arm stays lighter than the body.
 #' @param tone_max Tone ceiling; `NULL` picks the register above.
 #' @param outline Keep the layer's own outline (with its fill removed) on top of the screen.
 #' @param clip Clip the screen to the exact fill region (grid clipping path; ragg, cairo and pdf honour it).
@@ -176,13 +176,13 @@ makeContent.halftone_fill <- function(x) {
 #'   with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), fill = halftone_inks[["blue"]])) +
 #'   with_halo(ggplot2::geom_line(ggplot2::aes(y = y), colour = halftone_inks[["blue"]])) + ggplot2::theme_classic() + theme_halftone()
 #' @export
-with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone = NULL, profile = c("vertical", "radial"), local = TRUE,
+with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone = NULL, profile = c("vertical", "radial"),
                           levels = NULL, bayer_n = 4, dot_max = 0.9, gamma = 1, tone_max = NULL, outline = TRUE,
                           shape = "circle", algorithm = "bayer", clip = TRUE, overlap = c("overprint", "stack"), level = 0.95, min_feature = 0.09,
                           redundant = NULL) {
   overlap <- match.arg(overlap); profile <- match.arg(profile)   # match.arg needs this frame's formals, so it runs before the wrapper
   wrap_layers(layer, function(layer) {
-  angle_user <- !is.null(angle); angle <- angle %||% if (shape == "line") 45 else 15   # hatching at 45; dots on a hex lattice at 15 so no lattice axis is horizontal or vertical
+  angle_user <- !is.null(angle); angle <- angle %||% default_angle(grid, shape)
   # defaults encode the print rules: line screens are constant weight with a hard edge; outline-defined shapes
   # (densities, violins) are edge-weighted so overlaps stay legible; everything else fades from the centre (gaussian)
   parent0 <- layer$geom; tone_user <- !is.null(tone); tone_max_user <- !is.null(tone_max)
@@ -202,7 +202,7 @@ with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone 
   tone_max <- tone_max %||% switch(tone, flat = if (shape == "line") (if (is_interval) hairline else 0.4) else if (is_map) 0.6 else 0.45, likelihood = 0.6, centre = 0.6, vignette = 0.7, 1)
   if (shape == "line" && tone_max_user && tone_max < hairline) message(sprintf("with_halftone(): hatch strips at tone_max = %.2f would be %.3f mm wide, under the printable minimum (%.2f mm); they are drawn at the minimum", tone_max, tone_max * dot_max * pitch * 0.9, min_feature))
   if (shape == "line" && tone != "flat") message("with_halftone(): line screens usually look better with tone = \"flat\" (hard edge); tapered strokes read as fringe")
-  P <- list(pitch = pitch, angle = angle, grid = grid, tone = tone, profile = profile, local = local, levels = levels, bayer_n = bayer_n, dot_max = dot_max, gamma = gamma, tone_max = tone_max, outline = outline, shape = shape, algorithm = algorithm, clip = clip, overlap = overlap, level = level, min_feature = min_feature,
+  P <- list(pitch = pitch, angle = angle, grid = grid, tone = tone, profile = profile, levels = levels, bayer_n = bayer_n, dot_max = dot_max, gamma = gamma, tone_max = tone_max, outline = outline, shape = shape, algorithm = algorithm, clip = clip, overlap = overlap, level = level, min_feature = min_feature,
             tone_auto = !tone_user, tone_max_auto = !tone_max_user, angle_user = angle_user)
   keymap <- new.env(parent = emptyenv())   # fill colour -> auto screen spec, written at draw time, read by the legend key
   wrapped <- ggproto(NULL, parent,
