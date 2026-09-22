@@ -324,3 +324,9 @@ test_that("geom_spot: shape = 'line' hatches the discs; aes(screen = ) rotates p
   key <- draw_key_spot(data.frame(colour = "black", tone = 0.7, size = NA, screen = "45|line"), list(r = 3, pitch = 0.5), 5)
   expect_false(is.null(find_grob(key, "polygon")))
 })
+
+test_that("vectorised weave picks the same ink as the per-cell rule", {
+  set.seed(3); np <- 4; n <- 500; m <- sample(1:(2^np - 1), n, TRUE); r <- sample(1:64, n, TRUE); c <- sample(1:64, n, TRUE)
+  ref <- mapply(function(m, r, c) { ks <- which(bitwAnd(as.integer(m), 2^(0:30)) > 0); k <- length(ks); ks[(gghalftone:::weave_phase(r, c, k) %% k) + 1] }, m, r, c)
+  expect_equal(gghalftone:::weave_pick(m, r, c, np), unname(ref))
+})

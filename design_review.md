@@ -170,3 +170,5 @@ Author asked whether the figures follow journal practice and how the idea could 
 - Three vignettes carry the gallery as prose: the journal figure, one-ink screens, fields. pkgdown builds.
 - The intended fonts are installed; every render since is in Liberation Sans, EB Garamond, Inconsolata. Nothing in the
   proofs changed visibly except the editorial piece, which finally has its Garamond.
+
+- Performance closed out: the weave and the colour lookup were the last package-side hot spots; after vectorising them the draw is device-bound. CI workflows written, awaiting a remote.

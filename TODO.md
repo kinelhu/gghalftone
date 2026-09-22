@@ -9,9 +9,9 @@ Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 85 regressi
 3. ~~`scale_tone()`~~ Done: `aes(tone = )` + `scale_tone_continuous()` on both `geom_spot()` and `geom_halftone()`; `halftone_tone_legend()` removed.
 4. **Blue-noise tiling**: the 32x32 void-and-cluster matrix repeats visibly on large flat fills (bars specimen, tile 7). Options: 64x64 (generation is 0.1 s at 32, scales ~n^2 log n), or a per-row phase offset from a second matrix.
 5. ~~`geom_spot()` parity~~ Done: `aes(screen = )`, `shape = "line"`, square/diamond dots; rosette rotates with the screen angle; keys follow.
-6. **Performance**: profiled (2026-09-21). The fine-raster point-in-polygon was 40 % of a KM draw; replaced by a scanline rasteriser (`scan_fill_cpp`), whole gallery 25 s -> 11 s. What remains is grid drawing the circles (unavoidable) and `matrix()` allocations; the weave `mapply` and `sample_index()` binning are the next candidates.
+6. ~~Performance~~ Profiled on the worst case (2 x 3 facets, three woven strata, 183 mm, 0.35 mm): 6.9 s -> 5.5 s after vectorising the weave and the per-cell colour lookup; the package's own work is now 0.5 s of that, the rest is ragg drawing ~500k circles, which is already the fastest primitive (benchmarked against points and polygons). Nothing left to win without drawing fewer dots.
 7. ~~Vignettes~~ Done: three (`gghalftone`, `screens`, `fields`), built and checked; pkgdown site builds into `docs/` (gitignored; publish from a CI step or commit it when there is a remote).
-8. ~~git init~~ Done (2026-09-21, branch `main`).
+8. ~~git init~~ Done (2026-09-21, branch `main`). GitHub Actions workflows for R CMD check (macOS + Ubuntu) and pkgdown to gh-pages are in `.github/workflows/`; they run on the first push once a remote exists. Set `url:` in `_pkgdown.yml` then.
 
 ## Known issues / open design questions
 - Fonts: Liberation Sans, EB Garamond and Inconsolata are installed (Homebrew casks, 2026-09-22, in `~/Library/Fonts`), and the theme resolves them. Base `pdf()` knows no system fonts: examples set `options(halftone.fonts = FALSE)` (generic families); real output goes through ragg or cairo_pdf.

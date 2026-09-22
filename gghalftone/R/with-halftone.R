@@ -45,6 +45,14 @@ strip_fill <- function(g) {   # keep outlines, remove fills, recursively
   g
 }
 
+# vectorised weave: for each multi-ink cell (bitmask m over polygons 1..np), pick the (phase+1)-th ink present, where
+# phase = weave_phase(row, col, k) mod k and k is the number of inks in the cell
+weave_pick <- function(m, r, c, np) {
+  B <- vapply(seq_len(np), function(j) bitwAnd(as.integer(m), as.integer(2^(j - 1))) > 0, logical(length(m)))
+  B <- matrix(B, ncol = np); k <- rowSums(B); want <- (weave_phase(r, c, k) %% k) + 1
+  cum <- B * 0; cum[, 1] <- B[, 1]; if (np > 1) for (j in 2:np) cum[, j] <- cum[, j - 1] + B[, j]
+  max.col(B & cum == want, ties.method = "first")
+}
 # clip region = union of the FILLED shapes only. Building it from the original grob is wrong: an open outline
 # polyline (geom_area's upper edge, say) gets implicitly closed and combined even-odd, cutting holes in neighbours.
 clip_from_polys <- function(polys) {
@@ -63,6 +71,7 @@ makeContent.halftone_fill <- function(x) {
   # alpha is not printable: fold the fill's alpha (and gp alpha) into tone, and strip it from the ink
   polys <- lapply(polys, function(q) { rgba <- grDevices::col2rgb(q$fill, alpha = TRUE); q$cov <- (rgba[4] / 255) * (q$alpha %||% 1)
     q$fill <- grDevices::rgb(rgba[1], rgba[2], rgba[3], maxColorValue = 255); q$alpha <- 1; q })
+  poly_cols <- vapply(polys, function(q) scales::alpha(q$fill, q$alpha), "")   # one colour per polygon, indexed per cell
   lat <- halftone_lattice(p, W, H); X <- lat$X; Y <- lat$Y; ins <- lat$inside
   # per-cell: which polygon (last wins, as in drawing order), tone
   owner <- matrix(0L, nrow(X), ncol(X)); owner2 <- owner; cnt <- owner; tone <- matrix(0, nrow(X), ncol(X))
@@ -93,7 +102,7 @@ makeContent.halftone_fill <- function(x) {
   }
   if (p$shape == "line") {
     COL <- matrix(NA_character_, nrow(X), ncol(X)); ok <- owner > 0
-    COL[ok] <- vapply(owner[ok], function(k) scales::alpha(polys[[k]]$fill, polys[[k]]$alpha), "")
+    COL[ok] <- poly_cols[owner[ok]]
     kids <- gList(line_strips_grob(X, Y, tone, COL, ok, p$angle, p$dot_max * p$pitch * 0.9, if (p$clip) p$pitch else p$pitch / 2, p$min_feature))
     if (p$clip) kids <- gList(gTree(children = kids, vp = viewport(clip = clip_from_polys(polys))))
     if (p$outline) kids <- gList(kids, strip_fill(x$orig)); return(setChildren(x, kids)) }
@@ -107,9 +116,9 @@ makeContent.halftone_fill <- function(x) {
       # woven overprint among ALL inks present: a hex lattice is 3-colourable, so up to three inks interleave with no
       # same-ink neighbours; phase = (col + 2*row) mod k generalises (checkerboard for k = 2)
       ii <- which(keep)[multi]; ri <- row(X)[ii]; ci <- col(X)[ii]
-      who[multi] <- mapply(function(m, r, c) { ks <- which(bitwAnd(as.integer(m), 2^(0:30)) > 0); k <- length(ks); ks[(weave_phase(r, c, k) %% k) + 1] }, mask[ii], ri, ci)
+      who[multi] <- weave_pick(mask[ii], ri, ci, length(polys))
     }
-    cols <- vapply(who, function(k) scales::alpha(polys[[k]]$fill, polys[[k]]$alpha), "")
+    cols <- poly_cols[who]
     r <- p$dot_max * p$pitch / 2 * sqrt(Dm[keep])
     kids <- gList(dot_grob(X[keep], Y[keep], r, cols, p$shape))
   }
