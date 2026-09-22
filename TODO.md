@@ -15,7 +15,7 @@ Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 85 regressi
 
 ## Known issues / open design questions
 - Fonts: Liberation Sans, EB Garamond and Inconsolata are installed (Homebrew casks, 2026-09-22, in `~/Library/Fonts`), and the theme resolves them. Base `pdf()` knows no system fonts: examples set `options(halftone.fonts = FALSE)` (generic families); real output goes through ragg or cairo_pdf.
-- Vignette PNGs are quantised to 48 colours (halftone images compress poorly); the source tarball is still ~3 MB. Consider pre-rendered vignettes if it matters for CRAN.
+- Vignette PNGs are quantised to 48 colours (halftone images compress poorly); the source tarball is 1.9 MB. The R magick package must be installed for the quantisation hook to run (it is now); without it the tarball is 5 MB.
 - Two-ink weave has no perfect solution on a hex lattice (odd cycles); blue-noise assignment is used for k != 3. Fine at 600 dpi; document.
 - KM lower-half density: overprint makes each stratum's lower half denser (it overlaps the neighbour's core). Not a bug; `overlap = "stack"` if it must be symmetric.
 - Line screens + gaussian tone read as fringe; the wrapper warns. Keep the rule.
