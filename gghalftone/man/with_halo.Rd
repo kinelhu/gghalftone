@@ -24,5 +24,6 @@ over an elevation field. Keep it a hairline: 0.09 mm (0.25 pt, the printable min
 a line screen. Wider and it reads as a second line.
 }
 \examples{
+\dontshow{op <- options(halftone.fonts = FALSE)}
 ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + with_halo(ggplot2::geom_line())
 }

@@ -1,12 +1,12 @@
 # gghalftone
 
-![](inst/figures/engraving.png)
+![Maunga Whau as a line-screen engraving with contour lines](man/figures/engraving.png)
 
 Print-style halftone screens for ggplot2. Dots (or hatch lines) are placed at **draw time on a lattice with a physical pitch in millimetres**, so a figure saved at 89 mm and at 183 mm has the same screen, not a scaled one. Overlapping groups are overprinted (woven), never hidden.
 
-![](inst/figures/fig1.png)
+![Kaplan-Meier with three halftone confidence bands and a risk table](man/figures/km.png)
 
-*Figure 1 as it would go to a journal — 183 mm, 600 dpi, 7 pt. A: Kaplan–Meier with 95 % CI as a gaussian-profile hex halftone (`with_halftone(geom_ribbon())`). B: GAM ± CI. C: scRNA-style marker dot plot (`geom_spot`, radius = % expressing, tone = mean expression).*
+*A Kaplan–Meier as it would go to a journal: 89 mm, 600 dpi, 7 pt. Three 95 % intervals as likelihood-profile halftones woven on one lattice (`with_halftone(geom_ribbon())`), haloed steps, censor marks, number at risk (`km_steps()`, `km_censor()`, `km_risk()`).*
 
 ## What it does
 
@@ -33,7 +33,9 @@ ggplot(f, aes(x, y, z = z, screen = series)) + geom_halftone() + scale_screen_di
 ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", angle = 30)
 ```
 
-![](inst/figures/gallery.png)
+![Six gallery figures: KM, smooth, densities, choropleth, one-ink KM, stipple](man/figures/gallery.png)
+
+*Left to right, top to bottom: the KM above; a smooth with its band; three densities; a choropleth; the same KM in one ink; a blue-noise stipple. All from `prototypes/gallery2.R` with package defaults.*
 
 ## Design rules learned the hard way
 
@@ -54,11 +56,11 @@ ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", angle = 30)
 
 ## Black and white
 
-![](inst/figures/km_bw.png)
+![Kaplan-Meier in one ink with three hatch angles](man/figures/km_bw.png)
 
 Three strata, one ink: crosshatch angles from `aes(screen = )` on the ribbon, line type on the estimates.
 
-![](inst/figures/engraving.png)
+![Maunga Whau as a line-screen engraving with contour lines](man/figures/engraving.png)
 
 Maunga Whau from `geom_contour()` plus one `shape = "line"` layer.
 
@@ -66,7 +68,7 @@ Maunga Whau from `geom_contour()` plus one `shape = "line"` layer.
 
 `theme_halftone()` defaults to a journal style (Liberation Sans, absolute 7–8 pt sizes, bold tags, sentence case, no gridlines); `style = "editorial"` gives the cream-paper/Garamond/monospace look used for the cover-style pieces. `ggsave_journal("fig.pdf", p, "double")` saves at 183 mm: vector PDF, or PNG/TIFF at 600 dpi by extension. `halftone_proof()` renders true size plus a magnified crop. `theme_halftone(palette = "process")` swaps the muted inks for one-or-two-plate press colours.
 
-![](inst/figures/editorial.png)
+![A ribbon in the editorial register on cream paper](man/figures/editorial.png)
 
 ## Status
 

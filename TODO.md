@@ -1,6 +1,6 @@
 # gghalftone — hand-off TODO
 
-Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 84 regression tests pass; `R CMD check` clean. Git repo initialised. Full gallery renders in ~11 s at the 0.35 mm default. Defaults pass done (see `design_review.md`, review 2): bare `with_halftone()` / `geom_halftone()` calls now produce the gallery in `figures/v2/` (`prototypes/gallery2.R`). API considered stable for `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `km_steps()`, the `screen` aesthetic, `theme_halftone()`. No Rd docs yet.
+Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 85 regression tests pass; `R CMD check` (with vignettes) clean. Git repo initialised. Full gallery renders in ~11 s at the 0.35 mm default. Defaults pass done (see `design_review.md`, review 2): bare `with_halftone()` / `geom_halftone()` calls now produce the gallery in `figures/v2/` (`prototypes/gallery2.R`). API considered stable for `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `km_steps()`, the `screen` aesthetic, `theme_halftone()`. No Rd docs yet.
 
 ## Priority order
 
@@ -8,13 +8,14 @@ Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 84 regressi
 2. ~~Rd documentation~~ Done: every export documented, `R CMD check --no-manual` is clean (0 errors, 0 warnings, 0 notes). Arguments rationalised: `dot_max` (ink weight at full tone), `tone_max` (tone ceiling), `gamma` (tone curve) survive; `gain` (dot spread) and `size_map` (radius mapping) were removed, both unused and both wrong for print. `levels = NULL` is continuous; `algorithm`/`bayer_n` only matter when it is set.
 3. ~~`scale_tone()`~~ Done: `aes(tone = )` + `scale_tone_continuous()` on both `geom_spot()` and `geom_halftone()`; `halftone_tone_legend()` removed.
 4. **Blue-noise tiling**: the 32x32 void-and-cluster matrix repeats visibly on large flat fills (bars specimen, tile 7). Options: 64x64 (generation is 0.1 s at 32, scales ~n^2 log n), or a per-row phase offset from a second matrix.
-5. **`geom_spot()` parity**: accept `aes(screen = )` and `shape = "line"` (hatched discs for B&W dot plots); reuse `dot_grob()`/`line_strips_grob()`.
+5. ~~`geom_spot()` parity~~ Done: `aes(screen = )`, `shape = "line"`, square/diamond dots; rosette rotates with the screen angle; keys follow.
 6. **Performance**: profiled (2026-09-21). The fine-raster point-in-polygon was 40 % of a KM draw; replaced by a scanline rasteriser (`scan_fill_cpp`), whole gallery 25 s -> 11 s. What remains is grid drawing the circles (unavoidable) and `matrix()` allocations; the weave `mapply` and `sample_index()` binning are the next candidates.
-7. **Vignettes**: the five specimen scripts (`prototypes/specimen.R`, `specimens2.R`) are the vignette bodies; add prose. Then pkgdown.
+7. ~~Vignettes~~ Done: three (`gghalftone`, `screens`, `fields`), built and checked; pkgdown site builds into `docs/` (gitignored; publish from a CI step or commit it when there is a remote).
 8. ~~git init~~ Done (2026-09-21, branch `main`).
 
 ## Known issues / open design questions
-- Fonts: none of Liberation Sans / EB Garamond / Inconsolata are installed on this machine; the theme falls back to Helvetica / Georgia / Menlo (Helvetica before Arial so the pdf device, which R CMD check uses for examples, gets a base family). Install the intended families before final renders.
+- Fonts: Liberation Sans, EB Garamond and Inconsolata are installed (Homebrew casks, 2026-09-22, in `~/Library/Fonts`), and the theme resolves them. Base `pdf()` knows no system fonts: examples set `options(halftone.fonts = FALSE)` (generic families); real output goes through ragg or cairo_pdf.
+- Vignette PNGs are quantised to 48 colours (halftone images compress poorly); the source tarball is still ~3 MB. Consider pre-rendered vignettes if it matters for CRAN.
 - Two-ink weave has no perfect solution on a hex lattice (odd cycles); blue-noise assignment is used for k != 3. Fine at 600 dpi; document.
 - KM lower-half density: overprint makes each stratum's lower half denser (it overlaps the neighbour's core). Not a bug; `overlap = "stack"` if it must be symmetric.
 - Line screens + gaussian tone read as fringe; the wrapper warns. Keep the rule.

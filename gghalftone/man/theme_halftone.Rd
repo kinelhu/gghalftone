@@ -71,8 +71,8 @@ A ggplot2 theme; \code{ggsave_journal()} is called for its side effect.
 point sizes for 89 or 183 mm figures (ticks 7 pt, axis titles 8 pt, tags 8 pt bold, legend 7 pt grey), white
 paper, no gridlines, 0.7 pt axis rules, outward ticks. \code{"editorial"}: cream paper, a serif for titles, a monospace
 for labels. Font families are resolved from what is installed (journal: Liberation Sans, Helvetica, Arial;
-editorial: EB Garamond, Garamond, Georgia, Times; mono: Inconsolata, Menlo, Courier New). Helvetica precedes
-Arial because the pdf device knows it as a base family. On ggplot2 >= 4.0 the theme
+editorial: EB Garamond, Garamond, Georgia, Times; mono: Inconsolata, Menlo, Courier New). \code{options(halftone.fonts = FALSE)}
+uses the device's generic \code{sans}, \code{serif} and \code{mono} instead, for devices that know no system fonts (base \code{pdf()}). On ggplot2 >= 4.0 the theme
 also makes \link{halftone_inks} the default discrete palette and \link{halftone_ramp} the default continuous one.
 }
 \details{
@@ -83,5 +83,6 @@ size and a magnified crop of one region (default the panel centre, 4x), which is
 was judged; it returns the two file paths.
 }
 \examples{
+\dontshow{op <- options(halftone.fonts = FALSE)}
 ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() + theme_halftone()
 }

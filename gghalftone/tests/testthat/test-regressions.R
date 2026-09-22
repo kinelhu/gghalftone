@@ -311,3 +311,16 @@ test_that("scanline fill agrees with point-in-polygon on a concave polygon (the 
   b <- matrix(gghalftone:::pip_cpp(rep(rx, each = length(ry)), rep(ry, times = length(rx)), vx, vy), length(ry), length(rx))
   expect_equal(dim(a), c(length(ry), length(rx))); expect_gt(mean(a), 0.3); expect_equal(a, b)
 })
+
+test_that("geom_spot: shape = 'line' hatches the discs; aes(screen = ) rotates per group; keys follow", {
+  d <- data.frame(x = 1:3, y = 1, v = c(0.3, 0.6, 0.9), g = c("a", "b", "c"))
+  kh <- content(ggplot(d, aes(x, y, tone = v)) + geom_spot(r = 3, pitch = 0.5, shape = "line") + scale_tone_continuous() + theme_void(), "spot", w = 60, h = 30)
+  rs <- c(); walk0 <- function(g) { if (inherits(g, "circle")) rs <<- c(rs, as.numeric(g$r)); if (inherits(g, "gTree")) for (k in g$children) walk0(k) }
+  walk0(kh); expect_true(all(abs(rs - 3) < 1e-9)); expect_false(is.null(find_grob(kh, "polygon")))   # only ring circles (r = 3 mm), hatch strips carry the tone
+  ps <- ggplot(d, aes(x, y, tone = v, screen = g)) + geom_spot(r = 3, pitch = 0.5) + scale_tone_continuous() + scale_screen_manual(values = c("15|circle", "45|line", "75|square")) + theme_void()
+  ks <- content(ps, "spot", w = 60, h = 30)
+  cls <- c(); walk <- function(g) { if (inherits(g, c("circle", "polygon", "rect"))) cls <<- c(cls, class(g)[1]); if (inherits(g, "gTree")) for (k in g$children) walk(k) }
+  walk(ks); expect_true(all(c("circle", "polygon", "rect") %in% cls))
+  key <- draw_key_spot(data.frame(colour = "black", tone = 0.7, size = NA, screen = "45|line"), list(r = 3, pitch = 0.5), 5)
+  expect_false(is.null(find_grob(key, "polygon")))
+})

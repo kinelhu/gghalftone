@@ -5,3 +5,6 @@
 gghalftone/src/*.o
 gghalftone/src/*.so
 gghalftone/src/*.dll
+docs/
+gghalftone/doc/
+gghalftone/Meta/

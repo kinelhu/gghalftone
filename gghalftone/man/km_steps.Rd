@@ -30,6 +30,7 @@ Turn a \code{survival::survfit} object into data frames ready for \code{with_hal
 Strata labels are the level values without the variable name (\code{"ph.ecog=1"} becomes \code{"1"}).
 }
 \examples{
+\dontshow{op <- options(halftone.fonts = FALSE)}
 if (requireNamespace("survival", quietly = TRUE)) {
   fit <- survival::survfit(survival::Surv(time, status) ~ sex, data = survival::lung)
   s <- km_steps(fit)

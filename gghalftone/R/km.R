@@ -13,6 +13,7 @@
 #' @param times Times at which to report the number at risk.
 #' @return A data frame.
 #' @examples
+#' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' if (requireNamespace("survival", quietly = TRUE)) {
 #'   fit <- survival::survfit(survival::Surv(time, status) ~ sex, data = survival::lung)
 #'   s <- km_steps(fit)

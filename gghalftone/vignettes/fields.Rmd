@@ -1,0 +1,78 @@
+---
+title: "Fields: dot screens, stipple and engraving"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Fields: dot screens, stipple and engraving}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dev = "ragg_png", dpi = 300, fig.retina = 1, fig.width = 89 / 25.4, fig.height = 75 / 25.4, out.width = "55%", fig.align = "center",
+  fig.process = if (requireNamespace("magick", quietly = TRUE)) function(f) { magick::image_write(magick::image_quantize(magick::image_read(f), 48), f); f })   # halftone PNGs compress poorly; quantise
+library(ggplot2); library(gghalftone)
+vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
+```
+
+`geom_halftone()` takes a gridded field (`x`, `y` and a value) and screens it directly: each dot's area is the tone at that point. Colour scales apply to the field and the dots inherit.
+
+## Continuous tone
+
+```{r field}
+ggplot(vol, aes(x, y, z = z)) +
+  geom_halftone(aes(colour = z), angle = 45, grid = "square", gamma = 0.6) +
+  with_halo(geom_contour(colour = "black", linewidth = 0.25, bins = 8)) +
+  coord_equal(expand = FALSE) + labs(x = NULL, y = NULL, colour = "Elevation (m)") +
+  theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
+```
+
+The 45° square lattice is the classic map and photograph screen. `gamma` below one lifts the mid-tones.
+
+## Engraving
+
+A line screen whose strip width follows tone. The halo under the contours is widened to 0.15 mm: against hatch a 0.09 mm halo is invisible. Where tone falls below the printable minimum the lines break into dashes rather than thinning, as a burin would.
+
+```{r engraving}
+ggplot(vol, aes(x, y, z = z)) +
+  geom_halftone(shape = "line", colour = "black", angle = 30, gamma = 1.4) +
+  with_halo(geom_contour(colour = "black", linewidth = 0.2, bins = 8), width = 0.15) +
+  coord_equal(expand = FALSE) + labs(x = NULL, y = NULL) +
+  theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
+```
+
+## Stipple
+
+`levels = 1` with blue-noise dithering gives a binary stipple: every dot the same size, density carrying the value. This is the one case where dot density *is* the data. The tone is capped at 55 % so the densest region stays a stipple rather than a bare lattice.
+
+```{r stipple, fig.height = 62 / 25.4}
+kd <- MASS::kde2d(faithful$eruptions, faithful$waiting, n = 120, lims = c(1.3, 5.6, 40, 100))
+dens <- data.frame(expand.grid(x = kd$x, y = kd$y), z = as.vector(kd$z))
+ggplot(dens, aes(x, y, z = z)) +
+  geom_halftone(levels = 1, algorithm = "blue_noise", colour = "black") +
+  with_halo(geom_contour(colour = "black", linewidth = 0.35, bins = 3)) +
+  labs(x = "Eruption (min)", y = "Waiting (min)") + theme_halftone(axes = "box")
+```
+
+## Maps
+
+`with_halftone()` on a polygon layer prints each region at its fill colour's tone. The default continuous ramp runs paper, ochre, red, near-black.
+
+```{r map, fig.height = 58 / 25.4, eval = requireNamespace("maps", quietly = TRUE) && requireNamespace("mapproj", quietly = TRUE)}
+val <- setNames(USArrests$Murder, tolower(rownames(USArrests)))
+st <- ggplot2::map_data("state"); st$murder <- val[st$region]
+ggplot(st, aes(long, lat, group = group, fill = murder)) +
+  with_halftone(geom_polygon(colour = "black", linewidth = 0.2), angle = 45, grid = "square") +
+  coord_map("albers", lat0 = 30, lat1 = 45) + labs(x = NULL, y = NULL, fill = "Murders\nper 100k") +
+  theme_halftone(axes = "none") + theme(axis.text = element_blank())
+```
+
+## Pitch
+
+The default 0.35 mm is 73 lines per inch. The ladder below is the evidence: 0.6 mm reads as dots and the screen becomes the subject; 0.25 mm collapses into a flat tint at five times the cost.
+
+```{r ladder, fig.width = 183 / 25.4, fig.height = 45 / 25.4, out.width = "100%"}
+d <- data.frame(x = seq(0, 10, length.out = 60)); d$y <- sin(d$x); d$lo <- d$y - 0.5 - 0.02 * d$x; d$hi <- d$y + 0.5 + 0.02 * d$x
+one <- function(p) ggplot(d, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = p) +
+  with_halo(geom_line(aes(y = y), linewidth = 0.35)) + labs(x = NULL, y = NULL, title = sprintf("%.2f mm", p)) + theme_halftone() + theme(plot.title = element_text(size = 7))
+patchwork::wrap_plots(lapply(c(0.6, 0.45, 0.35, 0.25), one), nrow = 1)
+```

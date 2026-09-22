@@ -161,6 +161,7 @@ makeContent.halftone_fill <- function(x) {
 #' @return The layer, with its geom replaced by a halftone-drawing subclass.
 #' @order 1
 #' @examples
+#' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' x <- seq(0, 10, length.out = 60); d <- data.frame(x, y = sin(x), lo = sin(x) - 0.5, hi = sin(x) + 0.5)
 #' ggplot2::ggplot(d, ggplot2::aes(x)) +
 #'   with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), fill = halftone_inks[["blue"]])) +

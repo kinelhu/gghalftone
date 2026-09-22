@@ -24,6 +24,7 @@
 #' @param levels Number of quantisation steps.
 #' @return A numeric matrix of thresholds in `(0, 1)` (matrices), or a quantised tone matrix (dither functions).
 #' @examples
+#' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' bayer_matrix(2)
 #' range(blue_noise_matrix(32))
 #' @name dither
@@ -336,6 +337,7 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #' @seealso [with_halftone()] to screen the fill of an existing layer, [geom_spot()] for per-point discs,
 #'   [scale_screen_discrete()] for colour-free encodings, [with_halo()] for lines drawn over a screen.
 #' @examples
+#' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
 #' ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone() + theme_halftone(axes = "box")
 #' # engraving: a line screen, plus contours with a paper halo
@@ -355,21 +357,29 @@ geom_halftone <- function(mapping = NULL, data = NULL, stat = "identity", positi
 # ---- geom_spot: each point is a disc of radius r (mm) filled with a halftone whose tone is the value ----------------
 # tone: aes(tone = ) through scale_tone_continuous() (0..1, with a guide), or aes(z = ) normalised in the geom (no guide).
 # Each disc gets its own hex lattice centred on the disc (a symmetric rosette), and the dots are clipped to the disc.
-spot_grob <- function(cx, cy, rad, tone, col, pitch, dot_max, ring, ring_lwd, levels = NULL, bayer_n = 4, min_feature = 0.09) {
+spot_grob <- function(cx, cy, rad, tone, col, pitch, dot_max, ring, ring_lwd, levels = NULL, bayer_n = 4, min_feature = 0.09, angle = 0, shape = "circle") {
   py <- pitch * sqrt(3) / 2; k <- ceiling(rad / pitch) + 1
   us <- seq(-k, k) * pitch; vs <- seq(-k, k) * py
   U <- matrix(us, length(vs), length(us), byrow = TRUE); V <- matrix(vs, length(vs), length(us)); U <- U + (row(U) %% 2) * pitch / 2
+  a <- angle * pi / 180; U0 <- U; U <- U0 * cos(a) - V * sin(a); V <- U0 * sin(a) + V * cos(a)   # rotate the rosette
   inside <- U^2 + V^2 <= (rad + pitch / 2)^2
+  clipvp <- viewport(clip = circleGrob(x = unit(cx, "mm"), y = unit(cy, "mm"), r = unit(rad, "mm")))
+  ringg <- if (ring) circleGrob(x = unit(cx, "mm"), y = unit(cy, "mm"), r = unit(rad, "mm"), gp = gpar(fill = NA, col = col, lwd = ring_lwd)) else NULL
+  if (shape == "line") {   # hatched disc: strips along lattice rows, width follows tone, clipped to the disc
+    Z <- matrix(0, nrow(U), ncol(U)); Z[inside] <- tone
+    strips <- line_strips_grob(cx + U, cy + V, Z, col, inside, angle, dot_max * pitch * 0.9, pitch, min_feature)
+    kids <- if (inherits(strips, "null")) gList() else gList(gTree(children = gList(strips), vp = clipvp))
+    return(gTree(children = if (is.null(ringg)) kids else gList(kids, ringg))) }
   D <- if (is.null(levels)) rep(tone, sum(inside)) else {
     b <- bayer_matrix(bayer_n); thr <- b[cbind((row(U)[inside] - 1) %% bayer_n + 1, (col(U)[inside] - 1) %% bayer_n + 1)]
     pmin(pmax(floor(tone * levels + thr) / levels, 0), 1) }
   D <- floor_dither(D, max(tone_floor, (min_feature / (dot_max * pitch))^2), row(U)[inside], col(U)[inside]); keep <- D > tone_floor
   kids <- gList()
   if (any(keep)) {
-    dots <- circleGrob(x = unit(cx + U[inside][keep], "mm"), y = unit(cy + V[inside][keep], "mm"), r = unit(dot_max * pitch / 2 * sqrt(D[keep]), "mm"), gp = gpar(fill = col, col = NA))
-    kids <- gList(gTree(children = gList(dots), vp = viewport(clip = circleGrob(x = unit(cx, "mm"), y = unit(cy, "mm"), r = unit(rad, "mm")))))
+    dots <- dot_grob(cx + U[inside][keep], cy + V[inside][keep], dot_max * pitch / 2 * sqrt(D[keep]), col, shape)
+    kids <- gList(gTree(children = gList(dots), vp = clipvp))
   }
-  if (ring) kids <- gList(kids, circleGrob(x = unit(cx, "mm"), y = unit(cy, "mm"), r = unit(rad, "mm"), gp = gpar(fill = NA, col = col, lwd = ring_lwd)))
+  if (!is.null(ringg)) kids <- gList(kids, ringg)
   gTree(children = kids)
 }
 #' @rdname geom_spot
@@ -380,15 +390,18 @@ makeContent.spot <- function(x) {
   d <- x$data; p <- x$params
   W <- convertWidth(unit(1, "npc"), "mm", valueOnly = TRUE); H <- convertHeight(unit(1, "npc"), "mm", valueOnly = TRUE)
   cx <- d$x * W; cy <- d$y * H; rad <- if (is.null(d$size)) rep(p$r, nrow(d)) else d$size   # size aes = radius (mm)
-  kids <- lapply(seq_len(nrow(d)), function(k) spot_grob(cx[k], cy[k], rad[k], d$z01[k], scales::alpha(d$colour[k], d$alpha[k]), p$pitch, p$dot_max, p$ring, p$ring_lwd, p$levels, p$bayer_n, p$min_feature))
+  kids <- lapply(seq_len(nrow(d)), function(k) { sp <- parse_screen(d$screen[k]); shp <- if (p$shape == "line" && !identical(sp$shape, "line")) "line" else sp$shape %||% p$shape
+    spot_grob(cx[k], cy[k], rad[k], d$z01[k] * sp$tone, scales::alpha(d$colour[k], d$alpha[k]), p$pitch, p$dot_max, p$ring, p$ring_lwd, p$levels, p$bayer_n, p$min_feature,
+              (if (p$angle_user) p$angle else 0) + screen_angle(sp, shp), shp) })
   setChildren(x, do.call(gList, kids))
 }
 GeomSpot <- ggproto("GeomSpot", Geom,
   required_aes = c("x", "y"), optional_aes = c("z", "tone"),
-  default_aes = aes(colour = "#151515", alpha = 1, size = NA, tone = NA, z = NA),
+  default_aes = aes(colour = "#151515", alpha = 1, size = NA, tone = NA, z = NA, screen = NA),
   draw_key = function(data, params, size) draw_key_spot(data, params, size),
   draw_panel = function(data, panel_params, coord, r = 3, pitch = 0.35, levels = NULL, bayer_n = 4, dot_max = 0.9,
-                        range = NULL, ring = TRUE, ring_lwd = 0.3, min_feature = 0.09) {
+                        range = NULL, ring = TRUE, ring_lwd = 0.3, min_feature = 0.09, angle = NULL, shape = "circle") {
+    angle_user <- !is.null(angle); angle <- angle %||% if (shape == "line") 45 else 15
     coords <- coord$transform(data, panel_params)
     if (!all(is.na(data$tone))) coords$z01 <- pmin(pmax(data$tone, 0), 1)
     else if (!all(is.na(data$z))) { rng <- if (is.null(range)) range(data$z, na.rm = TRUE) else range; coords$z01 <- norm01(data$z, rng) }
@@ -396,7 +409,7 @@ GeomSpot <- ggproto("GeomSpot", Geom,
     coords$z01[is.na(coords$z01)] <- 0
     coords$alpha[is.na(coords$alpha)] <- 1
     if (all(is.na(coords$size))) coords$size <- NULL
-    gTree(data = coords, params = list(r = r, pitch = pitch, levels = levels, bayer_n = bayer_n, dot_max = dot_max, ring = ring, ring_lwd = ring_lwd, min_feature = min_feature), cl = "spot")
+    gTree(data = coords, params = list(r = r, pitch = pitch, levels = levels, bayer_n = bayer_n, dot_max = dot_max, ring = ring, ring_lwd = ring_lwd, min_feature = min_feature, angle = angle, angle_user = angle_user, shape = shape), cl = "spot")
   }
 )
 #' Tone discs
@@ -413,19 +426,24 @@ GeomSpot <- ggproto("GeomSpot", Geom,
 #' @param pitch Lattice spacing inside the discs, in mm.
 #' @param ring Draw the disc outline.
 #' @param ring_lwd Line width of the ring.
+#' @param angle Rotation of the rosette in degrees; `NULL` means 15 for dots and 45 for hatching. Added to a mapped
+#'   `screen` spec's angle only when given.
+#' @param shape `"circle"`, `"square"`, `"diamond"` or `"line"` (hatched discs, for one-ink dot plots). `aes(screen = )`
+#'   with [scale_screen_discrete()] varies angle and shape per group.
 #' @return A ggplot2 layer.
 #' @order 1
 #' @examples
+#' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' d <- expand.grid(gene = c("A", "B", "C"), cluster = 1:4); d$expr <- runif(12); d$pct <- runif(12)
 #' ggplot2::ggplot(d, ggplot2::aes(cluster, gene, tone = expr, size = pct)) + geom_spot() +
 #'   scale_tone_continuous() + ggplot2::scale_radius(range = c(1, 2.2)) + theme_halftone(axes = "none")
 #' @export
 geom_spot <- function(mapping = NULL, data = NULL, stat = "identity", position = "identity", ..., r = 3, pitch = 0.35,
-                      levels = NULL, bayer_n = 4, dot_max = 0.9, range = NULL, ring = TRUE, ring_lwd = 0.3, min_feature = 0.09,
+                      levels = NULL, bayer_n = 4, dot_max = 0.9, range = NULL, ring = TRUE, ring_lwd = 0.3, min_feature = 0.09, angle = NULL, shape = "circle",
                       na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
   layer(geom = GeomSpot, mapping = mapping, data = data, stat = stat, position = position, show.legend = show.legend,
         inherit.aes = inherit.aes, params = list(r = r, pitch = pitch, levels = levels, bayer_n = bayer_n, dot_max = dot_max,
-        range = range, ring = ring, ring_lwd = ring_lwd, min_feature = min_feature, na.rm = na.rm, ...))
+        range = range, ring = ring, ring_lwd = ring_lwd, min_feature = min_feature, angle = angle, shape = shape, na.rm = na.rm, ...))
 }
 # tone as a real aesthetic: a continuous scale onto [0, 1] (or a narrower range) with a legend of tone discs at the breaks
 #' Tone scale
@@ -515,6 +533,7 @@ line_recipe <- function(n) rep_len(c(45, 135, 0, 90, 22.5, 112.5, 67.5, 157.5), 
 #' @param ... Passed to [ggplot2::discrete_scale()].
 #' @return A ggplot2 scale.
 #' @examples
+#' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' d <- data.frame(g = c("a", "b", "c"), n = c(3, 2, 1))
 #' ggplot2::ggplot(d, ggplot2::aes(g, n, screen = g)) +
 #'   with_halftone(ggplot2::geom_col(fill = "black", colour = "black"), shape = "line") +
@@ -534,7 +553,9 @@ draw_key_spot <- function(data, params, size) {
   # own size (attr width/height, cm) so labels never sit on the disc.
   rad <- if (is.null(data$size) || is.na(data$size)) min(params$r %||% 3, 2.4) else data$size
   tone <- if (is.null(data$tone) || is.na(data$tone)) 0.55 else data$tone
-  g <- spot_grob(0, 0, rad, tone, data$colour %||% "black", params$pitch %||% 0.35, params$dot_max %||% 0.9, TRUE, params$ring_lwd %||% 0.3, params$levels, params$bayer_n %||% 4, params$min_feature %||% 0.09)
+  sp <- parse_screen(data$screen); shp <- if (identical(params$shape, "line") && !identical(sp$shape, "line")) "line" else sp$shape %||% params$shape %||% "circle"
+  ang <- (if (isTRUE(params$angle_user)) params$angle else if (is.null(data$screen) || is.na(data$screen)) params$angle %||% 0 else 0) + screen_angle(sp, shp)
+  g <- spot_grob(0, 0, rad, tone * sp$tone, data$colour %||% "black", params$pitch %||% 0.35, params$dot_max %||% 0.9, TRUE, params$ring_lwd %||% 0.3, params$levels, params$bayer_n %||% 4, params$min_feature %||% 0.09, ang, shp)
   key <- gTree(children = gList(g), vp = viewport(x = 0.5, y = 0.5, width = unit(0, "mm"), height = unit(0, "mm"), clip = "off"))
   attr(key, "width") <- attr(key, "height") <- (2 * rad + 1.2) / 10
   key

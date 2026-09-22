@@ -7,6 +7,7 @@
 
 # first installed family from a preference list (via systemfonts, which ragg uses); fallback = device generic family
 halftone_font <- function(prefer, fallback = "") {
+  if (isFALSE(getOption("halftone.fonts", TRUE))) return(fallback)   # device-generic families (the base pdf() device knows no system fonts)
   if (!requireNamespace("systemfonts", quietly = TRUE)) return(prefer[1])
   hit <- prefer[prefer %in% unique(systemfonts::system_fonts()$family)]
   if (length(hit)) hit[1] else fallback
@@ -18,8 +19,8 @@ halftone_font <- function(prefer, fallback = "") {
 #' point sizes for 89 or 183 mm figures (ticks 7 pt, axis titles 8 pt, tags 8 pt bold, legend 7 pt grey), white
 #' paper, no gridlines, 0.7 pt axis rules, outward ticks. `"editorial"`: cream paper, a serif for titles, a monospace
 #' for labels. Font families are resolved from what is installed (journal: Liberation Sans, Helvetica, Arial;
-#' editorial: EB Garamond, Garamond, Georgia, Times; mono: Inconsolata, Menlo, Courier New). Helvetica precedes
-#' Arial because the pdf device knows it as a base family. On ggplot2 >= 4.0 the theme
+#' editorial: EB Garamond, Garamond, Georgia, Times; mono: Inconsolata, Menlo, Courier New). `options(halftone.fonts = FALSE)`
+#' uses the device's generic `sans`, `serif` and `mono` instead, for devices that know no system fonts (base `pdf()`). On ggplot2 >= 4.0 the theme
 #' also makes [halftone_inks] the default discrete palette and [halftone_ramp] the default continuous one.
 #'
 #' `ggsave_journal()` saves at a journal column width in mm: PNG (proofs) or TIFF at 600 dpi through ragg, or a vector
@@ -42,6 +43,7 @@ halftone_font <- function(prefer, fallback = "") {
 #'   the crop size in mm, and the magnification.
 #' @return A ggplot2 theme; `ggsave_journal()` is called for its side effect.
 #' @examples
+#' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() + theme_halftone()
 #' @export
 theme_halftone <- function(style = getOption("halftone.style", c("journal", "editorial")), base_size = NULL, base_family = NULL, mono_family = NULL,

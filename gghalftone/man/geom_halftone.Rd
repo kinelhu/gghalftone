@@ -159,6 +159,7 @@ the densest region still reads as a stipple rather than a bare lattice; set \cod
 }
 
 \examples{
+\dontshow{op <- options(halftone.fonts = FALSE)}
 vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
 ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone() + theme_halftone(axes = "box")
 # engraving: a line screen, plus contours with a paper halo

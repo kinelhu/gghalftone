@@ -1,0 +1,30 @@
+url: ~
+template:
+  bootstrap: 5
+  bslib:
+    heading_font: {google: "EB Garamond"}
+    code_font: {google: "Inconsolata"}
+    primary: "#8B1A1A"
+home:
+  title: gghalftone
+navbar:
+  structure:
+    left: [intro, reference, articles]
+    right: [search]
+articles:
+- title: Guides
+  navbar: ~
+  contents: [gghalftone, screens, fields]
+reference:
+- title: Screening a layer
+  contents: [with_halftone, with_halo]
+- title: Geoms
+  contents: [geom_halftone, geom_spot]
+- title: Scales and keys
+  contents: [scale_screen_discrete, scale_tone_continuous, scale_halftone, draw_key_halftone]
+- title: Theme and export
+  contents: [theme_halftone, halftone_inks]
+- title: Survival
+  contents: [km_steps]
+- title: Fields and dithering
+  contents: [halftone_fields, halftone_raster, cmyk, dither]

@@ -38,6 +38,7 @@ spaced over the lattice period, 60 degrees for hex), and hatch angles 45, 135, 0
 dots in one layer. Angle alone distinguishes three screens; beyond that vary shape and tone, or add a second ink.
 }
 \examples{
+\dontshow{op <- options(halftone.fonts = FALSE)}
 d <- data.frame(g = c("a", "b", "c"), n = c(3, 2, 1))
 ggplot2::ggplot(d, ggplot2::aes(g, n, screen = g)) +
   with_halftone(ggplot2::geom_col(fill = "black", colour = "black"), shape = "line") +

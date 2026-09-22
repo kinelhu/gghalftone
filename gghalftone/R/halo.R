@@ -14,6 +14,7 @@
 #'   `options(halftone.style = "editorial")`.
 #' @return The layer, with its geom replaced by a halo-drawing subclass.
 #' @examples
+#' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + with_halo(ggplot2::geom_line())
 #' @export
 with_halo <- function(layer, width = 0.09, colour = NULL) {

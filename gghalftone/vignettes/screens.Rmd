@@ -1,0 +1,79 @@
+---
+title: "One ink: screens, hatching and the screen aesthetic"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{One ink: screens, hatching and the screen aesthetic}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dev = "ragg_png", dpi = 300, fig.retina = 1, fig.width = 89 / 25.4, fig.height = 62 / 25.4, out.width = "60%", fig.align = "center",
+  fig.process = if (requireNamespace("magick", quietly = TRUE)) function(f) { magick::image_write(magick::image_quantize(magick::image_read(f), 48), f); f })   # halftone PNGs compress poorly; quantise
+library(ggplot2); library(gghalftone)
+```
+
+Most journals still print in black, and colour figures are converted. A figure that never needed colour is safer. The `screen` aesthetic maps a discrete variable to a screen: an angle, a dot shape, and for line screens a hatching angle. Angle alone distinguishes three groups; the default recipe varies shape as well.
+
+## Densities
+
+```{r dens}
+ggplot(iris, aes(Sepal.Length, screen = Species, group = Species)) +
+  with_halftone(geom_density(fill = "black", linewidth = 0.25), shape = "line") +
+  scale_screen_discrete(name = NULL) +
+  labs(x = "Sepal length (cm)", y = "Density") +
+  theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.85), legend.key.size = unit(5, "mm"))
+```
+
+Where two densities overlap the hatches cross, which is the honest thing to show. With dots instead of lines the overlaps are woven on one lattice.
+
+```{r dens_dots}
+ggplot(iris, aes(Sepal.Length, fill = Species, group = Species)) +
+  with_halftone(geom_density(linewidth = 0.25)) +
+  labs(x = "Sepal length (cm)", y = "Density", fill = NULL) +
+  theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.85))
+```
+
+## Three intervals in one ink
+
+The figure only a halftone can make: three overlapping confidence bands, no colour. Hatched intervals are drawn as a hairline (the printable minimum) and the pitch is coarsened because three hatches overlap.
+
+```{r kmbw, fig.height = 65 / 25.4}
+library(survival)
+fit <- survfit(Surv(time, status) ~ ph.ecog, data = subset(lung, ph.ecog < 3))
+s <- km_steps(fit); levels(s$strata) <- paste("ECOG", levels(s$strata))
+
+ggplot(s, aes(time, group = strata, screen = strata)) +
+  with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), shape = "line", pitch = 0.5) +
+  with_halo(geom_step(aes(y = surv, linetype = strata), linewidth = 0.35)) +
+  scale_screen_manual(values = c(45, 135, 0), name = NULL) +
+  scale_linetype_manual(values = c("solid", "42", "12"), name = NULL) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "Days since diagnosis", y = "Overall survival") +
+  theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.84), legend.key.size = unit(5, "mm"))
+```
+
+## Screen specs
+
+A spec is `"angle|shape|tone|line_angle"`. `scale_screen_manual()` takes your own; mixing hatch and dots in one layer is allowed:
+
+```{r spec, fig.height = 50 / 25.4}
+d <- data.frame(g = c("a", "b", "c"), n = c(3, 2, 1))
+ggplot(d, aes(g, n, screen = g)) +
+  with_halftone(geom_col(fill = "black", colour = "black", linewidth = 0.25)) +
+  scale_screen_manual(values = c("45|line", "15|circle", "135|line"), name = NULL) +
+  labs(x = NULL, y = NULL) + theme_halftone()
+```
+
+## Dot plots in one ink
+
+`geom_spot()` draws a disc per point whose ink density is a value. With `shape = "line"` the discs are hatched, and `screen` works per group.
+
+```{r spot, fig.height = 45 / 25.4}
+dp <- expand.grid(gene = c("CD3E", "CD8A", "NKG7", "MS4A1"), cluster = paste0("C", 1:5))
+set.seed(1); dp$expr <- runif(nrow(dp)); dp$pct <- runif(nrow(dp), 0.3, 1)
+ggplot(dp, aes(cluster, gene, tone = expr, size = pct)) +
+  geom_spot(shape = "line", colour = "black") +
+  scale_tone_continuous(name = "Expression") + scale_radius(range = c(1, 2.2), name = "Expressing") +
+  labs(x = NULL, y = NULL) + theme_halftone(axes = "none") + theme(axis.text.y = element_text(face = "italic"))
+```

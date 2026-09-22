@@ -20,6 +20,8 @@ geom_spot(
   ring = TRUE,
   ring_lwd = 0.3,
   min_feature = 0.09,
+  angle = NULL,
+  shape = "circle",
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = TRUE
@@ -98,6 +100,12 @@ the screen.}
 \item{min_feature}{Smallest printable feature in mm (0.09, i.e. 0.25 pt, the usual journal minimum). Dots that would
 be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.}
 
+\item{angle}{Rotation of the rosette in degrees; \code{NULL} means 15 for dots and 45 for hatching. Added to a mapped
+\code{screen} spec's angle only when given.}
+
+\item{shape}{\code{"circle"}, \code{"square"}, \code{"diamond"} or \code{"line"} (hatched discs, for one-ink dot plots). \code{aes(screen = )}
+with \code{\link[=scale_screen_discrete]{scale_screen_discrete()}} varies angle and shape per group.}
+
 \item{na.rm}{Remove missing values silently.}
 
 \item{show.legend}{logical. Should this layer be included in the legends?
@@ -128,6 +136,7 @@ Tone comes from \code{aes(tone = )} through \code{\link[=scale_tone_continuous]{
 or from \code{aes(z = )} normalised inside the geom.
 }
 \examples{
+\dontshow{op <- options(halftone.fonts = FALSE)}
 d <- expand.grid(gene = c("A", "B", "C"), cluster = 1:4); d$expr <- runif(12); d$pct <- runif(12)
 ggplot2::ggplot(d, ggplot2::aes(cluster, gene, tone = expr, size = pct)) + geom_spot() +
   scale_tone_continuous() + ggplot2::scale_radius(range = c(1, 2.2)) + theme_halftone(axes = "none")

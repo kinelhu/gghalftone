@@ -162,3 +162,11 @@ Author asked whether the figures follow journal practice and how the idea could 
 - **Process palette.** K, M+Y, C+M, C+Y, C, M at 100 % beside the muted inks on the KM and bars: legible, harsher.
   Opt-in via `theme_halftone(palette = "process")`; the muted inks stay the screen default.
 - **Performance.** Scanline rasteriser for the tone-profile raster: gallery 25 s -> 11 s.
+
+## Follow-through (2026-09-22)
+
+- `geom_spot()` gained hatching (`shape = "line"`), square and diamond dots, and the `screen` aesthetic; the rosette
+  rotates with the screen angle so hatched discs read as one family with hatched bars.
+- Three vignettes carry the gallery as prose: the journal figure, one-ink screens, fields. pkgdown builds.
+- The intended fonts are installed; every render since is in Liberation Sans, EB Garamond, Inconsolata. Nothing in the
+  proofs changed visibly except the editorial piece, which finally has its Garamond.

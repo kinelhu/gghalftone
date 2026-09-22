@@ -40,6 +40,7 @@ Bayer for graded tone, blue noise for a binary stipple (\code{levels = 1}). Most
 dithering takes place.
 }
 \examples{
+\dontshow{op <- options(halftone.fonts = FALSE)}
 bayer_matrix(2)
 range(blue_noise_matrix(32))
 }
