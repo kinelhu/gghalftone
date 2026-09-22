@@ -151,7 +151,7 @@ makeContent.halftone_fill <- function(x) {
 #'
 #' @inheritParams geom_halftone
 #' @param layer A ggplot2 layer, e.g. `geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))`.
-#' @param pitch Lattice spacing in mm (0.35, 73 lines per inch). Coarsen deliberately for a poster or editorial look.
+#' @param pitch Lattice spacing in mm (0.35, 73 lines per inch). Coarsen deliberately for a poster, or where several hatched groups overlap.
 #' @param angle Lattice angle in degrees; `NULL` means 15 for dots and 45 for hatching.
 #' @param tone Tone profile: `NULL` (from the geometry, see below), `"likelihood"`, `"flat"`, `"vignette"`, `"centre"`
 #'   (the older gaussian, within a hair of likelihood), `"edge"`, `"tent"` or `"centre-soft"`.

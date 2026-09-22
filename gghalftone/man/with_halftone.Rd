@@ -33,7 +33,7 @@ with_halftone(
 \arguments{
 \item{layer}{A ggplot2 layer, e.g. \code{geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))}.}
 
-\item{pitch}{Lattice spacing in mm (0.35, 73 lines per inch). Coarsen deliberately for a poster or editorial look.}
+\item{pitch}{Lattice spacing in mm (0.35, 73 lines per inch). Coarsen deliberately for a poster, or where several hatched groups overlap.}
 
 \item{angle}{Lattice angle in degrees; \code{NULL} means 15 for dots and 45 for hatching.}
 

@@ -12,7 +12,7 @@ R package: halftone, dither and line-screen fills for ggplot2. Dots are placed a
 - For every visual change, render at 600 dpi with `ggsave_journal()`, crop the region of interest, and compare with the previous accepted figure side by side. Do not judge from thumbnails.
 - Every bug gets a test in `test-regressions.R`, at pixel level through ragg and png.
 - Defaults are the product. Before adding an argument to a gallery call, ask whether the default should change. See `design_review.md`.
-- Default pitch is 0.35 mm. The pitch ladder in `design_review.md` shows why. Coarsen only for a poster or an editorial plate.
+- Default pitch is 0.35 mm. The pitch ladder in `design_review.md` shows why. Coarsen only for a poster.
 - The package sets no fonts, so examples run on the base pdf device without special handling.
 - Vignettes in `gghalftone/vignettes/` are the prose gallery. `_pkgdown.yml` builds the site into `docs/`, which is gitignored.
 - `theme_halftone()` is a modifier, not a complete theme. The gallery adds it to stock ggplot2 themes through `th()` in `gallery2.R`.

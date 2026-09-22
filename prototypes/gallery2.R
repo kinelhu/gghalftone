@@ -26,10 +26,10 @@ out("km", pA / rtab + plot_layout(heights = c(10, 2.4)), height = 78)
 
 ## 2 The same KM in one ink: line screens + linetypes --------------------------------------------------------------------
 pK <- ggplot(s, aes(time, group = strata, screen = strata)) +
-  with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), shape = "line", pitch = 0.5) +   # hatched intervals are hairline by default; coarser than default because three overlap
-  with_halo(geom_step(aes(y = surv, linetype = strata), linewidth = 0.35)) +
+  with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), shape = "line", pitch = 0.7) +   # hatched intervals are hairline by default; coarse because three hatches overlap
+  with_halo(geom_step(aes(y = surv, linetype = strata), linewidth = 0.5), width = 0.2) +   # the line needs its own channel through the mesh
   geom_point(data = cens, aes(time, surv), shape = "|", size = 1.6, stroke = 0.4) +
-  scale_screen_manual(values = c(45, 135, 0), name = NULL) + scale_linetype_manual(values = c("solid", "42", "12"), name = NULL) +
+  scale_screen_manual(values = c(45, 135, 0), name = NULL) + scale_linetype_manual(values = c("solid", "62", "22"), name = NULL) +   # long dashes: a short dash disappears into the hatch
   scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, 0.25), expand = expansion(c(0, 0.02))) + xs + coord_cartesian(clip = "off") +
   labs(x = "Days since diagnosis", y = "Overall survival") + th() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.84), legend.key.size = unit(5, "mm"))
 out("km_bw", pK)
@@ -94,11 +94,4 @@ pP <- ggplot(dp, aes(cluster, gene, tone = expr, size = pct)) + geom_spot(colour
   scale_radius(range = c(1, 2.2), name = "Expressing", breaks = c(0.25, 0.5, 1), labels = scales::percent) + scale_tone(name = "Mean expression", breaks = c(0.5, 1.5, 2.5)) +
   labs(x = "Cluster", y = NULL) + th(theme_minimal) + theme(axis.ticks = element_blank(), axis.line = element_blank()) + theme(axis.ticks = element_blank(), axis.text.y = element_text(face = "italic"), legend.position = "bottom", legend.justification = "left", legend.key.size = unit(5.5, "mm"), legend.box = "vertical", legend.box.just = "left")
 out("dotplot", pP, height = 70)
-## 11 Editorial plate: the page register ---------------------------------------------------------------------------------------
-local({
-  pE3 <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", colour = halftone_ink, angle = 30, gamma = 1.4, pitch = 0.45) + with_relief(geom_contour(bins = 10)) +
-    coord_equal(expand = FALSE) + labs(title = "Maunga Whau", subtitle = "AUCKLAND VOLCANIC FIELD, 10 M CONTOURS, LIT FROM THE NORTH-WEST", caption = "Line screen at 0.45 mm. Illuminated contours after Tanaka (1950), Geographical Review 40:444. Data: R datasets::volcano.", x = NULL, y = NULL) +
-    theme_void(base_family = "EB Garamond", base_size = 11) + theme_halftone(paper = halftone_paper) +
-    theme(plot.title = element_text(size = 16), plot.subtitle = element_text(family = "Inconsolata", size = 7.5), plot.caption = element_text(family = "Inconsolata", size = 6.5, colour = "#666666", hjust = 0), plot.margin = margin(8, 8, 8, 8))
-  out("editorial", pE3, width = "onehalf", height = 150, bg = halftone_paper) })
 cat("gallery2 ok\n")

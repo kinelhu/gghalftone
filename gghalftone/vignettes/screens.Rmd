@@ -36,7 +36,9 @@ ggplot(iris, aes(Sepal.Length, fill = Species, group = Species)) +
 
 ## Three intervals in one ink
 
-The data are the lung cancer trial of Loprinzi et al. (1994). Hatched intervals are drawn as a hairline at the printable minimum. The pitch is set to 0.5 mm here because three hatches overlap.
+The data are the lung cancer trial of Loprinzi et al. (1994). Hatched intervals are drawn as a hairline at the printable minimum.
+
+Three overlapping hatches make a dense mesh, and a thin line inside it is hard to follow. Four settings fix that together: a coarser pitch (0.7 mm) so the mesh is open, a wider halo (0.2 mm) so the line gets its own channel, a heavier line (0.5), and long dashes, because a short dash disappears into the hatch.
 
 ```{r kmbw, fig.height = 65 / 25.4}
 library(survival)
@@ -44,10 +46,10 @@ fit <- survfit(Surv(time, status) ~ ph.ecog, data = subset(lung, ph.ecog < 3))
 s <- km_steps(fit); levels(s$strata) <- paste("ECOG", levels(s$strata))
 
 ggplot(s, aes(time, group = strata, screen = strata)) +
-  with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), shape = "line", pitch = 0.5) +
-  with_halo(geom_step(aes(y = surv, linetype = strata), linewidth = 0.35)) +
+  with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), shape = "line", pitch = 0.7) +
+  with_halo(geom_step(aes(y = surv, linetype = strata), linewidth = 0.5), width = 0.2) +
   scale_screen_manual(values = c(45, 135, 0), name = NULL) +
-  scale_linetype_manual(values = c("solid", "42", "12"), name = NULL) +
+  scale_linetype_manual(values = c("solid", "62", "22"), name = NULL) +
   scale_y_continuous(labels = scales::percent) +
   labs(x = "Days since diagnosis", y = "Overall survival") +
   theme_classic() + theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.84), legend.key.size = unit(5, "mm"))

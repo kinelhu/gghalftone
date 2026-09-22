@@ -208,3 +208,23 @@ README makes.
 Found while re-rendering: densities were getting automatic per-group screens, because `GeomDensity` inherits from
 `GeomArea` and the tiling test matched it. The overlaps showed the moire that rule exists to prevent. Excluded, with
 a test.
+
+## One-ink KM legibility, and dropping the plate (2026-09-22)
+
+Author: the line styles in `km_bw` are hard to see inside the shading. Four candidates at 600 dpi: the current
+treatment; a wider halo with a heavier line and longer dashes; solid steps at three line weights; and the same as the
+second with a coarser hatch. The last wins, and the fix is four settings acting together rather than any one of them:
+
+| setting | before | after | why |
+|---|---|---|---|
+| pitch | 0.5 mm | 0.7 mm | three overlapping hatches make a dense mesh; a coarser one leaves white for the line |
+| halo | 0.09 mm | 0.2 mm | the line needs its own channel through the mesh, wider than against dots |
+| linewidth | 0.35 | 0.5 | more ink in the line than in any hatch stroke |
+| dashes | 42, 12 | 62, 22 | a short dash is the same length as a hatch stroke and disappears into it |
+
+Solid steps at three weights were legible but the weights are harder to tell apart than dash patterns, and the heaviest
+line was too black beside a hairline hatch.
+
+The editorial plate is removed from the gallery, the README and `figures/v2/`. It was there to show a second register;
+with the editorial theme gone it only showed a plot with a serif title, which is not what an R package README is for.
+The engraving already carries the line screen in the README.

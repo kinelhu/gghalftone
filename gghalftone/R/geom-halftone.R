@@ -311,7 +311,7 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #'
 #' @inheritParams ggplot2::layer
 #' @param ... Other arguments passed to [ggplot2::layer()], such as fixed aesthetics (`colour = "black"`).
-#' @param pitch Lattice spacing in mm; `NULL` means 0.35. Journal figures want 0.3 to 0.45; editorial work 0.6 to 1.2.
+#' @param pitch Lattice spacing in mm; `NULL` means 0.35. Journal figures want 0.3 to 0.45. Coarser pitches suit posters.
 #' @param angle Rotation of the lattice in degrees. `NULL` means 15 for a hex lattice. When `screen` is mapped, the
 #'   screen specs are absolute and `angle` (if given) is added to them.
 #' @param grid `"hex"` (default) or `"square"`. A 45-degree square lattice is the classic map and photo screen.

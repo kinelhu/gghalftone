@@ -81,7 +81,7 @@ to use \code{position_jitter()}, give the position as \code{"jitter"}.
 
 \item{...}{Other arguments passed to \code{\link[ggplot2:layer]{ggplot2::layer()}}, such as fixed aesthetics (\code{colour = "black"}).}
 
-\item{pitch}{Lattice spacing in mm; \code{NULL} means 0.35. Journal figures want 0.3 to 0.45; editorial work 0.6 to 1.2.}
+\item{pitch}{Lattice spacing in mm; \code{NULL} means 0.35. Journal figures want 0.3 to 0.45. Coarser pitches suit posters.}
 
 \item{angle}{Rotation of the lattice in degrees. \code{NULL} means 15 for a hex lattice. When \code{screen} is mapped, the
 screen specs are absolute and \code{angle} (if given) is added to them.}

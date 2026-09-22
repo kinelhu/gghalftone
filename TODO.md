@@ -23,9 +23,8 @@ Status (2026-09-22): builds and installs on R 4.6.1 and ggplot2 4.0.3. 86 regres
 - The two-ink weave has no perfect solution on a hex lattice. Blue-noise assignment is used for k other than 3. Acceptable at 600 dpi.
 - With overprinting, the lower half of each Kaplan-Meier band is denser because it overlaps the neighbour's core. Use `overlap = "stack"` if the bands must be symmetric.
 - Line screens with a tapered tone profile look like fringe. The wrapper warns.
-- The package sets no fonts. The gallery uses stock ggplot2 themes; the editorial plate names EB Garamond and Inconsolata, installed as user fonts (Homebrew casks, 2026-09-22).
+- The package sets no fonts. The gallery uses stock ggplot2 themes.
 - Vignette PNGs are quantised to 48 colours because halftone images compress poorly. The source tarball is 1.9 MB. The R magick package must be installed for the quantisation hook to run; without it the tarball is 5 MB.
-- There is no editorial style in the package. The Maunga Whau plate in `figures/v2/editorial.png` is `theme_void()` plus four theme lines in the gallery script.
 
 ## Design rules
 

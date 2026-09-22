@@ -68,10 +68,6 @@ The package does not ship a complete theme. `theme_halftone()` is a modifier tha
 
 `ggsave_journal("fig.pdf", p, "double")` saves at 183 mm. The file extension selects the format: PNG or TIFF at 600 dpi, or vector PDF. `halftone_proof()` renders a plot at final size and a magnified crop. `theme_halftone(palette = "process")` uses press colours made of one or two process plates.
 
-The plate below is `theme_void()` with a serif title, a monospace caption and `theme_halftone(paper = halftone_paper)`.
-
-![Maunga Whau as an editorial plate: engraving with illuminated contours, Garamond title, monospace caption, cream paper](man/figures/editorial.png)
-
 ## Status
 
 Prototype. The API of `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `with_relief()`, the `screen` and `tone` aesthetics, `km_steps()` and the `theme_halftone()` modifier is considered stable. Every export has a help page. Start with `?with_halftone`.
