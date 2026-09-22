@@ -62,7 +62,7 @@ Three strata, one ink: crosshatch angles from `aes(screen = )` on the ribbon, li
 
 ![Maunga Whau as a line-screen engraving with contour lines](man/figures/engraving.png)
 
-Maunga Whau from `geom_contour()` plus one `shape = "line"` layer.
+Maunga Whau: one `shape = "line"` layer, and `with_relief(geom_contour())` for Tanaka illuminated contours, lit in paper from the upper left and shaded in ink.
 
 ## Theme
 
