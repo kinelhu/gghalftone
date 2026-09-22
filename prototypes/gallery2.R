@@ -92,4 +92,10 @@ pP <- ggplot(dp, aes(cluster, gene, tone = expr, size = pct)) + geom_spot(colour
   scale_radius(range = c(1, 2.2), name = "Expressing", breaks = c(0.25, 0.5, 1), labels = scales::percent) + scale_tone(name = "Mean expression", breaks = c(0.5, 1.5, 2.5)) +
   labs(x = "Cluster", y = NULL) + theme_halftone(axes = "none") + theme(axis.ticks = element_blank(), axis.text.y = element_text(face = "italic"), legend.position = "bottom", legend.justification = "left", legend.key.size = unit(5.5, "mm"), legend.box = "horizontal")
 out("dotplot", pP, height = 70)
+## 11 Editorial plate: the page register ---------------------------------------------------------------------------------------
+local({ op <- options(halftone.style = "editorial"); on.exit(options(op))
+  pE3 <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", colour = halftone_ink, angle = 30, gamma = 1.4, pitch = 0.45) + with_relief(geom_contour(bins = 10)) +
+    coord_equal(expand = FALSE) + labs(title = "Maunga Whau", subtitle = "AUCKLAND VOLCANIC FIELD  ·  10 M CONTOURS  ·  LIT FROM THE NORTH-WEST", caption = "Line screen 0.45 mm; illuminated contours after Tanaka (1950). Data: R datasets::volcano.", x = NULL, y = NULL) +
+    theme_halftone(axes = "none") + theme(axis.text = element_blank(), plot.margin = margin(8, 8, 8, 8))
+  out("editorial", pE3, width = "onehalf", height = 150) })
 cat("gallery2 ok\n")

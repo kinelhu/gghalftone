@@ -21,10 +21,10 @@ Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 85 regressi
 - Line screens + gaussian tone read as fringe; the wrapper warns. Keep the rule.
 - `geom_sf` has not been tested through `with_halftone()` (sf not installed in the prototyping sandbox). It draws `pathgrob`s, which `collect_polys()` handles, so it should work; verify.
 - `halftone_raster()` (magick) and `halftone_regions()` (maps) are Suggests with guards; untested since packaging.
-- Editorial style (`options(halftone.style = "editorial")`) has had less attention than journal since loop 9.
+- Editorial style is a page register (base 11 pt for 120–183 mm; use base_size = 8 at column width). The gallery piece is the Maunga Whau plate (`figures/v2/editorial.png`).
 
 ## Design rules (non-negotiable unless a side-by-side at 600 dpi proves otherwise)
-- Physical pitch in mm; 0.35 mm (73 lpi) is the default and the journal register: it reads as tone with a visible screen. 0.6 reads as dots (poster/editorial); 0.25 collapses into a flat tint and costs 5x the draw time.
+- Physical pitch in mm; 0.35 mm (73 lpi) is the default and the journal register: it reads as tone with a visible screen. Editorial plates at 120–183 mm: 0.45. 0.6 and above reads as dots and is for posters; 0.25 collapses into a flat tint and costs 5x the draw time.
 - Continuous tone by default (`levels = NULL`); quantise only for a stipple or a poster.
 - **No feature below 0.09 mm (0.25 pt)**, the journal minimum: `min_feature`. Enforced by dithering, not clipping: a cell below the floor prints at the floor with probability tone/floor, so coverage stays honest and light tone dissolves into sparse minimum dots or broken hairlines. Hairline hatch = the minimum, derived from pitch.
 - No lattice axis horizontal or vertical: 15° on hex (default), 45° on square.
@@ -40,7 +40,7 @@ Status (2026-09-21): builds and installs on R 4.6.1 / ggplot2 4.0.3; 85 regressi
 - Alpha is ink coverage; nothing translucent reaches the page.
 - Clip from filled polygons only (never from grobs containing open outlines).
 - Hairline halo (0.09 mm) on lines crossing dot fields; never wider. The halo is symmetric on purpose: it is the printer's knockout channel. Asymmetry belongs to surfaces: `with_relief()` (Tanaka illuminated contours, light from 315°) for contours over a field.
-- One tonal register per figure set; typographic hierarchy: tag 10 bold > axis title 8 > ticks 7 > legend 7 grey.
+- One tonal register per figure set; typographic hierarchy: tag 8 bold (in the layout margin, never over a panel) > axis title 8 > ticks 7 > legend 7 grey.
 - Angle alone distinguishes three screens; beyond that vary shape and tone.
 - Never judge line art from thumbnails; render at 600 dpi and compare side-by-side with the last accepted version.
 

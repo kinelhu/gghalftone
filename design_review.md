@@ -182,3 +182,14 @@ implements it; uphill is inferred per contour from neighbouring levels (ggplot2'
 oriented within a line but not across lines, measured on the volcano). Rendered four ways: over the hatched engraving
 (the new gallery panel B, and the best figure in the set), over the sepia dot field, and alone on a light screen. The
 symmetric `with_halo()` stays for lines over intervals.
+
+## Tags and the editorial piece (2026-09-22)
+
+- Panel tags were positioned at the plot corner inside the plot area (`plot.tag.position = c(0, 1)`) and overlapped
+  panel borders and axes. They now live in their own layout cell (`plot.tag.location = "margin"`), which is what a
+  journal compositor does: the tag is outside the figure, aligned to its top-left.
+- The editorial image in the README was a font-check placeholder: a sine wave at 0.9 mm on a column width, with the
+  page register's 17.6 pt title. Replaced by a real plate: Maunga Whau, line screen at 0.45 mm with illuminated
+  contours, Garamond title, mono subtitle and caption, cream paper, 120 mm wide. The editorial type sizes were reduced
+  (title 1.5x, labels 0.7x of base) so subtitles and captions fit a 120 mm page; the register is documented as a page
+  register, not a column one.

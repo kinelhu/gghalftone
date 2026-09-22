@@ -70,7 +70,7 @@ A ggplot2 theme; \code{ggsave_journal()} is called for its side effect.
 \code{theme_halftone()} is a print theme on one skeleton with two registers. \code{"journal"} (default): sans, absolute
 point sizes for 89 or 183 mm figures (ticks 7 pt, axis titles 8 pt, tags 8 pt bold, legend 7 pt grey), white
 paper, no gridlines, 0.7 pt axis rules, outward ticks. \code{"editorial"}: cream paper, a serif for titles, a monospace
-for labels. Font families are resolved from what is installed (journal: Liberation Sans, Helvetica, Arial;
+for labels, sized for a 120 to 183 mm page (\code{base_size = 11}); at column width use \code{base_size = 8}. Font families are resolved from what is installed (journal: Liberation Sans, Helvetica, Arial;
 editorial: EB Garamond, Garamond, Georgia, Times; mono: Inconsolata, Menlo, Courier New). \code{options(halftone.fonts = FALSE)}
 uses the device's generic \code{sans}, \code{serif} and \code{mono} instead, for devices that know no system fonts (base \code{pdf()}). On ggplot2 >= 4.0 the theme
 also makes \link{halftone_inks} the default discrete palette and \link{halftone_ramp} the default continuous one.

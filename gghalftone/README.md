@@ -66,9 +66,9 @@ Maunga Whau: one `shape = "line"` layer, and `with_relief(geom_contour())` for T
 
 ## Theme
 
-`theme_halftone()` defaults to a journal style (Liberation Sans, absolute 7–8 pt sizes, bold tags, sentence case, no gridlines); `style = "editorial"` gives the cream-paper/Garamond/monospace look used for the cover-style pieces. `ggsave_journal("fig.pdf", p, "double")` saves at 183 mm: vector PDF, or PNG/TIFF at 600 dpi by extension. `halftone_proof()` renders true size plus a magnified crop. `theme_halftone(palette = "process")` swaps the muted inks for one-or-two-plate press colours.
+`theme_halftone()` defaults to a journal style (Liberation Sans, absolute 7–8 pt sizes, bold tags in the margin, sentence case, no gridlines); `style = "editorial"` is a page register for 120–183 mm plates: cream paper, Garamond titles, monospace labels. `ggsave_journal("fig.pdf", p, "double")` saves at 183 mm: vector PDF, or PNG/TIFF at 600 dpi by extension. `halftone_proof()` renders true size plus a magnified crop. `theme_halftone(palette = "process")` swaps the muted inks for one-or-two-plate press colours.
 
-![A ribbon in the editorial register on cream paper](man/figures/editorial.png)
+![Maunga Whau as an editorial plate: engraving with illuminated contours, Garamond title, monospace caption, cream paper](man/figures/editorial.png)
 
 ## Status
 

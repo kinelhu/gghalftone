@@ -18,7 +18,7 @@ halftone_font <- function(prefer, fallback = "") {
 #' `theme_halftone()` is a print theme on one skeleton with two registers. `"journal"` (default): sans, absolute
 #' point sizes for 89 or 183 mm figures (ticks 7 pt, axis titles 8 pt, tags 8 pt bold, legend 7 pt grey), white
 #' paper, no gridlines, 0.7 pt axis rules, outward ticks. `"editorial"`: cream paper, a serif for titles, a monospace
-#' for labels. Font families are resolved from what is installed (journal: Liberation Sans, Helvetica, Arial;
+#' for labels, sized for a 120 to 183 mm page (`base_size = 11`); at column width use `base_size = 8`. Font families are resolved from what is installed (journal: Liberation Sans, Helvetica, Arial;
 #' editorial: EB Garamond, Garamond, Georgia, Times; mono: Inconsolata, Menlo, Courier New). `options(halftone.fonts = FALSE)`
 #' uses the device's generic `sans`, `serif` and `mono` instead, for devices that know no system fonts (base `pdf()`). On ggplot2 >= 4.0 the theme
 #' also makes [halftone_inks] the default discrete palette and [halftone_ramp] the default continuous one.
@@ -60,8 +60,9 @@ theme_halftone <- function(style = getOption("halftone.style", c("journal", "edi
     legend_ink <- ink; base_size <- base_size %||% 11; base_family <- base_family %||% halftone_font(c("EB Garamond", "Garamond", "Georgia", "Times"), "serif")
     mono_family <- mono_family %||% halftone_font(c("Inconsolata", "Menlo", "Courier New"), "mono")
     lab_family <- mono_family
-    sizes <- list(axis_text = base_size * 0.85, axis_title = base_size * 0.8, title = base_size * 1.6, subtitle = base_size * 0.85,
-                  caption = base_size * 0.7, legend_title = base_size * 0.8, legend_text = base_size * 0.75, strip = base_size * 0.85, tag = base_size * 1.1)
+    # a page register, sized for 120-183 mm: Garamond title, small mono labels. At 89 mm use base_size = 8.
+    sizes <- list(axis_text = base_size * 0.75, axis_title = base_size * 0.7, title = base_size * 1.5, subtitle = base_size * 0.7,
+                  caption = base_size * 0.6, legend_title = base_size * 0.7, legend_text = base_size * 0.7, strip = base_size * 0.75, tag = base_size)
   }
   t <- theme_minimal(base_size = base_size, base_family = base_family) %+replace% theme(
     text              = element_text(colour = ink, family = base_family, size = base_size),
@@ -78,7 +79,7 @@ theme_halftone <- function(style = getOption("halftone.style", c("journal", "edi
     plot.subtitle     = element_text(family = lab_family, colour = ink, size = sizes$subtitle, hjust = 0, margin = margin(b = 5)),
     plot.caption      = element_text(family = lab_family, colour = "#666666", size = sizes$caption, hjust = 0, margin = margin(t = 4)),
     plot.tag          = element_text(family = base_family, colour = ink, size = sizes$tag, face = "bold"),
-    plot.title.position = "plot", plot.caption.position = "plot", plot.tag.position = c(0, 1),
+    plot.title.position = "plot", plot.caption.position = "plot", plot.tag.position = "topleft", plot.tag.location = "margin",   # own cell in the layout: never over a panel or an axis
     legend.background = element_blank(), legend.key = element_blank(),
     legend.title      = element_text(family = lab_family, size = sizes$legend_title, face = "plain", colour = if (style == "journal") legend_ink else ink),
     legend.text       = element_text(family = lab_family, size = sizes$legend_text, colour = if (style == "journal") legend_ink else ink),
@@ -102,7 +103,8 @@ ggsave_journal <- function(filename, plot, width = c("double", "single", "onehal
   w <- if (is.character(width)) halftone_widths[[match.arg(width)]] else width
   format <- match.arg(format %||% tolower(tools::file_ext(filename)), c("png", "tiff", "tif", "pdf"))
   dev <- switch(format, png = ragg::agg_png, tiff = , tif = agg_tiff_lzw, pdf = grDevices::cairo_pdf)
-  ggsave(filename, plot, width = w, height = height, units = "mm", dpi = dpi, device = dev, bg = "white", ...)
+  bg <- if (identical(getOption("halftone.style", "journal"), "editorial")) halftone_paper else "white"   # a fixed-aspect panel leaves device showing
+  ggsave(filename, plot, width = w, height = height, units = "mm", dpi = dpi, device = dev, bg = bg, ...)
 }
 # ggsave() reads a device's formals to decide what to pass (res, units, bg), so the wrapper must declare them
 agg_tiff_lzw <- function(filename, width, height, units = "in", res = 300, bg = "white", ...) ragg::agg_tiff(filename, width, height, units = units, res = res, background = bg, compression = "lzw", ...)
