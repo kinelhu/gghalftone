@@ -40,7 +40,6 @@ functions directly. Pass \code{levels} and \code{algorithm} to \code{\link[=geom
 tone is continuous and no dithering takes place.
 }
 \examples{
-\dontshow{op <- options(halftone.fonts = FALSE)}
 bayer_matrix(2)
 range(blue_noise_matrix(32))
 }

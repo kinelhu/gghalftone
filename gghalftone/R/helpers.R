@@ -57,7 +57,7 @@ halftone_regions <- function(db = "state", values, res = 0.25, ...) {
 #' Ink palette scales
 #'
 #' Manual colour and fill scales over [halftone_inks]. On ggplot2 4.0 and later, [theme_halftone()] sets the inks as
-#' the default palette. Use these scales with older ggplot2 versions or without the theme.
+#' the default palette. Use these scales with older ggplot2 versions or without the modifier.
 #' @param ... Passed to [ggplot2::scale_colour_manual()] / [ggplot2::scale_fill_manual()].
 #' @return A ggplot2 scale.
 #' @name scale_halftone

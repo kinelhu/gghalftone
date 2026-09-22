@@ -30,13 +30,12 @@ Convert a \code{survival::survfit} object into data frames for \code{with_halfto
 \code{times}. Strata labels are the level values without the variable name; \code{"ph.ecog=1"} becomes \code{"1"}.
 }
 \examples{
-\dontshow{op <- options(halftone.fonts = FALSE)}
 if (requireNamespace("survival", quietly = TRUE)) {
   fit <- survival::survfit(survival::Surv(time, status) ~ sex, data = survival::lung)
   s <- km_steps(fit)
   ggplot2::ggplot(s, ggplot2::aes(time, group = strata)) +
     with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi, fill = strata))) +
-    with_halo(ggplot2::geom_step(ggplot2::aes(y = surv, colour = strata))) + theme_halftone()
+    with_halo(ggplot2::geom_step(ggplot2::aes(y = surv, colour = strata))) + ggplot2::theme_classic() + theme_halftone()
 }
 }
 \references{

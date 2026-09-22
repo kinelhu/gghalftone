@@ -155,12 +155,15 @@ test_that("km_steps / km_censor / km_risk turn a survfit into step-ready frames"
   one <- km_steps(survival::survfit(survival::Surv(time, status) ~ 1, data = survival::lung)); expect_equal(unique(as.character(one$strata)), "all")
 })
 
-test_that("theme_halftone resolves an installed font and (ggplot2 >= 4.0) makes the ink palette the default", {
-  expect_equal(gghalftone:::halftone_font("No Such Font 123", "sans"), "sans")
-  expect_no_error(theme_halftone()); expect_no_error(theme_halftone("editorial"))
+test_that("theme_halftone is an incomplete modifier: paper ground, no grid, screen-sized keys, palettes; the host theme keeps its fonts", {
+  t <- theme_halftone(); expect_false(isTRUE(attr(t, "complete")))
+  expect_s3_class(t$panel.grid, "element_blank"); expect_equal(t$panel.background$fill, "white"); expect_equal(theme_halftone(paper = halftone_paper)$plot.background$fill, halftone_paper)
+  host <- theme_classic(base_family = "serif", base_size = 13) + theme_halftone()
+  expect_equal(host$text$family, "serif"); expect_equal(host$text$size, 13); expect_s3_class(host$panel.grid.major, "element_blank")
   skip_if(utils::packageVersion("ggplot2") < "4.0.0")
-  b <- ggplot_build(ggplot(mtcars, aes(wt, mpg, fill = factor(cyl))) + geom_point(shape = 21) + theme_halftone())
+  b <- ggplot_build(ggplot(mtcars, aes(wt, mpg, fill = factor(cyl))) + geom_point(shape = 21) + theme_classic() + theme_halftone())
   expect_true(all(unique(b$data[[1]]$fill) %in% halftone_inks))
+  expect_null(theme_halftone(palette = "none")$palette.fill.discrete)
 })
 
 # ---- review-2 feedback pass -------------------------------------------------------------------------------------------
@@ -276,8 +279,9 @@ test_that("colour is redundant by default on tiling geoms (bars get distinct scr
   expect_equal(length(angles(ggplot(d, aes(g, n, fill = g)) + with_halftone(geom_col(), pitch = 1, redundant = FALSE) + theme_void())), 1)
   d2 <- data.frame(x = rep(0:1, 2), lo = 0, hi = 1, g = rep(c("a", "b"), each = 2))
   expect_equal(length(angles(ggplot(d2, aes(x, group = g)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi, fill = g)), pitch = 1) + theme_void())), 1)
+  expect_equal(length(angles(ggplot(iris, aes(Sepal.Length, fill = Species, group = Species)) + with_halftone(geom_density(), pitch = 1) + theme_void())), 1)   # GeomDensity inherits GeomArea but is not a tiling geom
   # legend keys pick up the auto screens: three keys, hatched at distinct angles for a line layer
-  p <- ggplot(d, aes(g, n, fill = g)) + with_halftone(geom_col(), pitch = 1, shape = "line") + theme_halftone()
+  p <- ggplot(d, aes(g, n, fill = g)) + with_halftone(geom_col(), pitch = 1, shape = "line") + theme_classic() + theme_halftone()
   g <- ggplotGrob(p); keys <- c(); walk <- function(x) { if (inherits(x, "segments")) keys <<- c(keys, atan2(as.numeric(x$y1[1]) - as.numeric(x$y0[1]), as.numeric(x$x1[1]) - as.numeric(x$x0[1])))
     kids <- if (inherits(x, "gtable")) x$grobs else if (inherits(x, "gTree")) x$children else if (inherits(x, "gList")) x else NULL; for (k in kids) walk(k) }
   for (gr in g$grobs[grep("guide-box", g$layout$name)]) walk(gr)
@@ -285,19 +289,18 @@ test_that("colour is redundant by default on tiling geoms (bars get distinct scr
 })
 
 test_that("ggsave_journal writes png, tiff and vector pdf by extension; halftone_proof returns full and zoom files", {
-  p <- ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1) + theme_halftone()
+  p <- ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1) + theme_classic() + theme_halftone()
   td <- tempdir()
   for (ext in c("png", "tiff", "pdf")) { f <- file.path(td, paste0("j.", ext)); ggsave_journal(f, p, "single", height = 30); expect_gt(file.size(f), 1000) }
   # vector, not an embedded raster: the file grows with the number of dots (cairo compresses streams, so grep for operators is useless)
-  p_fine <- ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 0.4) + theme_halftone()
+  p_fine <- ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 0.4) + theme_classic() + theme_halftone()
   ggsave_journal(file.path(td, "fine.pdf"), p_fine, "single", height = 30); expect_gt(file.size(file.path(td, "fine.pdf")), 3 * file.size(file.path(td, "j.pdf")))
   info <- png::readPNG(file.path(td, "j.png")); expect_equal(dim(info)[2], round(89 / 25.4 * 600))   # 600 dpi at 89 mm
   skip_if_not_installed("magick")
   pf <- halftone_proof(p, "single", height = 30, dir = td, size = 10); expect_true(all(file.exists(pf))); expect_named(pf, c("full", "zoom"))
 })
 
-test_that("journal theme: 0.25 mm rules, 8 pt tags; process palette is one or two plates and switchable", {
-  t <- theme_halftone(); expect_equal(t$axis.line$linewidth, 0.25); expect_equal(t$plot.tag$size, 8)
+test_that("process palette is one or two plates and switchable", {
   expect_equal(length(halftone_process), 6); expect_true(all(grepl("^#[0-9A-F]{6}$", halftone_process)))
   skip_if(utils::packageVersion("ggplot2") < "4.0.0")
   b <- ggplot_build(ggplot(mtcars, aes(wt, mpg, fill = factor(cyl))) + geom_point(shape = 21) + theme_halftone(palette = "process"))

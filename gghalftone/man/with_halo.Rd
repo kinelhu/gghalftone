@@ -4,15 +4,14 @@
 \alias{with_halo}
 \title{Paper halo under a line or point layer}
 \usage{
-with_halo(layer, width = 0.09, colour = NULL)
+with_halo(layer, width = 0.09, colour = "white")
 }
 \arguments{
 \item{layer}{A ggplot2 layer drawing lines, paths, steps, contours or points.}
 
 \item{width}{Halo width in mm on each side of the stroke.}
 
-\item{colour}{Halo colour; \code{NULL} uses white, or the editorial paper colour under
-\code{options(halftone.style = "editorial")}.}
+\item{colour}{Halo colour. Use the paper colour of the plot; the default is white.}
 }
 \value{
 The layer, with its geom replaced by a halo-drawing subclass.
@@ -24,6 +23,5 @@ elevation field. Keep the width small: 0.09 mm (0.25 pt, the printable minimum) 
 line screen. A wider halo looks like a second line.
 }
 \examples{
-\dontshow{op <- options(halftone.fonts = FALSE)}
 ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + with_halo(ggplot2::geom_line())
 }

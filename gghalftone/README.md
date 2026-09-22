@@ -6,7 +6,7 @@ Halftone fills for ggplot2. The package places dots or hatch lines at draw time 
 
 ![Kaplan-Meier with three halftone confidence bands and a risk table](man/figures/km.png)
 
-*A Kaplan-Meier plot of the North Central Cancer Treatment Group lung cancer data (Loprinzi et al. 1994) at journal size: 89 mm, 600 dpi, 7 pt text. Three 95% confidence bands drawn with `with_halftone(geom_ribbon())`, step curves with `with_halo()`, censor marks and a risk table from `km_steps()`, `km_censor()` and `km_risk()`.*
+*A Kaplan-Meier plot of the North Central Cancer Treatment Group lung cancer data (Loprinzi et al. 1994) at journal size: 89 mm, 600 dpi, `theme_classic(base_size = 8)`. Three 95% confidence bands drawn with `with_halftone(geom_ribbon())`, step curves with `with_halo()`, censor marks and a risk table from `km_steps()`, `km_censor()` and `km_risk()`.*
 
 ## Usage
 
@@ -18,7 +18,7 @@ s <- km_steps(survfit(Surv(time, status) ~ ecog, data = d))
 ggplot(s, aes(time, group = strata)) +
   with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi, fill = strata))) +
   with_halo(geom_step(aes(y = surv, colour = strata))) +
-  theme_halftone()
+  theme_classic() + theme_halftone()
 
 # Screen a gridded field. Colour scales apply to the field; dots inherit the colour.
 ggplot(field, aes(x, y, z = value, colour = value)) + geom_halftone()
@@ -64,15 +64,17 @@ Maunga Whau. One `shape = "line"` layer for the surface, and `with_relief(geom_c
 
 ## Theme and export
 
-`theme_halftone()` is a journal theme: Liberation Sans, 7 to 8 pt text, bold panel tags placed in the layout margin, no gridlines. `style = "editorial"` is a page register for 120 to 183 mm plates, with cream paper, Garamond titles and monospace labels.
+The package does not ship a complete theme. `theme_halftone()` is a modifier that you add to your own theme. It sets a paper ground with no gridlines under the screen, legend keys large enough to show a screen, and on ggplot2 4.0 the ink palette. Fonts, sizes and axes come from the theme you add it to.
 
 `ggsave_journal("fig.pdf", p, "double")` saves at 183 mm. The file extension selects the format: PNG or TIFF at 600 dpi, or vector PDF. `halftone_proof()` renders a plot at final size and a magnified crop. `theme_halftone(palette = "process")` uses press colours made of one or two process plates.
+
+The plate below is `theme_void()` with a serif title, a monospace caption and `theme_halftone(paper = halftone_paper)`.
 
 ![Maunga Whau as an editorial plate: engraving with illuminated contours, Garamond title, monospace caption, cream paper](man/figures/editorial.png)
 
 ## Status
 
-Prototype. The API of `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `with_relief()`, the `screen` and `tone` aesthetics, `km_steps()` and `theme_halftone()` is considered stable. Every export has a help page. Start with `?with_halftone`.
+Prototype. The API of `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `with_relief()`, the `screen` and `tone` aesthetics, `km_steps()` and the `theme_halftone()` modifier is considered stable. Every export has a help page. Start with `?with_halftone`.
 
 ## References
 

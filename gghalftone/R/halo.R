@@ -10,16 +10,14 @@
 #' line screen. A wider halo looks like a second line.
 #' @param layer A ggplot2 layer drawing lines, paths, steps, contours or points.
 #' @param width Halo width in mm on each side of the stroke.
-#' @param colour Halo colour; `NULL` uses white, or the editorial paper colour under
-#'   `options(halftone.style = "editorial")`.
+#' @param colour Halo colour. Use the paper colour of the plot; the default is white.
 #' @return The layer, with its geom replaced by a halo-drawing subclass.
 #' @examples
-#' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + with_halo(ggplot2::geom_line())
 #' @export
-with_halo <- function(layer, width = 0.09, colour = NULL) {
+with_halo <- function(layer, width = 0.09, colour = "white") {
   parent <- layer$geom
-  paper <- colour %||% if (identical(getOption("halftone.style", "journal"), "editorial")) halftone_paper else "white"
+  paper <- colour
   extra <- 2 * width * 96 / 25.4   # grid lwd is in 1/96 inch
   wrapped <- ggproto(NULL, parent,
     draw_panel = function(self, data, panel_params, coord, ...) {

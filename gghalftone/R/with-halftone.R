@@ -170,11 +170,10 @@ makeContent.halftone_fill <- function(x) {
 #' @return The layer, with its geom replaced by a halftone-drawing subclass.
 #' @order 1
 #' @examples
-#' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' x <- seq(0, 10, length.out = 60); d <- data.frame(x, y = sin(x), lo = sin(x) - 0.5, hi = sin(x) + 0.5)
 #' ggplot2::ggplot(d, ggplot2::aes(x)) +
 #'   with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), fill = halftone_inks[["blue"]])) +
-#'   with_halo(ggplot2::geom_line(ggplot2::aes(y = y), colour = halftone_inks[["blue"]])) + theme_halftone()
+#'   with_halo(ggplot2::geom_line(ggplot2::aes(y = y), colour = halftone_inks[["blue"]])) + ggplot2::theme_classic() + theme_halftone()
 #' @export
 with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone = NULL, profile = c("vertical", "radial"), local = TRUE,
                           levels = NULL, bayer_n = 4, dot_max = 0.9, gamma = 1, tone_max = NULL, outline = TRUE,
@@ -191,7 +190,7 @@ with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone 
   # colour is redundant by default where groups tile the plane (bars, areas, polygons, tiles): each group also gets its
   # own screen, so the figure survives greyscale. Not for intervals and densities: there overlapping groups are woven
   # on ONE lattice, and separate lattices at different angles moire (tested; see design_review.md)
-  is_flat_geom <- inherits(parent0, c("GeomRect", "GeomTile", "GeomArea", "GeomPolygon", "GeomSf"))
+  is_flat_geom <- inherits(parent0, c("GeomRect", "GeomTile", "GeomArea", "GeomPolygon", "GeomSf")) && !inherits(parent0, c("GeomDensity", "GeomViolin"))   # GeomDensity inherits GeomArea
   redundant <- redundant %||% is_flat_geom
   # one tonal register. flat: 0.45 (hatch 0.4), but 0.6 for polygons/sf whose fill colour is the value; centre 0.6 so three
   # overprinted intervals stay light; vignette 0.7. Hatched intervals (ribbons) are hairline (0.15): several overlap, and

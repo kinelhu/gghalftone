@@ -193,3 +193,18 @@ symmetric `with_halo()` stays for lines over intervals.
   contours, Garamond title, mono subtitle and caption, cream paper, 120 mm wide. The editorial type sizes were reduced
   (title 1.5x, labels 0.7x of base) so subtitles and captions fit a 120 mm page; the register is documented as a page
   register, not a column one.
+
+## No theme (2026-09-22)
+
+Author: "Not a huge fan of our halftone theme" and, on the suggestion of shipping none, "Sure". The complete theme is
+gone, and with it the editorial register, the font fallback chain and the `halftone.style` option. `theme_halftone()`
+is now an incomplete modifier that adds only what a halftone needs to whatever theme the user has: paper ground, no
+gridlines, legend keys 6 by 4 mm so a screen fits, and the ink palettes on ggplot2 4.0. The gallery renders on
+`theme_classic(base_size = 8)`, `theme_bw()` and `theme_minimal()` plus the modifier; the Maunga Whau plate is
+`theme_void()` with a serif title and a monospace caption set in the gallery script. Side by side with the previous
+proofs nothing that mattered changed, and the figures now look like the user's own ggplot2, which is the claim the
+README makes.
+
+Found while re-rendering: densities were getting automatic per-group screens, because `GeomDensity` inherits from
+`GeomArea` and the tiling test matched it. The overlaps showed the moire that rule exists to prevent. Excluded, with
+a test.

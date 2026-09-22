@@ -17,7 +17,7 @@ NULL
 #'   sets it as the default palette for mapped colour and fill.
 #' * `halftone_process`: press colours, each made of one or two process plates at 100% (K, M+Y, C+M, C+Y, C, M).
 #' * `halftone_ramp`: the default continuous ramp (paper, ochre, red, near-black).
-#' * `halftone_paper`, `halftone_ink`: the editorial paper and ink colours.
+#' * `halftone_paper`, `halftone_ink`: a cream paper colour and a near-black ink colour, for plates.
 #' * `halftone_widths`: journal column widths in mm.
 #' @format Character vectors of hex colours, or a named numeric vector of widths.
 #' @export

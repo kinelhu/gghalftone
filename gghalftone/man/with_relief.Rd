@@ -22,7 +22,8 @@ with_relief(
 
 \item{width}{Line width in mm at grazing and at full illumination, \code{c(min, max)}.}
 
-\item{colours}{Named vector: \code{lit} (paper), \code{shade} (ink), \code{base} (the hairline contour under both; \code{NA} for none).}
+\item{colours}{Named vector: \code{lit} (the paper colour of the plot), \code{shade} (ink), \code{base} (the hairline contour
+under both; \code{NA} for none).}
 
 \item{uphill}{\code{"auto"}, \code{"left"} or \code{"right"} of the path direction.}
 
@@ -44,10 +45,9 @@ another level. A closed ring with no such neighbour is treated as a summit. For 
 \code{uphill} explicitly.
 }
 \examples{
-\dontshow{op <- options(halftone.fonts = FALSE)}
 vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
 ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone(shape = "line", colour = "black", angle = 30) +
-  with_relief(ggplot2::geom_contour(bins = 10)) + ggplot2::coord_equal(expand = FALSE) + theme_halftone(axes = "box")
+  with_relief(ggplot2::geom_contour(bins = 10)) + ggplot2::coord_equal(expand = FALSE) + ggplot2::theme_bw() + theme_halftone()
 }
 \references{
 Tanaka, K. (1950). The relief contour method of representing topography on maps. Geographical Review, 40(3), 444-456. \url{https://doi.org/10.2307/211219}

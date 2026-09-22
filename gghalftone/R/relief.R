@@ -18,20 +18,19 @@
 #' @param layer A `geom_contour()`, `geom_path()` or `geom_line()` layer.
 #' @param light Azimuth of the light in degrees, clockwise from north; 315 is upper left.
 #' @param width Line width in mm at grazing and at full illumination, `c(min, max)`.
-#' @param colours Named vector: `lit` (paper), `shade` (ink), `base` (the hairline contour under both; `NA` for none).
+#' @param colours Named vector: `lit` (the paper colour of the plot), `shade` (ink), `base` (the hairline contour
+#'   under both; `NA` for none).
 #' @param uphill `"auto"`, `"left"` or `"right"` of the path direction.
 #' @return The layer, with its geom replaced by a relief-drawing subclass.
 #' @references
 #' Tanaka, K. (1950). The relief contour method of representing topography on maps. Geographical Review, 40(3), 444-456. <https://doi.org/10.2307/211219>
 #' @examples
-#' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
 #' ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone(shape = "line", colour = "black", angle = 30) +
-#'   with_relief(ggplot2::geom_contour(bins = 10)) + ggplot2::coord_equal(expand = FALSE) + theme_halftone(axes = "box")
+#'   with_relief(ggplot2::geom_contour(bins = 10)) + ggplot2::coord_equal(expand = FALSE) + ggplot2::theme_bw() + theme_halftone()
 #' @export
 with_relief <- function(layer, light = 315, width = c(0.05, 0.35), colours = c(lit = "white", shade = "black", base = "#8A8A8A"), uphill = c("auto", "left", "right")) {
   uphill <- match.arg(uphill); parent <- layer$geom
-  if (identical(getOption("halftone.style", "journal"), "editorial") && identical(colours[["lit"]], "white")) colours[["lit"]] <- halftone_paper
   P <- list(light = light, width = width, colours = colours, uphill = uphill)
   wrapped <- ggproto(NULL, parent,
     draw_panel = function(self, data, panel_params, coord, ...) {

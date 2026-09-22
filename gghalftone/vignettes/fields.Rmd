@@ -23,7 +23,7 @@ ggplot(vol, aes(x, y, z = z)) +
   geom_halftone(aes(colour = z), angle = 45, grid = "square", gamma = 0.6) +
   with_halo(geom_contour(colour = "black", linewidth = 0.25, bins = 8)) +
   coord_equal(expand = FALSE) + labs(x = NULL, y = NULL, colour = "Elevation (m)") +
-  theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
+  theme_bw() + theme_classic() + theme_halftone() + theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
 
 The 45 degree square lattice is the conventional screen for maps and photographs. `gamma` below 1 lifts the mid-tones.
@@ -37,7 +37,7 @@ ggplot(vol, aes(x, y, z = z)) +
   geom_halftone(shape = "line", colour = "black", angle = 30, gamma = 1.4) +
   with_halo(geom_contour(colour = "black", linewidth = 0.2, bins = 8), width = 0.15) +
   coord_equal(expand = FALSE) + labs(x = NULL, y = NULL) +
-  theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
+  theme_bw() + theme_classic() + theme_halftone() + theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
 
 ## Illuminated contours
@@ -51,7 +51,7 @@ ggplot(vol, aes(x, y, z = z)) +
   geom_halftone(shape = "line", colour = "black", angle = 30, gamma = 1.4) +
   with_relief(geom_contour(bins = 10), light = 315) +
   coord_equal(expand = FALSE) + labs(x = NULL, y = NULL) +
-  theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
+  theme_bw() + theme_classic() + theme_halftone() + theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
 
 Use `with_halo()` for a line over a confidence band. Its halo is symmetric, because an interval has no lit side. Use `with_relief()` for contours over a surface.
@@ -66,7 +66,7 @@ dens <- data.frame(expand.grid(x = kd$x, y = kd$y), z = as.vector(kd$z))
 ggplot(dens, aes(x, y, z = z)) +
   geom_halftone(levels = 1, algorithm = "blue_noise", colour = "black") +
   with_halo(geom_contour(colour = "black", linewidth = 0.35, bins = 3)) +
-  labs(x = "Eruption (min)", y = "Waiting (min)") + theme_halftone(axes = "box")
+  labs(x = "Eruption (min)", y = "Waiting (min)") + theme_bw() + theme_classic() + theme_halftone()
 ```
 
 ## Maps
@@ -79,7 +79,7 @@ st <- ggplot2::map_data("state"); st$murder <- val[st$region]
 ggplot(st, aes(long, lat, group = group, fill = murder)) +
   with_halftone(geom_polygon(colour = "black", linewidth = 0.2), angle = 45, grid = "square") +
   coord_map("albers", lat0 = 30, lat1 = 45) + labs(x = NULL, y = NULL, fill = "Murders\nper 100k") +
-  theme_halftone(axes = "none") + theme(axis.text = element_blank())
+  theme_minimal() + theme_classic() + theme_halftone() + theme(axis.ticks = element_blank()) + theme(axis.text = element_blank())
 ```
 
 ## Pitch
@@ -89,7 +89,7 @@ The default pitch is 0.35 mm, or 73 lines per inch. The comparison below shows w
 ```{r ladder, fig.width = 183 / 25.4, fig.height = 45 / 25.4, out.width = "100%"}
 d <- data.frame(x = seq(0, 10, length.out = 60)); d$y <- sin(d$x); d$lo <- d$y - 0.5 - 0.02 * d$x; d$hi <- d$y + 0.5 + 0.02 * d$x
 one <- function(p) ggplot(d, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = p) +
-  with_halo(geom_line(aes(y = y), linewidth = 0.35)) + labs(x = NULL, y = NULL, title = sprintf("%.2f mm", p)) + theme_halftone() + theme(plot.title = element_text(size = 7))
+  with_halo(geom_line(aes(y = y), linewidth = 0.35)) + labs(x = NULL, y = NULL, title = sprintf("%.2f mm", p)) + theme_classic() + theme_halftone() + theme(plot.title = element_text(size = 7))
 patchwork::wrap_plots(lapply(c(0.6, 0.45, 0.35, 0.25), one), nrow = 1)
 ```
 

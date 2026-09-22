@@ -33,7 +33,7 @@ Named constants shared by the geoms and \code{\link[=theme_halftone]{theme_halft
 sets it as the default palette for mapped colour and fill.
 \item \code{halftone_process}: press colours, each made of one or two process plates at 100\% (K, M+Y, C+M, C+Y, C, M).
 \item \code{halftone_ramp}: the default continuous ramp (paper, ochre, red, near-black).
-\item \code{halftone_paper}, \code{halftone_ink}: the editorial paper and ink colours.
+\item \code{halftone_paper}, \code{halftone_ink}: a cream paper colour and a near-black ink colour, for plates.
 \item \code{halftone_widths}: journal column widths in mm.
 }
 }

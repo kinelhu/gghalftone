@@ -137,8 +137,7 @@ Tone comes from \code{aes(tone = )} through \code{\link[=scale_tone_continuous]{
 or from \code{aes(z = )} normalised inside the geom.
 }
 \examples{
-\dontshow{op <- options(halftone.fonts = FALSE)}
 d <- expand.grid(gene = c("A", "B", "C"), cluster = 1:4); d$expr <- runif(12); d$pct <- runif(12)
 ggplot2::ggplot(d, ggplot2::aes(cluster, gene, tone = expr, size = pct)) + geom_spot() +
-  scale_tone_continuous() + ggplot2::scale_radius(range = c(1, 2.2)) + theme_halftone(axes = "none")
+  scale_tone_continuous() + ggplot2::scale_radius(range = c(1, 2.2)) + ggplot2::theme_minimal() + theme_halftone()
 }

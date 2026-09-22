@@ -23,9 +23,9 @@ Status (2026-09-22): builds and installs on R 4.6.1 and ggplot2 4.0.3. 86 regres
 - The two-ink weave has no perfect solution on a hex lattice. Blue-noise assignment is used for k other than 3. Acceptable at 600 dpi.
 - With overprinting, the lower half of each Kaplan-Meier band is denser because it overlaps the neighbour's core. Use `overlap = "stack"` if the bands must be symmetric.
 - Line screens with a tapered tone profile look like fringe. The wrapper warns.
-- Fonts: Liberation Sans, EB Garamond and Inconsolata are installed as user fonts (Homebrew casks, 2026-09-22). Base `pdf()` has no system fonts, so examples set `options(halftone.fonts = FALSE)`. Real output goes through ragg or cairo_pdf.
+- The package sets no fonts. The gallery uses stock ggplot2 themes; the editorial plate names EB Garamond and Inconsolata, installed as user fonts (Homebrew casks, 2026-09-22).
 - Vignette PNGs are quantised to 48 colours because halftone images compress poorly. The source tarball is 1.9 MB. The R magick package must be installed for the quantisation hook to run; without it the tarball is 5 MB.
-- The editorial style is a page register: base 11 pt for 120 to 183 mm. Use `base_size = 8` at column width. The gallery piece is the Maunga Whau plate in `figures/v2/editorial.png`.
+- There is no editorial style in the package. The Maunga Whau plate in `figures/v2/editorial.png` is `theme_void()` plus four theme lines in the gallery script.
 
 ## Design rules
 
@@ -37,7 +37,7 @@ Change a rule only when a side-by-side comparison at 600 dpi shows the change is
 - No lattice axis is horizontal or vertical: 15 degrees on hex (default), 45 degrees on square.
 - The tone profile follows the geometry: flat for bars, areas, polygons and maps; likelihood for ribbons (normal density of the estimate, 1 on the estimate, 0.146 at a 95% limit); vignette for densities and violins. A mapped `screen` is a pattern and is flat.
 - Colour is redundant on tiling geoms (bars, areas, polygons, tiles, sf): fills get their own screens and the keys show both. Not on intervals and densities, because separate lattices at different angles produce moire. Those overlap on one lattice.
-- Journal theme: 0.7 pt rules, 8 pt bold tags in the layout margin, data lines 1 pt (linewidth 0.35). `ggsave_journal()` writes PNG, TIFF or vector PDF by extension. `halftone_proof()` renders at final size plus a 4x crop.
+- The package ships no complete theme. `theme_halftone()` is a modifier: paper ground, no gridlines, screen-sized legend keys, ink palette. The gallery adds it to `theme_classic(base_size = 8)` with data lines at linewidth 0.35 and tags in the layout margin. `ggsave_journal()` writes PNG, TIFF or vector PDF by extension. `halftone_proof()` renders at final size plus a 4x crop.
 - Inks: `halftone_inks` (muted sRGB) by default, or `theme_halftone(palette = "process")` for press colours of one or two plates. One ink (black) is the primary workflow.
 - Dot shapes are area-matched. One tonal register: flat 0.45, polygons and maps 0.6, likelihood 0.6, vignette 0.7, hatching 0.4, hatched intervals at the hairline, binary stipple capped at 0.55.
 - Line screens use the same 0.35 mm pitch. Lines crossing them get a 0.15 mm halo; 0.09 mm is invisible against hatch. Hatch runs extend one pitch past the last cell so strips reach the outline.
@@ -46,12 +46,10 @@ Change a rule only when a side-by-side comparison at 600 dpi shows the change is
 - Alpha is ink coverage. Nothing translucent reaches the page.
 - Clip from filled polygons only, never from grobs with open outlines.
 - The halo on lines crossing dot fields is a symmetric hairline (0.09 mm). It is the printer's knockout channel. Asymmetry belongs to surfaces: `with_relief()` for contours over a field, lit from 315 degrees.
-- Typographic hierarchy: tag 8 pt bold, axis title 8 pt, tick labels 7 pt, legend 7 pt grey.
 - Angle alone distinguishes three screens. Beyond that, vary shape and tone.
 - Do not judge line art from thumbnails. Render at 600 dpi and compare side by side with the last accepted version.
 
 ## Environment
 
-- Fonts: Liberation Sans (journal), EB Garamond and Inconsolata (editorial). Use `theme_halftone(base_family = )` to substitute.
 - Render with `ragg::agg_png` for clipping paths and glyphs. Run R in a UTF-8 locale.
 - The Rcpp toolchain is required to install. There are five kernels in `src/kernels.cpp`.

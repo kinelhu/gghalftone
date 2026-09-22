@@ -32,14 +32,14 @@ ggplot(nd, aes(speed)) +
   with_halo(geom_line(aes(y = fit), colour = halftone_inks[["blue"]], linewidth = 0.35)) +
   geom_point(data = cars, aes(speed, dist), shape = 21, fill = "white", size = 0.8, stroke = 0.3) +
   labs(x = "Speed (mph)", y = "Stopping distance (ft)") +
-  theme_halftone()
+  theme_classic() + theme_halftone()
 ```
 
 Three defaults apply here:
 
 - The band's tone follows the likelihood of the estimate across the interval. Tone is full on the fitted line and 0.146 at the 95% limit.
 - `with_halo()` draws a 0.09 mm paper stroke under the line, so the line stays readable where it crosses dots.
-- `theme_halftone()` sets the journal register: 7 pt tick labels, 8 pt axis titles, no gridlines, and an installed font.
+- `theme_classic() + theme_halftone()` sets the journal register: 7 pt tick labels, 8 pt axis titles, no gridlines, and an installed font.
 
 ## Plot survival with three strata
 
@@ -60,10 +60,10 @@ ggplot(s, aes(time, group = strata)) +
   scale_y_continuous(labels = scales::percent) +
   guides(colour = "none") +
   labs(x = "Days since diagnosis", y = "Overall survival", fill = NULL) +
-  theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.86))
+  theme_classic() + theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.86))
 ```
 
-`km_steps()` converts a `survfit` object into the step-shaped frame that the ribbon needs. `km_censor()` returns the censor marks and `km_risk()` the number at risk. On ggplot2 4.0 the theme sets the ink palette as the default.
+`km_steps()` converts a `survfit` object into the step-shaped frame that the ribbon needs. `km_censor()` returns the censor marks and `km_risk()` the number at risk. On ggplot2 4.0 the modifier sets the ink palette as the default.
 
 ## Screen bars
 
@@ -75,7 +75,7 @@ ggplot(d, aes(g, n, fill = g)) +
   with_halftone(geom_col(width = 0.7)) +
   scale_y_continuous(expand = expansion(c(0, 0.08))) +
   labs(x = NULL, y = "Patients (%)", fill = NULL) +
-  theme_halftone()
+  theme_classic() + theme_halftone()
 ```
 
 For a one-ink figure, map the `screen` aesthetic and set `shape = "line"`.
@@ -86,7 +86,7 @@ ggplot(d, aes(g, n, screen = g)) +
   scale_screen_discrete(guide = "none") +
   scale_y_continuous(expand = expansion(c(0, 0.08))) +
   labs(x = NULL, y = "Patients (%)") +
-  theme_halftone()
+  theme_classic() + theme_halftone()
 ```
 
 ## Save

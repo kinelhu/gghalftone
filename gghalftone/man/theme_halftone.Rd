@@ -4,18 +4,9 @@
 \alias{theme_halftone}
 \alias{ggsave_journal}
 \alias{halftone_proof}
-\title{Halftone theme and journal export}
+\title{Theme modifier and export helpers}
 \usage{
-theme_halftone(
-  style = getOption("halftone.style", c("journal", "editorial")),
-  base_size = NULL,
-  base_family = NULL,
-  mono_family = NULL,
-  paper = if (style[1] == "journal") "white" else halftone_paper,
-  ink = halftone_ink,
-  axes = c("left-bottom", "box", "none"),
-  palette = c("inks", "process")
-)
+theme_halftone(paper = "white", palette = c("inks", "process", "none"))
 
 ggsave_journal(
   filename,
@@ -24,6 +15,7 @@ ggsave_journal(
   height = 100,
   dpi = 600,
   format = NULL,
+  bg = "white",
   ...
 )
 
@@ -35,22 +27,15 @@ halftone_proof(
   centre = c(0.5, 0.5),
   size = 20,
   zoom = 4,
-  dpi = 600
+  dpi = 600,
+  bg = "white"
 )
 }
 \arguments{
-\item{style}{\code{"journal"} or \code{"editorial"}; the default follows \code{options(halftone.style = )}.}
+\item{paper}{Background colour of the plot and panel. Use \link{halftone_paper} for cream stock.}
 
-\item{base_size}{Base font size in pt (7 journal, 11 editorial).}
-
-\item{base_family, mono_family}{Font families; \code{NULL} resolves the first installed family from the lists above.}
-
-\item{paper, ink}{Paper and ink colours.}
-
-\item{axes}{\code{"left-bottom"} (two axis rules), \code{"box"} (panel border) or \code{"none"}.}
-
-\item{palette}{Default discrete palette on ggplot2 >= 4.0: \code{"inks"} (\link{halftone_inks}, muted, for screen and RGB
-workflows) or \code{"process"} (\link{halftone_process}, one or two press plates at 100 \%, for CMYK print).}
+\item{palette}{Default discrete palette on ggplot2 4.0 and later: \code{"inks"} (\link{halftone_inks}), \code{"process"}
+(\link{halftone_process}, press colours of one or two plates) or \code{"none"} to leave the palettes alone.}
 
 \item{filename, plot, dpi, ...}{Passed to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}.}
 
@@ -60,6 +45,9 @@ workflows) or \code{"process"} (\link{halftone_process}, one or two press plates
 
 \item{format}{\code{"png"}, \code{"tiff"} or \code{"pdf"}; \code{NULL} takes it from the extension of \code{filename}.}
 
+\item{bg}{Device background. Set it to the paper colour when the plot has a fixed aspect ratio, because the
+device shows beside the panel.}
+
 \item{dir, centre, size, zoom}{For \code{halftone_proof()}: output directory, the crop centre as a fraction of width and height,
 the crop size in mm, and the magnification.}
 }
@@ -67,21 +55,17 @@ the crop size in mm, and the magnification.}
 A ggplot2 theme; \code{ggsave_journal()} is called for its side effect.
 }
 \description{
-\code{theme_halftone()} is a print theme with two registers.
+\code{theme_halftone()} is an incomplete theme to add on top of your own theme, for example
+\code{theme_classic() + theme_halftone()}. It changes only what a halftone needs and leaves fonts, sizes and axes to the
+theme it is added to:
 }
 \details{
 \itemize{
-\item \code{"journal"} (default): sans-serif, absolute point sizes for 89 or 183 mm figures (tick labels 7 pt, axis titles
-8 pt, tags 8 pt bold, legend 7 pt grey), white paper, no gridlines, 0.7 pt axis rules, outward ticks.
-\item \code{"editorial"}: cream paper, a serif for titles, a monospace for labels, sized for a 120 to 183 mm page
-(\code{base_size = 11}). At column width, use \code{base_size = 8}.
+\item paper ground: plot and panel backgrounds in \code{paper}, no gridlines, no panel border fill;
+\item legend keys large enough to show a screen (6 by 4 mm), no key background;
+\item on ggplot2 4.0 and later, \link{halftone_inks} (or \link{halftone_process}) as the default discrete palette and
+\link{halftone_ramp} as the default continuous palette.
 }
-
-Font families are resolved from the installed fonts. Journal: Liberation Sans, Helvetica, Arial. Editorial: EB
-Garamond, Garamond, Georgia, Times. Monospace: Inconsolata, Menlo, Courier New. Set
-\code{options(halftone.fonts = FALSE)} to use the device's generic \code{sans}, \code{serif} and \code{mono} families instead, for
-devices without system fonts such as base \code{pdf()}. On ggplot2 4.0 and later, the theme also sets
-\link{halftone_inks} as the default discrete palette and \link{halftone_ramp} as the default continuous palette.
 
 \code{ggsave_journal()} saves at a journal column width in mm. The file extension selects the format: PNG or TIFF at
 600 dpi through ragg, or vector PDF through \code{cairo_pdf()}. Most journals prefer vector files for line art, and in a
@@ -89,8 +73,7 @@ vector file every dot is a path at physical size. \code{halftone_proof()} render
 crop of one region (by default the panel centre at 4x) and returns the two file paths.
 }
 \examples{
-\dontshow{op <- options(halftone.fonts = FALSE)}
-ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() + theme_halftone()
+ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() + ggplot2::theme_classic() + theme_halftone()
 }
 \references{
 Nature Portfolio. Formatting guide: figures. \url{https://www.nature.com/nature/for-authors/formatting-guide}
