@@ -1,6 +1,8 @@
 # gghalftone: hand-off notes
 
-Status (2026-09-22): builds and installs on R 4.6.1 and ggplot2 4.0.3. 86 regression tests pass. `R CMD check` with vignettes is clean. Git repository on branch `main`. The full gallery renders in about 11 s at the 0.35 mm default. Every export has a help page.
+Status (2026-09-22): builds and installs on R 4.6.1 and ggplot2 4.0.3. The regression suite passes (37 blocks, 159 expectations) and `R CMD check` with vignettes is clean. Git repository on branch `main`. The full gallery renders in about 11 s at the 0.35 mm default. Every export has a help page.
+
+Two scripts render figures: `prototypes/gallery2.R` for the defaults gallery and `prototypes/showcase.R` for the wider API. Run both after changing drawing code.
 
 ## Done
 
@@ -26,7 +28,7 @@ Status (2026-09-22): builds and installs on R 4.6.1 and ggplot2 4.0.3. 86 regres
 - With overprinting, the lower half of each Kaplan-Meier band is denser because it overlaps the neighbour's core. Use `overlap = "stack"` if the bands must be symmetric.
 - Line screens with a tapered tone profile look like fringe. The wrapper warns.
 - The package sets no fonts. The gallery uses stock ggplot2 themes.
-- Vignette PNGs are quantised to 48 colours because halftone images compress poorly. The source tarball is 1.9 MB. The R magick package must be installed for the quantisation hook to run; without it the tarball is 5 MB.
+- Vignette PNGs are quantised to 48 colours because halftone images compress poorly. The R magick package must be installed for that hook to run. The source tarball is 3.1 MB, of which the four-colour photograph in the fields vignette is 0.6 MB.
 
 ## Design rules
 

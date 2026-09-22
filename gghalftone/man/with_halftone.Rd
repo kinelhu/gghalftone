@@ -31,7 +31,8 @@ with_halftone(
 \method{makeContent}{halftone_fill}(x)
 }
 \arguments{
-\item{layer}{A ggplot2 layer, e.g. \code{geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))}.}
+\item{layer}{A ggplot2 layer, for example \code{geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))}, or a list holding
+one, which is what \code{geom_sf()} returns.}
 
 \item{pitch}{Lattice spacing in mm (0.35, 73 lines per inch). Coarsen deliberately for a poster, or where several hatched groups overlap.}
 

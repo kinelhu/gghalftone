@@ -18,7 +18,7 @@
 #'
 #' Draw this over a screened field. Lit segments are paper-coloured, so on bare paper they are invisible and only the
 #' shaded half of each contour appears.
-#' @param layer A `geom_contour()`, `geom_path()` or `geom_line()` layer.
+#' @param layer A `geom_contour()`, `geom_path()` or `geom_line()` layer, or a list holding one.
 #' @param light Azimuth of the light in degrees, clockwise from north; 315 is upper left.
 #' @param width Line width in mm at grazing and at full illumination, `c(min, max)`.
 #' @param colours Named vector: `lit` (the paper colour of the plot), `shade` (ink), `base` (the hairline contour

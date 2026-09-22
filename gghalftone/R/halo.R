@@ -8,7 +8,7 @@
 #' for a line that crosses a dot field, such as a step curve over a screened confidence band or contours over an
 #' elevation field. Keep the width small: 0.09 mm (0.25 pt, the printable minimum) against dots, 0.15 mm against a
 #' line screen. A wider halo looks like a second line.
-#' @param layer A ggplot2 layer drawing lines, paths, steps, contours or points.
+#' @param layer A ggplot2 layer drawing lines, paths, steps, contours or points, or a list holding one.
 #' @param width Halo width in mm on each side of the stroke.
 #' @param colour Halo colour. Use the paper colour of the plot; the default is white.
 #' @return The layer, with its geom replaced by a halo-drawing subclass.

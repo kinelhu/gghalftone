@@ -22,7 +22,7 @@ ggplot(iris, aes(Sepal.Length, screen = Species, group = Species)) +
   with_halftone(geom_density(fill = "black", linewidth = 0.25), shape = "line") +
   scale_screen_discrete(name = NULL) +
   labs(x = "Sepal length (cm)", y = "Density") +
-  theme_classic() + theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.85), legend.key.size = unit(5, "mm"))
+  theme_classic(base_size = 8) + theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.85), legend.key.size = unit(5, "mm"))
 ```
 
 Where two densities overlap, the hatches cross. With dots instead of lines, overlapping groups share one lattice.
@@ -31,7 +31,7 @@ Where two densities overlap, the hatches cross. With dots instead of lines, over
 ggplot(iris, aes(Sepal.Length, fill = Species, group = Species)) +
   with_halftone(geom_density(linewidth = 0.25)) +
   labs(x = "Sepal length (cm)", y = "Density", fill = NULL) +
-  theme_classic() + theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.85))
+  theme_classic(base_size = 8) + theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.85))
 ```
 
 ## Three intervals in one ink
@@ -52,19 +52,21 @@ ggplot(s, aes(time, group = strata, screen = strata)) +
   scale_linetype_manual(values = c("solid", "62", "22"), name = NULL) +
   scale_y_continuous(labels = scales::percent) +
   labs(x = "Days since diagnosis", y = "Overall survival") +
-  theme_classic() + theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.84), legend.key.size = unit(5, "mm"))
+  theme_classic(base_size = 8) + theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.84), legend.key.size = unit(5, "mm"))
 ```
 
 ## Screen specifications
 
 A screen specification is a string of the form `"angle|shape|tone|line_angle"`. A bare number is an angle. `scale_screen_manual()` accepts your own specifications. You can mix hatching and dots in one layer.
 
+Legend keys are a sample of the screen at its own pitch and strip width, so a key reads at the same density as the fill it stands for.
+
 ```{r spec, fig.height = 50 / 25.4}
 d <- data.frame(g = c("a", "b", "c"), n = c(3, 2, 1))
 ggplot(d, aes(g, n, screen = g)) +
   with_halftone(geom_col(fill = "black", colour = "black", linewidth = 0.25)) +
   scale_screen_manual(values = c("45|line", "15|circle", "135|line"), name = NULL) +
-  labs(x = NULL, y = NULL) + theme_classic() + theme_halftone()
+  labs(x = NULL, y = NULL) + theme_classic(base_size = 8) + theme_halftone()
 ```
 
 ## Dot plots in one ink
@@ -77,7 +79,7 @@ set.seed(1); dp$expr <- runif(nrow(dp)); dp$pct <- runif(nrow(dp), 0.3, 1)
 ggplot(dp, aes(cluster, gene, tone = expr, size = pct)) +
   geom_spot(shape = "line", colour = "black") +
   scale_tone_continuous(name = "Expression") + scale_radius(range = c(1, 2.2), name = "Expressing") +
-  labs(x = NULL, y = NULL) + theme_minimal() + theme_classic() + theme_halftone() + theme(axis.ticks = element_blank()) + theme(axis.text.y = element_text(face = "italic"))
+  labs(x = NULL, y = NULL) + theme_minimal() + theme_classic(base_size = 8) + theme_halftone() + theme(axis.ticks = element_blank()) + theme(axis.text.y = element_text(face = "italic"))
 ```
 
 ## References

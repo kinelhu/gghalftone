@@ -471,8 +471,10 @@ scale_tone <- scale_tone_continuous
 #' Legend keys
 #'
 #' `draw_key_halftone()` draws a mid-tone dot swatch, or a hatch for line screens, at the layer's screen angle and
-#' shape. `draw_key_spot()` draws a disc at the break's tone or, for a size legend, at the break's radius. Both are
-#' the default keys of the corresponding geoms. They are exported for use with `key_glyph`.
+#' shape. A hatch key is a sample of the screen itself: strips one lattice row apart at the layer's strip width, so
+#' the key reads at the density of the fill whatever the angle. `draw_key_spot()` draws a disc at the break's tone
+#' or, for a size legend, at the break's radius. Both are the default keys of the corresponding geoms. They are
+#' exported for use with `key_glyph`.
 #' @inheritParams ggplot2::draw_key
 #' @return A grob.
 #' @name draw_key_halftone

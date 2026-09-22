@@ -20,6 +20,9 @@ ggplot(s, aes(time, group = strata)) +
   with_halo(geom_step(aes(y = surv, colour = strata))) +
   theme_classic() + theme_halftone()
 
+# Simple features work like any other layer.
+ggplot(counties) + with_halftone(geom_sf(aes(fill = rate)))
+
 # Screen a gridded field. Colour scales apply to the field; dots inherit the colour.
 ggplot(field, aes(x, y, z = value, colour = value)) + geom_halftone()
 

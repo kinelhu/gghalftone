@@ -150,7 +150,8 @@ makeContent.halftone_fill <- function(x) {
 #' folded into tone: a fill with 30% alpha prints as a 30% screen. Nothing translucent reaches the page.
 #'
 #' @inheritParams geom_halftone
-#' @param layer A ggplot2 layer, e.g. `geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))`.
+#' @param layer A ggplot2 layer, for example `geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))`, or a list holding
+#'   one, which is what `geom_sf()` returns.
 #' @param pitch Lattice spacing in mm (0.35, 73 lines per inch). Coarsen deliberately for a poster, or where several hatched groups overlap.
 #' @param angle Lattice angle in degrees; `NULL` means 15 for dots and 45 for hatching.
 #' @param tone Tone profile: `NULL` (from the geometry, see below), `"likelihood"`, `"flat"`, `"vignette"`, `"centre"`

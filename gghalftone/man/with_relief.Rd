@@ -16,7 +16,7 @@ with_relief(
 \method{makeContent}{relief}(x)
 }
 \arguments{
-\item{layer}{A \code{geom_contour()}, \code{geom_path()} or \code{geom_line()} layer.}
+\item{layer}{A \code{geom_contour()}, \code{geom_path()} or \code{geom_line()} layer, or a list holding one.}
 
 \item{light}{Azimuth of the light in degrees, clockwise from north; 315 is upper left.}
 
