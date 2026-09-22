@@ -23,15 +23,22 @@ if (requireNamespace("sf", quietly = TRUE)) {
   out("sf_choropleth", pS, width = "double", height = 66)
 }
 
-## 3 A wind rose in one ink: polar coordinates, hatch angle as the categorical encoding -----------------------------------
+## 3 A wind rose: direction by angle, frequency by radius, wind speed by hatch --------------------------------------------
 dirs <- c("N", "NE", "E", "SE", "S", "SW", "W", "NW")
-w <- data.frame(dir = factor(dirs, dirs), pct = c(8, 6, 5, 9, 14, 22, 19, 11))
-pR <- ggplot(w, aes(dir, pct, screen = dir)) +
-  with_halftone(geom_col(width = 1, fill = "black", colour = "black", linewidth = 0.25), shape = "line", pitch = 0.6) +
-  scale_screen_discrete(guide = "none") + coord_polar(start = -pi / 8) +
-  scale_y_continuous(breaks = c(10, 20)) + labs(x = NULL, y = NULL) +
-  th(theme_minimal) + theme(panel.grid.major.y = element_line(colour = "grey80", linewidth = 0.2), axis.text.y = element_text(size = 6))
-out("wind_rose", pR, height = 76)
+set.seed(9)
+w <- expand.grid(dir = factor(dirs, dirs), speed = factor(c("2-5", "5-8", "8+"), c("2-5", "5-8", "8+")))
+w$pct <- round(c(8, 6, 5, 9, 14, 22, 19, 11) / 10 * rep(c(3.6, 2.6, 1.3), each = 8) * runif(24, 0.75, 1.25), 1)
+ring <- ceiling(max(tapply(w$pct, w$dir, sum)))
+pR <- ggplot(w, aes(dir, pct, screen = speed)) +
+  with_halftone(geom_col(width = 0.98, fill = "black", colour = "black", linewidth = 0.15, position = position_stack(reverse = TRUE)),
+                shape = "line", pitch = 0.75) +   # coarse: 24 hatched regions meet in one panel
+  scale_screen_discrete(name = "Wind speed (m/s)") + coord_polar(start = -pi / 8) +
+  scale_y_continuous(limits = c(0, ring), breaks = seq(5, ring, 5), expand = c(0, 0)) +
+  labs(x = NULL, y = NULL) + th(theme_minimal) +
+  theme(panel.grid.major = element_line(colour = "grey85", linewidth = 0.2),
+        axis.text.y = element_text(size = 5.5, colour = "grey45"), axis.text.x = element_text(size = 7),
+        legend.position = "bottom", legend.key.width = unit(7, "mm"), plot.margin = margin(2, 2, 2, 2))
+out("wind_rose", pR, height = 84)
 
 ## 4 Ridgelines from a computed tone field -------------------------------------------------------------------------------
 r <- halftone_ridges(mpg$hwy, factor(mpg$class), scale = 1.9)

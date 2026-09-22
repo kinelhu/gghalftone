@@ -282,10 +282,17 @@ test_that("colour is redundant by default on tiling geoms (bars get distinct scr
   expect_equal(length(angles(ggplot(iris, aes(Sepal.Length, fill = Species, group = Species)) + with_halftone(geom_density(), pitch = 1) + theme_void())), 1)   # GeomDensity inherits GeomArea but is not a tiling geom
   # legend keys pick up the auto screens: three keys, hatched at distinct angles for a line layer
   p <- ggplot(d, aes(g, n, fill = g)) + with_halftone(geom_col(), pitch = 1, shape = "line") + theme_classic() + theme_halftone()
-  g <- ggplotGrob(p); keys <- c(); walk <- function(x) { if (inherits(x, "segments")) keys <<- c(keys, atan2(as.numeric(x$y1[1]) - as.numeric(x$y0[1]), as.numeric(x$x1[1]) - as.numeric(x$x0[1])))
+  # key hatch is positioned in mm around an npc centre, so measure the angle on an open device
+  ff <- tempfile(fileext = ".png"); ragg::agg_png(ff, 60, 45, units = "mm", res = 100); on.exit(try(dev.off(), silent = TRUE), add = TRUE)
+  g <- ggplotGrob(p); keys <- c()
+  walk <- function(x) { if (inherits(x, "segments")) {
+      dx <- convertX(x$x1, "mm", TRUE)[1] - convertX(x$x0, "mm", TRUE)[1]
+      dy <- convertY(x$y1, "mm", TRUE)[1] - convertY(x$y0, "mm", TRUE)[1]
+      keys <<- c(keys, atan2(dy, dx) %% pi) }
     kids <- if (inherits(x, "gtable")) x$grobs else if (inherits(x, "gTree")) x$children else if (inherits(x, "gList")) x else NULL; for (k in kids) walk(k) }
   for (gr in g$grobs[grep("guide-box", g$layout$name)]) walk(gr)
-  expect_equal(length(keys), 3); expect_equal(length(unique(round(keys, 3))), 3)
+  dev.off()
+  expect_equal(length(keys), 3); expect_equal(length(unique(round(keys, 2))), 3)
 })
 
 test_that("ggsave_journal writes png, tiff and vector pdf by extension; halftone_proof returns full and zoom files", {

@@ -231,7 +231,7 @@ with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone 
     },
     draw_key = function(data, params, size) { data$colour <- data$fill %||% data$colour
       if ((is.null(data$screen) || is.na(data$screen)) && !is.null(data$fill) && exists(as.character(data$fill), envir = keymap, inherits = FALSE)) data$screen <- get(as.character(data$fill), envir = keymap)
-      draw_key_halftone(data, utils::modifyList(params, P[c("shape", "angle", "angle_user")]), size) })
+      draw_key_halftone(data, utils::modifyList(params, c(P[c("shape", "angle", "angle_user", "pitch", "dot_max", "grid")], list(key_tone = P$tone_max))), size) })
   layer$geom <- wrapped; layer
   })
 }

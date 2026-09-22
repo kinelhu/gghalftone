@@ -255,3 +255,20 @@ The best of the sweep became `prototypes/showcase.R`: a photograph in four-colou
 as a one-ink newspaper screen, an sf choropleth, a wind rose whose categorical encoding is hatch angle in polar
 coordinates, ridgelines, one-ink violins, and the same figure saved at 40, 89 and 183 mm with crops at equal
 magnification, which is the first direct demonstration that the screen does not scale with the figure.
+
+## The wind rose, and legend keys (2026-09-22)
+
+Author: the wind rose looks bad apart from the shading. Two faults, both mine:
+
+- **The hatch encoded direction, which the angle already encoded.** It was decoration. It now encodes wind speed,
+  stacked within each direction sector, which is what a wind rose is for and gives the hatch a job. Three speed bins
+  rather than four, at 0.75 mm, because twenty-four hatched regions meet in one panel.
+- **The furniture floated.** The radial scale expanded well past the data, so the rings and the direction labels sat
+  far outside the rose in white space. Tight limits with no expansion, spokes as well as rings, and small grey radial
+  labels.
+
+Chasing why the horizontal hatch looked heavier than the diagonals turned up a real bug in the legend key rather than
+in the screen. Ink coverage on the panel is constant across angles, measured at 0.309 to 0.310 over eight angles. The
+key was drawing a fixed count of strokes across the key box at a fixed line width, so its density changed with angle
+and matched the panel at no angle at all. The key is now a true sample of the screen: strips one lattice row apart
+(pitch times sqrt(3)/2 on a hex lattice) at the screen's own strip width, clipped to the key box.

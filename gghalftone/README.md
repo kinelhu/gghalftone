@@ -58,9 +58,9 @@ The defaults encode these rules. Each one was chosen by comparing renders at 600
 
 *A photograph twice. A: four-colour process, `geom_halftone_cmyk()` separating the image into cyan, magenta, yellow and black at the classic screen angles, which produces the rosette. B: one ink with Floyd-Steinberg error diffusion, the newspaper screen. Both from `halftone_raster()`.*
 
-![A wind rose in one ink, hatch angle encoding direction](man/figures/wind_rose.png)
+![A wind rose in one ink, with hatch angle encoding wind speed](man/figures/wind_rose.png)
 
-*Hatch angle as the categorical encoding, in polar coordinates. The lattice is computed in millimetres on the panel, so it is unaffected by the coordinate system.*
+*A wind rose in one ink: direction by angle, frequency by radius, wind speed by hatch. The lattice is computed in millimetres on the panel, so the coordinate system does not affect it. Legend keys are a sample of the screen at its real pitch and weight.*
 
 More of these, including an sf choropleth, ridgelines, violins and a demonstration that the screen does not change with output size, are in `prototypes/showcase.R`.
 

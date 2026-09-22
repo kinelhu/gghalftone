@@ -483,7 +483,10 @@ draw_key_halftone <- function(data, params, size) {
   shp <- if (identical(params$shape, "line") && !identical(sp$shape, "line")) "line" else sp$shape %||% params$shape %||% "circle"
   base <- if (has_screen) { if (is.null(params$angle_user)) params$angle %||% 0 else if (params$angle_user) params$angle else 0 } else params$angle %||% 15
   a <- (screen_angle(sp, shp) + base) * pi / 180
-  if (shp == "line") return(key_hatch_grob(a, scales::alpha(data$colour %||% "black", data$alpha %||% 1)))
+  if (shp == "line") { p <- params$pitch %||% 0.45
+    row <- p * if (identical(params$grid %||% "hex", "hex")) sqrt(3) / 2 else 1   # strips sit one lattice ROW apart
+    return(key_hatch_grob(a, scales::alpha(data$colour %||% "black", data$alpha %||% 1), row,
+                          (params$dot_max %||% 0.9) * p * 0.9 * (params$key_tone %||% 0.55) * sp$tone)) }
   u <- (g$i - (n + 1) / 2) / n; v <- (g$j - (n + 1) / 2) / n
   x <- 0.5 + u * cos(a) - v * sin(a); y <- 0.5 + u * sin(a) + v * cos(a)
   keep <- tone > 0 & x > 0.06 & x < 0.94 & y > 0.06 & y < 0.94
@@ -494,12 +497,17 @@ draw_key_halftone <- function(data, params, size) {
                           y = unit(rep(y[keep], each = 4) + rep(c(0, 1, 0, -1), sum(keep)) * rep(r, each = 4) * di_k, "npc"), id = rep(seq_len(sum(keep)), each = 4), gp = gp),
     circleGrob(x = unit(x[keep], "npc"), y = unit(y[keep], "npc"), r = unit(r, "npc"), gp = gp))
 }
-# hatched legend key: parallel strokes through the key box at the screen angle, clipped to the box
-key_hatch_grob <- function(a, col, n = 5) {
-  o <- seq(-1, 1, length.out = 2 * n + 1); nx <- -sin(a); ny <- cos(a); dx <- cos(a); dy <- sin(a)
-  x0 <- 0.5 + o * nx - dx; y0 <- 0.5 + o * ny - dy; x1 <- 0.5 + o * nx + dx; y1 <- 0.5 + o * ny + dy
-  gTree(children = gList(segmentsGrob(unit(x0, "npc"), unit(y0, "npc"), unit(x1, "npc"), unit(y1, "npc"), gp = gpar(col = col, lwd = 1.4))),
-        vp = viewport(width = 0.88, height = 0.88, clip = "on"))
+# hatched legend key: a true sample of the screen. Strips sit `pitch` mm apart and `lw` mm wide, at the screen angle,
+# clipped to the key box, so the key reads at the same density as the panel whatever the angle. `spacing` is the
+# distance between lattice rows, which is pitch * sqrt(3)/2 on a hex lattice and pitch on a square one.
+key_hatch_grob <- function(a, col, spacing = 0.5, lw = 0.2, span = 8) {
+  n <- ceiling(span / spacing); o <- seq(-n, n) * spacing
+  nx <- -sin(a); ny <- cos(a); dx <- cos(a) * span; dy <- sin(a) * span
+  at <- function(u, v) unit(0.5, "npc") + unit(u, "mm")
+  gTree(children = gList(segmentsGrob(at(o * nx - dx), unit(0.5, "npc") + unit(o * ny - dy, "mm"),
+                                      at(o * nx + dx), unit(0.5, "npc") + unit(o * ny + dy, "mm"),
+                                      gp = gpar(col = col, lwd = max(lw, 0.09) * 96 / 25.4, lineend = "butt"))),
+        vp = viewport(width = 0.94, height = 0.94, clip = "on"))
 }
 # a screen spec is a number (angle) or "angle|shape|tone|line_angle" (shape: circle/square/diamond; tone scales dot_max;
 # line_angle is used instead of angle when the screen is drawn as a line screen, so one scale serves both looks)
