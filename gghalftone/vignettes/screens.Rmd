@@ -36,7 +36,7 @@ ggplot(iris, aes(Sepal.Length, fill = Species, group = Species)) +
 
 ## Three intervals in one ink
 
-Hatched intervals are drawn as a hairline at the printable minimum. The pitch is set to 0.5 mm here because three hatches overlap.
+The data are the lung cancer trial of Loprinzi et al. (1994). Hatched intervals are drawn as a hairline at the printable minimum. The pitch is set to 0.5 mm here because three hatches overlap.
 
 ```{r kmbw, fig.height = 65 / 25.4}
 library(survival)
@@ -77,3 +77,7 @@ ggplot(dp, aes(cluster, gene, tone = expr, size = pct)) +
   scale_tone_continuous(name = "Expression") + scale_radius(range = c(1, 2.2), name = "Expressing") +
   labs(x = NULL, y = NULL) + theme_halftone(axes = "none") + theme(axis.text.y = element_text(face = "italic"))
 ```
+
+## References
+
+- Loprinzi, C. L., Laurie, J. A., Wieand, H. S., et al. (1994). Prospective evaluation of prognostic variables from patient-completed questionnaires. North Central Cancer Treatment Group. *Journal of Clinical Oncology*, 12(3), 601-607. <https://doi.org/10.1200/JCO.1994.12.3.601>. Distributed as `survival::lung`.

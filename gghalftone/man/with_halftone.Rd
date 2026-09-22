@@ -74,7 +74,8 @@ for nested intervals and ridgelines.}
 
 \item{level}{Confidence level the ribbon represents, for the \code{"likelihood"} profile.}
 
-\item{min_feature}{Smallest printable feature in mm (0.09, i.e. 0.25 pt, the usual journal minimum). Dots that would
+\item{min_feature}{Smallest printable feature in mm (0.09, i.e. 0.25 pt, the minimum line weight in journal artwork
+guidelines; see References). Dots that would
 be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.}
 
 \item{redundant}{Also give each fill group its own screen (angle and shape), so colour is never the only encoding.

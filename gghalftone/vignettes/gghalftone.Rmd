@@ -43,6 +43,8 @@ Three defaults apply here:
 
 ## Plot survival with three strata
 
+The data are the North Central Cancer Treatment Group lung cancer trial (Loprinzi et al. 1994), distributed as `survival::lung`.
+
 Groups that share a panel are printed on one lattice. Where two bands overlap, their dots alternate, so both inks stay visible.
 
 ```{r km, fig.width = 89 / 25.4, fig.height = 70 / 25.4}
@@ -100,7 +102,13 @@ halftone_proof(p)   # final-size render plus a 4x crop of the panel centre
 ## Defaults
 
 - Pitch is 0.35 mm (73 lines per inch). Coarser pitches read as a dot pattern. Finer pitches read as a flat tint.
-- No feature is smaller than 0.09 mm (0.25 pt). Light tone becomes sparse dots at the minimum size.
+- No feature is smaller than 0.09 mm (0.25 pt), the minimum line weight in journal artwork guidelines (Nature Portfolio; Elsevier). Light tone becomes sparse dots at the minimum size.
 - The tone profile follows the geometry: flat where the interior is the value (bars, areas, maps), likelihood for intervals, a soft vignette for densities.
 - One ink register applies across figure types, so a set of figures looks consistent.
 - Overlapping groups share one lattice. A fill's alpha becomes screen coverage. Nothing translucent reaches the page.
+
+## References
+
+- Loprinzi, C. L., Laurie, J. A., Wieand, H. S., et al. (1994). Prospective evaluation of prognostic variables from patient-completed questionnaires. North Central Cancer Treatment Group. *Journal of Clinical Oncology*, 12(3), 601-607. <https://doi.org/10.1200/JCO.1994.12.3.601>. Distributed as `survival::lung`.
+- Nature Portfolio. Formatting guide: figures. <https://www.nature.com/nature/for-authors/formatting-guide>
+- Elsevier. Artwork and media instructions. <https://www.elsevier.com/about/policies-and-standards/author/artwork-and-media-instructions>

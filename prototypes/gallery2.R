@@ -95,7 +95,7 @@ out("dotplot", pP, height = 70)
 ## 11 Editorial plate: the page register ---------------------------------------------------------------------------------------
 local({ op <- options(halftone.style = "editorial"); on.exit(options(op))
   pE3 <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", colour = halftone_ink, angle = 30, gamma = 1.4, pitch = 0.45) + with_relief(geom_contour(bins = 10)) +
-    coord_equal(expand = FALSE) + labs(title = "Maunga Whau", subtitle = "AUCKLAND VOLCANIC FIELD, 10 M CONTOURS, LIT FROM THE NORTH-WEST", caption = "Line screen at 0.45 mm. Illuminated contours after Tanaka (1950). Data: R datasets::volcano.", x = NULL, y = NULL) +
+    coord_equal(expand = FALSE) + labs(title = "Maunga Whau", subtitle = "AUCKLAND VOLCANIC FIELD, 10 M CONTOURS, LIT FROM THE NORTH-WEST", caption = "Line screen at 0.45 mm. Illuminated contours after Tanaka (1950), Geographical Review 40:444. Data: R datasets::volcano.", x = NULL, y = NULL) +
     theme_halftone(axes = "none") + theme(axis.text = element_blank(), plot.margin = margin(8, 8, 8, 8))
   out("editorial", pE3, width = "onehalf", height = 150) })
 cat("gallery2 ok\n")

@@ -92,3 +92,7 @@ crop of one region (by default the panel centre at 4x) and returns the two file 
 \dontshow{op <- options(halftone.fonts = FALSE)}
 ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() + theme_halftone()
 }
+\references{
+Nature Portfolio. Formatting guide: figures. \url{https://www.nature.com/nature/for-authors/formatting-guide}
+Elsevier. Artwork and media instructions. \url{https://www.elsevier.com/about/policies-and-standards/author/artwork-and-media-instructions}
+}

@@ -21,6 +21,8 @@
 #' @param colours Named vector: `lit` (paper), `shade` (ink), `base` (the hairline contour under both; `NA` for none).
 #' @param uphill `"auto"`, `"left"` or `"right"` of the path direction.
 #' @return The layer, with its geom replaced by a relief-drawing subclass.
+#' @references
+#' Tanaka, K. (1950). The relief contour method of representing topography on maps. Geographical Review, 40(3), 444-456. <https://doi.org/10.2307/211219>
 #' @examples
 #' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))

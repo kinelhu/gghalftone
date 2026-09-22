@@ -12,6 +12,8 @@
 #' @param conf Include the confidence limits (`lo`, `hi`); otherwise both equal `surv`.
 #' @param times Times at which to report the number at risk.
 #' @return A data frame.
+#' @references
+#' Loprinzi, C. L., Laurie, J. A., Wieand, H. S., et al. (1994). Prospective evaluation of prognostic variables from patient-completed questionnaires. North Central Cancer Treatment Group. Journal of Clinical Oncology, 12(3), 601-607. <https://doi.org/10.1200/JCO.1994.12.3.601>. Distributed as `survival::lung`.
 #' @examples
 #' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' if (requireNamespace("survival", quietly = TRUE)) {

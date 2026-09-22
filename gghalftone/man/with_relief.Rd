@@ -49,3 +49,6 @@ vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volca
 ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone(shape = "line", colour = "black", angle = 30) +
   with_relief(ggplot2::geom_contour(bins = 10)) + ggplot2::coord_equal(expand = FALSE) + theme_halftone(axes = "box")
 }
+\references{
+Tanaka, K. (1950). The relief contour method of representing topography on maps. Geographical Review, 40(3), 444-456. \url{https://doi.org/10.2307/211219}
+}

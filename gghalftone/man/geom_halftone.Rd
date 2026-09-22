@@ -115,7 +115,8 @@ or \code{"multiply"}.}
 
 \item{tone_max}{Tone ceiling in \verb{[0, 1]}. \code{NULL} means 1, or 0.55 for a binary stipple.}
 
-\item{min_feature}{Smallest printable feature in mm (0.09, i.e. 0.25 pt, the usual journal minimum). Dots that would
+\item{min_feature}{Smallest printable feature in mm (0.09, i.e. 0.25 pt, the minimum line weight in journal artwork
+guidelines; see References). Dots that would
 be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.}
 
 \item{na.rm}{Remove missing values silently.}
@@ -165,6 +166,10 @@ ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone() + theme_halfto
 # engraving: a line screen, plus contours with a paper halo
 ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone(shape = "line", angle = 30) +
   with_halo(ggplot2::geom_contour(colour = "black", linewidth = 0.2), width = 0.15) + theme_halftone(axes = "box")
+}
+\references{
+Nature Portfolio. Formatting guide: figures. \url{https://www.nature.com/nature/for-authors/formatting-guide}
+Elsevier. Artwork and media instructions. \url{https://www.elsevier.com/about/policies-and-standards/author/artwork-and-media-instructions}
 }
 \seealso{
 \code{\link[=with_halftone]{with_halftone()}} to screen the fill of an existing layer, \code{\link[=geom_spot]{geom_spot()}} for per-point discs,

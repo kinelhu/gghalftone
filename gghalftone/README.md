@@ -6,7 +6,7 @@ Halftone fills for ggplot2. The package places dots or hatch lines at draw time 
 
 ![Kaplan-Meier with three halftone confidence bands and a risk table](man/figures/km.png)
 
-*A Kaplan-Meier plot at journal size: 89 mm, 600 dpi, 7 pt text. Three 95% confidence bands drawn with `with_halftone(geom_ribbon())`, step curves with `with_halo()`, censor marks and a risk table from `km_steps()`, `km_censor()` and `km_risk()`.*
+*A Kaplan-Meier plot of the North Central Cancer Treatment Group lung cancer data (Loprinzi et al. 1994) at journal size: 89 mm, 600 dpi, 7 pt text. Three 95% confidence bands drawn with `with_halftone(geom_ribbon())`, step curves with `with_halo()`, censor marks and a risk table from `km_steps()`, `km_censor()` and `km_risk()`.*
 
 ## Usage
 
@@ -42,8 +42,8 @@ ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", angle = 30)
 The defaults encode these rules. Each one was chosen by comparing renders at 600 dpi.
 
 - **Pitch is 0.35 mm** (73 lines per inch). At 0.6 mm the screen reads as a dot pattern. At 0.25 mm it reads as a flat tint and takes five times longer to draw.
-- **Tone is continuous.** Dot area follows tone exactly. Set `levels = k` to quantise and dither, for example `levels = 1` for a stipple.
-- **No feature is smaller than 0.09 mm** (0.25 pt), the usual journal minimum. Below that tone, cells are dithered at the minimum size, so light regions become sparse dots or broken hairlines rather than grey pixels.
+- **Tone is continuous.** Dot area follows tone exactly. Set `levels = k` to quantise and dither with an ordered (Bayer 1973), blue-noise (Ulichney 1993) or error-diffusion (Floyd and Steinberg 1976) matrix, for example `levels = 1` for a stipple.
+- **No feature is smaller than 0.09 mm** (0.25 pt), the minimum line weight in journal artwork guidelines (Nature Portfolio; Elsevier). Below that tone, cells are dithered at the minimum size, so light regions become sparse dots or broken hairlines rather than grey pixels.
 - **The tone profile follows the geometry.** Bars, areas, polygons and maps are flat, because their interior is the value. Ribbons follow the likelihood of the estimate: full tone on the estimate, 0.146 at a 95% limit. Densities and violins get a soft vignette so that overlapping groups stay legible. A mapped `screen` is always flat.
 - **Colour is never the only encoding.** On bars, areas, polygons and tiles, each fill also gets its own screen angle and shape. The figure survives greyscale printing.
 - **No lattice axis is horizontal or vertical.** The hex lattice is rotated 15 degrees and the square lattice 45 degrees, so bar tops and step plateaus do not alias against a row of dots.
@@ -60,7 +60,7 @@ Three strata in one ink. The `screen` aesthetic sets a hatch angle per stratum; 
 
 ![Maunga Whau as a line-screen engraving with illuminated contours](man/figures/engraving.png)
 
-Maunga Whau. One `shape = "line"` layer for the surface, and `with_relief(geom_contour())` for illuminated contours after Tanaka: lit segments in paper, shaded segments in ink.
+Maunga Whau. One `shape = "line"` layer for the surface, and `with_relief(geom_contour())` for illuminated contours (Tanaka 1950): lit segments in paper, shaded segments in ink.
 
 ## Theme and export
 
@@ -73,3 +73,14 @@ Maunga Whau. One `shape = "line"` layer for the surface, and `with_relief(geom_c
 ## Status
 
 Prototype. The API of `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `with_relief()`, the `screen` and `tone` aesthetics, `km_steps()` and `theme_halftone()` is considered stable. Every export has a help page. Start with `?with_halftone`.
+
+## References
+
+- Bayer, B. E. (1973). An optimum method for two-level rendition of continuous-tone pictures. *IEEE International Conference on Communications*, 26, 11-15.
+- Floyd, R. W., and Steinberg, L. (1976). An adaptive algorithm for spatial greyscale. *Proceedings of the Society for Information Display*, 17(2), 75-77.
+- Loprinzi, C. L., Laurie, J. A., Wieand, H. S., et al. (1994). Prospective evaluation of prognostic variables from patient-completed questionnaires. North Central Cancer Treatment Group. *Journal of Clinical Oncology*, 12(3), 601-607. <https://doi.org/10.1200/JCO.1994.12.3.601>. Distributed as `survival::lung`.
+- Tanaka, K. (1950). The relief contour method of representing topography on maps. *Geographical Review*, 40(3), 444-456. <https://doi.org/10.2307/211219>
+- Ulichney, R. (1993). The void-and-cluster method for dither array generation. *Proceedings of SPIE*, 1913, 332-343. <https://doi.org/10.1117/12.152707>
+- Nature Portfolio. Formatting guide: figures. <https://www.nature.com/nature/for-authors/formatting-guide>
+- Elsevier. Artwork and media instructions. <https://www.elsevier.com/about/policies-and-standards/author/artwork-and-media-instructions>
+- Maunga Whau elevation data: R `datasets::volcano`, digitised by Ross Ihaka from a topographic map of Auckland.

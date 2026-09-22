@@ -23,6 +23,10 @@
 #' @param z Numeric matrix of tone in `[0, 1]`.
 #' @param levels Number of quantisation steps.
 #' @return A numeric matrix of thresholds in `(0, 1)` (matrices), or a quantised tone matrix (dither functions).
+#' @references
+#' Bayer, B. E. (1973). An optimum method for two-level rendition of continuous-tone pictures. IEEE International Conference on Communications, 26, 11-15.
+#' Floyd, R. W., and Steinberg, L. (1976). An adaptive algorithm for spatial greyscale. Proceedings of the Society for Information Display, 17(2), 75-77.
+#' Ulichney, R. (1993). The void-and-cluster method for dither array generation. Proceedings of SPIE, 1913, 332-343. <https://doi.org/10.1117/12.152707>
 #' @examples
 #' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' bayer_matrix(2)
@@ -329,11 +333,15 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #' @param blend Colour of a cell carrying several inks under `"overprint"`: `"alternate"` (weave, default), `"mix"`
 #'   or `"multiply"`.
 #' @param tone_max Tone ceiling in `[0, 1]`. `NULL` means 1, or 0.55 for a binary stipple.
-#' @param min_feature Smallest printable feature in mm (0.09, i.e. 0.25 pt, the usual journal minimum). Dots that would
+#' @param min_feature Smallest printable feature in mm (0.09, i.e. 0.25 pt, the minimum line weight in journal artwork
+#'   guidelines; see References). Dots that would
 #'   be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.
 #' @param na.rm Remove missing values silently.
 #' @return A ggplot2 layer.
 #' @order 1
+#' @references
+#' Nature Portfolio. Formatting guide: figures. <https://www.nature.com/nature/for-authors/formatting-guide>
+#' Elsevier. Artwork and media instructions. <https://www.elsevier.com/about/policies-and-standards/author/artwork-and-media-instructions>
 #' @seealso [with_halftone()] to screen the fill of an existing layer, [geom_spot()] for per-point discs,
 #'   [scale_screen_discrete()] for colour-free encodings, [with_halo()] for lines drawn over a screen.
 #' @examples

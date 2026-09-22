@@ -39,3 +39,6 @@ if (requireNamespace("survival", quietly = TRUE)) {
     with_halo(ggplot2::geom_step(ggplot2::aes(y = surv, colour = strata))) + theme_halftone()
 }
 }
+\references{
+Loprinzi, C. L., Laurie, J. A., Wieand, H. S., et al. (1994). Prospective evaluation of prognostic variables from patient-completed questionnaires. North Central Cancer Treatment Group. Journal of Clinical Oncology, 12(3), 601-607. \url{https://doi.org/10.1200/JCO.1994.12.3.601}. Distributed as \code{survival::lung}.
+}

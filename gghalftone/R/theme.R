@@ -46,6 +46,9 @@ halftone_font <- function(prefer, fallback = "") {
 #' @param dir,centre,size,zoom For `halftone_proof()`: output directory, the crop centre as a fraction of width and height,
 #'   the crop size in mm, and the magnification.
 #' @return A ggplot2 theme; `ggsave_journal()` is called for its side effect.
+#' @references
+#' Nature Portfolio. Formatting guide: figures. <https://www.nature.com/nature/for-authors/formatting-guide>
+#' Elsevier. Artwork and media instructions. <https://www.elsevier.com/about/policies-and-standards/author/artwork-and-media-instructions>
 #' @examples
 #' \dontshow{op <- options(halftone.fonts = FALSE)}
 #' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() + theme_halftone()
