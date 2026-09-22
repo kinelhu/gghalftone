@@ -284,9 +284,11 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
     ng <- length(groups)
     kids <- lapply(seq_along(groups), function(k) {
       Pk <- P; if (overlap == "interleave" && ng > 1 && !has_screen) Pk$phase <- c((k - 1) / ng, ((k - 1) %% 2) * 0.5)
+      dk <- prep(groups[[k]])
       if (has_screen) { sp <- parse_screen(groups[[k]]$screen[1]); Pk$angle <- (if (angle_user) angle else 0) + screen_angle(sp, shape)
-        if (!is.null(sp$shape)) Pk$shape <- sp$shape; Pk$dot_max <- dot_max * sp$tone }
-      gTree(data = prep(groups[[k]]), params = Pk, cl = "halftone") })
+        if (!is.null(sp$shape)) Pk$shape <- sp$shape
+        dk$z01 <- dk$z01 * sp$tone }   # the spec's third field multiplies TONE: "0.5" is half the ink
+      gTree(data = dk, params = Pk, cl = "halftone") })
     do.call(grobTree, kids)
   }
 )
@@ -468,6 +470,25 @@ scale_tone_continuous <- function(name = waiver(), ..., range = c(0, 1), guide =
 scale_tone <- scale_tone_continuous
 
 # ---- legend keys: a small dithered swatch (geom_halftone) / a mid-tone disc (geom_spot) ------------------------
+# A legend key is a SAMPLE of the screen: run the real lattice over a key-sized area and draw it with
+# the same grobs the panel uses, so pitch, angle, tone, quantisation, dithering and the minimum feature
+# all behave identically. Matching the panel by re-deriving its formulas is how the key drifted before:
+# the widths agreed while the panel broke its lightest strips at the printable minimum and the key did not.
+key_screen_grob <- function(tone, col, pitch, angle, grid, shape, dot_max, min_feature,
+                            levels = NULL, bayer_n = 4, algorithm = "bayer", w = 6, h = 4) {
+  lat <- halftone_lattice(list(pitch = pitch, grid = grid, angle = angle), w, h)
+  Z <- matrix(pmin(pmax(tone, 0), 1), nrow(lat$X), ncol(lat$X))
+  Z <- quantise_tone(Z, levels, algorithm, bayer_n)
+  g <- if (identical(shape, "line")) {
+    line_strips_grob(lat$X, lat$Y, Z, col, lat$inside, angle, dot_max * pitch * 0.9, pitch, min_feature)
+  } else {
+    D <- floor_dither(Z, max(tone_floor, (min_feature / (dot_max * pitch))^2), row(Z), col(Z))
+    keep <- lat$inside & D > tone_floor
+    if (any(keep)) dot_grob(lat$X[keep], lat$Y[keep], dot_max * pitch / 2 * sqrt(D[keep]), col, shape) else nullGrob()
+  }
+  gTree(children = gList(g), vp = viewport(x = 0.5, y = 0.5, width = unit(w, "mm"), height = unit(h, "mm"), clip = "on"))
+}
+
 #' Legend keys
 #'
 #' `draw_key_halftone()` draws a mid-tone dot swatch, or a hatch for line screens, at the layer's screen angle and
@@ -480,36 +501,15 @@ scale_tone <- scale_tone_continuous
 #' @name draw_key_halftone
 #' @export
 draw_key_halftone <- function(data, params, size) {
-  n <- 9; g <- expand.grid(i = 1:n, j = 1:n); tone <- rep(0.55, n * n)   # uniform mid-tone swatch
   sp <- parse_screen(data$screen); has_screen <- !is.null(data$screen) && !is.na(data$screen)
   shp <- if (identical(params$shape, "line") && !identical(sp$shape, "line")) "line" else sp$shape %||% params$shape %||% "circle"
   base <- if (has_screen) { if (is.null(params$angle_user)) params$angle %||% 0 else if (params$angle_user) params$angle else 0 } else params$angle %||% 15
-  a <- (screen_angle(sp, shp) + base) * pi / 180
-  if (shp == "line") { p <- params$pitch %||% 0.45
-    row <- p * if (identical(params$grid %||% "hex", "hex")) sqrt(3) / 2 else 1   # strips sit one lattice ROW apart
-    return(key_hatch_grob(a, scales::alpha(data$colour %||% "black", data$alpha %||% 1), row,
-                          (params$dot_max %||% 0.9) * p * 0.9 * (params$key_tone %||% 0.55) * sp$tone)) }
-  u <- (g$i - (n + 1) / 2) / n; v <- (g$j - (n + 1) / 2) / n
-  x <- 0.5 + u * cos(a) - v * sin(a); y <- 0.5 + u * sin(a) + v * cos(a)
-  keep <- tone > 0 & x > 0.06 & x < 0.94 & y > 0.06 & y < 0.94
-  r <- 0.5 / n * 0.9 * sqrt(tone[keep]) * sp$tone; gp <- gpar(fill = scales::alpha(data$colour %||% "black", data$alpha %||% 1), col = NA)
-  switch(shp,
-    square  = rectGrob(x = unit(x[keep], "npc"), y = unit(y[keep], "npc"), width = unit(2 * r * sq_k, "npc"), height = unit(2 * r * sq_k, "npc"), gp = gp),
-    diamond = polygonGrob(x = unit(rep(x[keep], each = 4) + rep(c(-1, 0, 1, 0), sum(keep)) * rep(r, each = 4) * di_k, "npc"),
-                          y = unit(rep(y[keep], each = 4) + rep(c(0, 1, 0, -1), sum(keep)) * rep(r, each = 4) * di_k, "npc"), id = rep(seq_len(sum(keep)), each = 4), gp = gp),
-    circleGrob(x = unit(x[keep], "npc"), y = unit(y[keep], "npc"), r = unit(r, "npc"), gp = gp))
-}
-# hatched legend key: a true sample of the screen. Strips sit `pitch` mm apart and `lw` mm wide, at the screen angle,
-# clipped to the key box, so the key reads at the same density as the panel whatever the angle. `spacing` is the
-# distance between lattice rows, which is pitch * sqrt(3)/2 on a hex lattice and pitch on a square one.
-key_hatch_grob <- function(a, col, spacing = 0.5, lw = 0.2, span = 8) {
-  n <- ceiling(span / spacing); o <- seq(-n, n) * spacing
-  nx <- -sin(a); ny <- cos(a); dx <- cos(a) * span; dy <- sin(a) * span
-  at <- function(u, v) unit(0.5, "npc") + unit(u, "mm")
-  gTree(children = gList(segmentsGrob(at(o * nx - dx), unit(0.5, "npc") + unit(o * ny - dy, "mm"),
-                                      at(o * nx + dx), unit(0.5, "npc") + unit(o * ny + dy, "mm"),
-                                      gp = gpar(col = col, lwd = max(lw, 0.09) * 96 / 25.4, lineend = "butt"))),
-        vp = viewport(width = 0.94, height = 0.94, clip = "on"))
+  pitch <- params$pitch %||% if (identical(shp, "line")) 0.45 else 0.35
+  key_screen_grob(tone = (params$key_tone %||% 0.55) * sp$tone,
+                  col = scales::alpha(data$colour %||% "black", data$alpha %||% 1),
+                  pitch = pitch, angle = screen_angle(sp, shp) + base, grid = params$grid %||% "hex",
+                  shape = shp, dot_max = params$dot_max %||% 0.9, min_feature = params$min_feature %||% 0.09,
+                  levels = params$levels, bayer_n = params$bayer_n %||% 4, algorithm = params$algorithm %||% "bayer")
 }
 # a screen spec is a number (angle) or "angle|shape|tone|line_angle" (shape: circle/square/diamond; tone scales dot_max;
 # line_angle is used instead of angle when the screen is drawn as a line screen, so one scale serves both looks)
@@ -522,7 +522,7 @@ parse_screen <- function(s) {
 }
 screen_angle <- function(sp, shape) if (shape == "line" && !is.null(sp$line)) sp$line else sp$angle
 screen_recipe <- function(n, period = 60) {   # up to 9 distinct screens; the first three already differ in angle AND shape
-  ang <- (if (period == 60) 15 else 45) + c(0, period / 3, 2 * period / 3); shp <- c("circle", "square", "diamond"); tone <- c(1, 0.85, 1.1)   # absolute: first screen = the lattice default
+  ang <- (if (period == 60) 15 else 45) + c(0, period / 3, 2 * period / 3); shp <- c("circle", "square", "diamond"); tone <- c(1, 1, 1)   # absolute: first screen = the lattice default; shapes are area-matched, so no weight compensation
   order <- c(1, 5, 9, 2, 6, 7, 3, 4, 8)   # (angle, shape) index pairs chosen so consecutive screens differ in both
   grid <- expand.grid(a = seq_along(ang), s = seq_along(shp))[order, ]
   rep_len(paste(ang[grid$a], shp[grid$s], tone[grid$s], line_recipe(9), sep = "|"), n)
@@ -534,7 +534,8 @@ line_recipe <- function(n) rep_len(c(45, 135, 0, 90, 22.5, 112.5, 67.5, 157.5), 
 #'
 #' Map a discrete variable to the `screen` aesthetic of [geom_halftone()] and of any layer wrapped in
 #' [with_halftone()]. A screen specification is a string `"angle|shape|tone|line_angle"`: the lattice angle in
-#' degrees, the dot shape (`circle`, `square`, `diamond`, or `line` to hatch that group), a tone multiplier, and the
+#' degrees, the dot shape (`circle`, `square`, `diamond`, or `line` to hatch that group), a tone multiplier (`0.5`
+#' prints half the ink, which is how an ordinal scale is drawn in one ink), and the
 #' hatch angle used when the layer is a line screen. A bare number is an angle. Specifications are absolute. If the
 #' layer has an `angle`, it is added.
 #'

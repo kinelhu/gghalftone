@@ -277,3 +277,16 @@ in the screen. Ink coverage on the panel is constant across angles, measured at 
 key was drawing a fixed count of strokes across the key box at a fixed line width, so its density changed with angle
 and matched the panel at no angle at all. The key is now a true sample of the screen: strips one lattice row apart
 (pitch times sqrt(3)/2 on a hex lattice) at the screen's own strip width, clipped to the key box.
+
+## Legend keys, again (2026-09-22)
+
+Using the package on a real paper found the key wrong a second time. The first fix made the key's strip
+width and spacing match the panel's by re-deriving the panel's formulas. That held until an ordinal
+tone ramp put some levels below the printable minimum: the panel breaks those strips into hairline
+dashes by floor-dithering, and the key, having only the width formula, drew them as continuous thin
+lines. Keys and bars for the same level looked like different screens.
+
+The formula approach was the mistake. A key now runs the real lattice over a key-sized area and draws
+it with the same grobs the panel uses, so pitch, angle, tone, quantisation, dithering and the minimum
+feature all behave identically by construction rather than by agreement. The test renders a key and the
+bar it stands for and compares ink coverage, at a tone above the minimum and at one below it.

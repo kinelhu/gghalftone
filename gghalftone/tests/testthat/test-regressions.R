@@ -214,7 +214,7 @@ test_that("a line-screen layer with a mapped screen recipe stays hatched (the re
   p <- ggplot(d, aes(g, n, screen = g)) + with_halftone(geom_col(fill = "black"), shape = "line", pitch = 1, outline = FALSE) + scale_screen_discrete() + theme_void()
   k <- content(p, "halftone_fill"); expect_null(find_grob(k, "circle")); expect_false(is.null(find_grob(k, "polygon")))
   key <- draw_key_halftone(data.frame(colour = "black", screen = gghalftone:::screen_recipe(1)), list(shape = "line", angle = 45, angle_user = FALSE), 5)
-  expect_false(is.null(find_grob(key, "segments")))
+  expect_false(is.null(find_grob(key, "polygon")))   # a hatch key is drawn as strips, like the panel
   mixed <- function(vals) content(ggplot(d, aes(g, n, screen = g)) + with_halftone(geom_col(fill = "black"), pitch = 1, outline = FALSE) + scale_screen_manual(values = vals) + theme_void(), "halftone_fill")
   expect_false(is.null(find_grob(mixed(c("45|line", "15|circle")), "polygon")))   # first group hatched (content() renders the first group)
   expect_false(is.null(find_grob(mixed(c("15|circle", "45|line")), "circle")))    # first group dotted
@@ -282,16 +282,13 @@ test_that("colour is redundant by default on tiling geoms (bars get distinct scr
   expect_equal(length(angles(ggplot(iris, aes(Sepal.Length, fill = Species, group = Species)) + with_halftone(geom_density(), pitch = 1) + theme_void())), 1)   # GeomDensity inherits GeomArea but is not a tiling geom
   # legend keys pick up the auto screens: three keys, hatched at distinct angles for a line layer
   p <- ggplot(d, aes(g, n, fill = g)) + with_halftone(geom_col(), pitch = 1, shape = "line") + theme_classic() + theme_halftone()
-  # key hatch is positioned in mm around an npc centre, so measure the angle on an open device
-  ff <- tempfile(fileext = ".png"); ragg::agg_png(ff, 60, 45, units = "mm", res = 100); on.exit(try(dev.off(), silent = TRUE), add = TRUE)
+  # a hatch key is drawn by the panel's own strip code, so each key is a polygon; its long axis is the angle
   g <- ggplotGrob(p); keys <- c()
-  walk <- function(x) { if (inherits(x, "segments")) {
-      dx <- convertX(x$x1, "mm", TRUE)[1] - convertX(x$x0, "mm", TRUE)[1]
-      dy <- convertY(x$y1, "mm", TRUE)[1] - convertY(x$y0, "mm", TRUE)[1]
-      keys <<- c(keys, atan2(dy, dx) %% pi) }
+  walk <- function(x) { if (inherits(x, "polygon") && !is.null(x$id.lengths)) {
+      m <- x$id.lengths[1]; xs <- as.numeric(x$x)[1:m]; ys <- as.numeric(x$y)[1:m]
+      keys <<- c(keys, atan2(ys[m / 2] - ys[1], xs[m / 2] - xs[1]) %% pi) }
     kids <- if (inherits(x, "gtable")) x$grobs else if (inherits(x, "gTree")) x$children else if (inherits(x, "gList")) x else NULL; for (k in kids) walk(k) }
   for (gr in g$grobs[grep("guide-box", g$layout$name)]) walk(gr)
-  dev.off()
   expect_equal(length(keys), 3); expect_equal(length(unique(round(keys, 2))), 3)
 })
 
@@ -378,4 +375,38 @@ test_that("a polygon with a hole keeps the hole empty", {
   inner <- im[round(n * 0.42):round(n * 0.58), round(n * 0.42):round(n * 0.58), 1]
   band  <- im[round(n * 0.15):round(n * 0.25), round(n * 0.40):round(n * 0.60), 1]
   expect_equal(mean(inner < 0.5), 0); expect_gt(mean(band < 0.5), 0.1)
+})
+
+test_that("a screen spec's third field multiplies tone in both geoms: 0.5 prints half the ink", {
+  cov <- function(p) { im <- px(render(p, w = 40, h = 40)); mean(im[, , 1] < 0.5) }
+  # with_halftone(): two bars, same angle and shape, tone multipliers 1 and 0.5
+  d <- data.frame(g = c("a", "b"), n = 1)
+  full <- cov(ggplot(d[1, ], aes(g, n, screen = g)) + with_halftone(geom_col(fill = "black"), pitch = 1, outline = FALSE) + scale_screen_manual(values = c(a = "15|circle|1")) + theme_void())
+  half <- cov(ggplot(d[1, ], aes(g, n, screen = g)) + with_halftone(geom_col(fill = "black"), pitch = 1, outline = FALSE) + scale_screen_manual(values = c(a = "15|circle|0.5")) + theme_void())
+  expect_lt(half, full * 0.62); expect_gt(half, full * 0.38)
+  # geom_halftone(): same rule
+  f <- expand.grid(x = seq(0, 10, 0.25), y = seq(0, 10, 0.25)); f$z <- 1
+  gfull <- cov(ggplot(f, aes(x, y, z = z)) + geom_halftone(pitch = 1, colour = "black", screen = "15|circle|1") + theme_void())
+  ghalf <- cov(ggplot(f, aes(x, y, z = z)) + geom_halftone(pitch = 1, colour = "black", screen = "15|circle|0.5") + theme_void())
+  expect_lt(ghalf, gfull * 0.62); expect_gt(ghalf, gfull * 0.38)
+})
+
+test_that("a legend key carries the same ink as the fill it stands for, including the broken hairlines of a sub-minimum tone", {
+  # the key runs the panel's own screen code, so a light hatch breaks in the key exactly as it does in the bar
+  ink <- function(g, w = 6, h = 4) { f <- tempfile(fileext = ".png"); ragg::agg_png(f, w, h, units = "mm", res = 1200)
+    grid.newpage(); grid.draw(g); dev.off(); im <- png::readPNG(f); mean(im[, , 1] < 0.5) }
+  bar_cov <- function(spec, pitch = 0.5) {
+    d <- data.frame(g = "a", n = 1)
+    p <- ggplot(d, aes(g, n, screen = g)) + with_halftone(geom_col(fill = "black", colour = NA), shape = "line", pitch = pitch, outline = FALSE) +
+      scale_screen_manual(values = c(a = spec)) + scale_y_continuous(expand = c(0, 0)) + scale_x_discrete(expand = c(0, 0)) + theme_void()
+    im <- px(render(p, w = 20, h = 20, dpi = 1200)); mean(im[, , 1] < 0.5) }
+  key_cov <- function(spec, pitch = 0.5)
+    ink(draw_key_halftone(data.frame(colour = "black", screen = spec),
+                          list(shape = "line", pitch = pitch, angle = 0, angle_user = FALSE, key_tone = 0.4, grid = "hex"), 5))
+  for (mult in c("0.10", "1.00")) {
+    spec <- paste0("45|line|", mult)
+    expect_equal(key_cov(spec), bar_cov(spec), tolerance = 0.22)   # same ink weight, within rendering noise
+  }
+  # and the light key really is broken, not a continuous thin line: it carries far less ink than the dark one
+  expect_lt(key_cov("45|line|0.10"), key_cov("45|line|1.00") * 0.5)
 })

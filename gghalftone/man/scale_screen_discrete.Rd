@@ -27,7 +27,8 @@ A ggplot2 scale.
 \description{
 Map a discrete variable to the \code{screen} aesthetic of \code{\link[=geom_halftone]{geom_halftone()}} and of any layer wrapped in
 \code{\link[=with_halftone]{with_halftone()}}. A screen specification is a string \code{"angle|shape|tone|line_angle"}: the lattice angle in
-degrees, the dot shape (\code{circle}, \code{square}, \code{diamond}, or \code{line} to hatch that group), a tone multiplier, and the
+degrees, the dot shape (\code{circle}, \code{square}, \code{diamond}, or \code{line} to hatch that group), a tone multiplier (\code{0.5}
+prints half the ink, which is how an ordinal scale is drawn in one ink), and the
 hatch angle used when the layer is a line screen. A bare number is an angle. Specifications are absolute. If the
 layer has an \code{angle}, it is added.
 }
