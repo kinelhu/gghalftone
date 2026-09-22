@@ -1,31 +1,31 @@
-# Design review — gghalftone gallery (review_panel.png, 15 items)
+# Design review 1: gghalftone gallery (review_panel.png, 15 items)
 
 Reviewer stance: outside designer, print background, no knowledge of the build history. Judged at the intended size (89 mm single column, 600 dpi) and at the panel's downscaled view. Ratings: **keep / rework / cut**.
 
 ## Overall
 
-The set has a real idea — tone as texture, physically pitched, honest about overlap — and the best items (1A, 5, 11, 12, 14) prove it. But the gallery as a whole is not yet a *system*. Three things undercut it:
+The set has a real idea (tone as texture, physically pitched, explicit about overlap) and the best items (1A, 5, 11, 12, 14) prove it. But the gallery as a whole is not yet a *system*. Three things undercut it:
 
 1. **Inconsistent ink weight.** Dot screens range from feather-light (4, 6) to fully saturated blocks (8, parts of 1A). A print series needs one tonal register; right now each figure was tuned alone.
 2. **The halftone is often decorative.** In 2, 7, 13, 15 it encodes nothing a flat fill wouldn't. A reviewer will ask "why dots?" and the answer needs to be more than "it looks printed."
-3. **Typography is competent but generic.** Liberation Sans at 7 pt is fine for submission; it is not a design. Panel tags, axis titles and legend titles are all the same weight and nearly the same size — there is no hierarchy inside a figure.
+3. **Typography is competent but generic.** Liberation Sans at 7 pt is fine for submission; it is not a design. Panel tags, axis titles and legend titles are all the same weight and nearly the same size. There is no hierarchy inside a figure.
 
 ## Item by item
 
 | # | Item | Verdict | Notes |
 |---|------|---------|-------|
-| 1 | Fig. 1 (KM · GAM · dot plot) | **keep**, tighten | A is the strongest argument in the set: three overlapping CIs stay readable. But the woven overlap zone at 500–900 d is the busiest region on the page and the ochre ink is still the weakest of the three. B is clean. C: the tone encoding inside discs is legible only above ~1.5 mm radius; the small discs carry no information — either enlarge or drop tone for small discs. The three panels have three different y-axis conventions (%, g, none). |
-| 2 | Bars, dot fill | **cut or rework** | Dots add nothing. If kept, the only defensible version is 15 (hatching as categorical encoding) — one of the two should go. |
+| 1 | Fig. 1 (KM, GAM, dot plot) | **keep**, tighten | A is the strongest argument in the set: three overlapping CIs stay readable. But the woven overlap zone at 500–900 d is the busiest region on the page and the ochre ink is still the weakest of the three. B is clean. C: the tone encoding inside discs is legible only above ~1.5 mm radius; the small discs carry no information. Either enlarge or drop tone for small discs. The three panels have three different y-axis conventions (%, g, none). |
+| 2 | Bars, dot fill | **cut or rework** | Dots add nothing. If kept, the only defensible version is 15 (hatching as categorical encoding). One of the two should go. |
 | 3 | Densities, dot fill | **rework** | Edge-fade fill on densities looks like a rendering gradient, not a screen. The overlap weave is honest but muddy. Compare 13: the same data with line screens is far more legible; prefer that. |
-| 4 | Forecast fan (co2) | **keep** | Correct chart, correct data, one ink deepening inward. The 80%/95% distinction is faint — separate the alpha steps more (0.15 / 0.45 / 1). Legend keys are too small to show the difference; make them at least 5 mm. |
+| 4 | Forecast fan (co2) | **keep** | Correct chart, correct data, one ink deepening inward. The 80%/95% distinction is faint. Separate the alpha steps more (0.15 / 0.45 / 1). Legend keys are too small to show the difference; make them at least 5 mm. |
 | 5 | Choropleth | **keep** | Best colour figure in the set. The 45° screen reads as a printed map. Legend title "Murder per 100k" wraps awkwardly; shorten. |
 | 6 | Facets + groups | **cut from gallery** | Fine as a regression test, weak as a showcase: bands are barely visible at this size and the four class colours fight. |
 | 7 | Ridgelines | **rework or cut** | At 0.5 mm the fills read as solid; nothing halftone about it. Either coarsen deliberately (0.9 mm, editorial style) or drop. |
 | 8 | Expression heatmap | **rework** | Grey cell grid + dots + diverging colour is three textures. Remove the grid; let the dot area carry magnitude and colour carry sign only (two inks, no gradient). The saturated red/blue blocks are correct but the mid-tones are noise. |
-| 9 | Screens: angle × shape | **keep** | Reads correctly now; legend keys show the difference. Slightly heavy at the bottom series — lighten the base screen by ~15%. |
+| 9 | Screens: angle by shape | **keep** | Reads correctly now; legend keys show the difference. Slightly heavy at the bottom series. Lighten the base screen by ~15%. |
 | 10 | Elevation, dots | **keep** | Good tonal range, contours crisp. Legend bar is oversized relative to the panel. |
-| 11 | Engraving, lines | **keep** — the hero | The only item that looks like it belongs in a book. Use it as the first image of the README. |
-| 12 | KM one ink, crosshatch | **keep** | Legitimate B&W figure. The subtitle text overlaps the tag "B"; fix. Consider 0.7 mm pitch — at 0.6 the crosshatch moirés slightly where three strata overlap. |
+| 11 | Engraving, lines | **keep**, the hero | The only item that looks like it belongs in a book. Use it as the first image of the README. |
+| 12 | KM one ink, crosshatch | **keep** | Legitimate B&W figure. The subtitle text overlaps the tag "B"; fix. Consider 0.7 mm pitch. At 0.6 the crosshatch moirés slightly where three strata overlap. |
 | 13 | Densities, line screens | **keep** | Better than 3 by a distance. Combine colour + angle only when you have to; here angle alone would suffice and the colour could go. |
 | 14 | Blue-noise stipple | **keep** | Excellent. Add the KDE outline (one contour) so it reads as a density and not a scatter. |
 | 15 | Hatched bars | **keep** (instead of 2) | Classic and correct. Bar outlines are heavier than the hatch; match weights. |
@@ -36,24 +36,24 @@ The set has a real idea — tone as texture, physically pitched, honest about ov
 - **Hierarchy inside figures.** Tag 10 pt bold, axis titles 8 pt regular, tick labels 7 pt, legend 7 pt *light* (or grey). Legend titles should not be bold if the axis titles are not.
 - **Kill the grey ground everywhere.** 8 is the only offender left; grey under halftone reads as a printing error.
 - **Consistent legend geometry.** Colourbars in 5, 8, 10 are three different sizes. Fix one size (e.g. 2.5 × 18 mm).
-- **Decide what dots are for.** Keep dot screens for tone-carrying fills (CIs, densities, fields, maps). Use line screens for categorical hatching. Never use either purely as a fill texture — that is 2 and 7's problem.
+- **Decide what dots are for.** Keep dot screens for tone-carrying fills (CIs, densities, fields, maps). Use line screens for categorical hatching. Never use either purely as a fill texture. That is 2 and 7's problem.
 - **Halo width** is now right (hairline). Keep it there; do not let it creep back up for "visibility."
 
 ## What would make this stand out
 
 - A single, deliberately *editorial* piece in the gallery (the cover) beside the journal set, to show the same engine at two registers.
 - 11 rendered at poster scale with a real DEM.
-- A figure where halftone is the *only* way to show the data: three overlapping CIs in one ink with crosshatch (12) is already that — lead with it in the README's B&W section.
+- A figure where halftone is the *only* way to show the data: three overlapping CIs in one ink with crosshatch (12) is already that. Lead with it in the README's B&W section.
 
 ---
 
 # Brief for forwarding
 
-> Attached: `review_panel.png`, 15 figures from an R/ggplot2 package that renders fills as print-style halftone (dot and line screens, physical mm pitch, overlaps woven rather than hidden). Target: journal figures at 89/183 mm, 600 dpi, and a secondary editorial style. Please review as a print designer: (1) which items earn their halftone and which are decorative; (2) tonal consistency across the set; (3) typographic hierarchy inside figures; (4) legend and colourbar consistency; (5) anything that reads as a rendering artefact rather than a design choice. Be specific about pitch, ink weight and halo width where relevant. Do not grade on effort or novelty — only on what a reader of a journal or a book would see.
+> Attached: `review_panel.png`, 15 figures from an R/ggplot2 package that renders fills as print-style halftone (dot and line screens, physical mm pitch, overlaps woven rather than hidden). Target: journal figures at 89/183 mm, 600 dpi, and a secondary editorial style. Please review as a print designer: (1) which items earn their halftone and which are decorative; (2) tonal consistency across the set; (3) typographic hierarchy inside figures; (4) legend and colourbar consistency; (5) anything that reads as a rendering artefact rather than a design choice. Be specific about pitch, ink weight and halo width where relevant. Do not grade on effort or novelty. Grade only on what a reader of a journal or a book would see.
 
 ---
 
-# Design review 2 — defaults pass (2026-09-21)
+# Design review 2: defaults pass (2026-09-21)
 
 Stance: same as review 1, but judged on what the package draws with **no arguments**. The gallery script overrode pitch,
 levels, dot_max, gamma, tone and tone_max in every call, which meant the defaults had never been looked at. Rendered

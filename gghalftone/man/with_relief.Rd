@@ -32,16 +32,16 @@ with_relief(
 The layer, with its geom replaced by a relief-drawing subclass.
 }
 \description{
-Wraps a contour (or any path) layer so that each segment is lit or shaded according to the direction of the slope
-it lies on relative to a light source: Kitiro Tanaka's illuminated-contour method. Lit segments are drawn in
-paper colour and shaded ones in ink, each widening as the slope faces the light more squarely, over a hairline
-base contour. Over a \code{\link[=geom_halftone]{geom_halftone()}} field or a hatched engraving the paper segments knock the screen out and the
-surface reads as relief.
+Wraps a contour layer, or any path layer, so that each segment is lit or shaded according to the direction of
+its slope relative to a light source. This is Kitiro Tanaka's illuminated-contour method. Lit segments are drawn
+in paper colour and shaded segments in ink. Both widen as the slope faces the light more directly. A hairline base
+contour is drawn under both. Over a \code{\link[=geom_halftone]{geom_halftone()}} field or a hatched engraving, the paper segments cut through
+the screen and the surface appears in relief.
 }
 \details{
-Which side of a contour is uphill is inferred per line (\code{uphill = "auto"}): from the nearest neighbouring contour
-at another level when there is one, otherwise a closed ring is taken as a summit. For a path that is not a contour,
-give \code{uphill} explicitly.
+With \code{uphill = "auto"}, the uphill side of each contour is inferred from the nearest neighbouring contour at
+another level. A closed ring with no such neighbour is treated as a summit. For a path that is not a contour, set
+\code{uphill} explicitly.
 }
 \examples{
 \dontshow{op <- options(halftone.fonts = FALSE)}

@@ -53,8 +53,8 @@ A data frame (\code{halftone_ridges()}: a list of \code{fields}, \code{lines}, \
 }
 \description{
 Helpers that turn common objects into gridded fields (\code{x}, \code{y}, \code{z}) for \code{\link[=geom_halftone]{geom_halftone()}}. Most figures do not
-need them: \code{\link[=with_halftone]{with_halftone()}} screens the fill of an ordinary ribbon, area, bar or polygon layer directly. They
-remain for cases where the tone field is computed rather than drawn: an estimate with a tent or gaussian profile
+need them, because \code{\link[=with_halftone]{with_halftone()}} screens the fill of a ribbon, area, bar or polygon layer directly. Use them
+when the tone field is computed rather than drawn: an estimate with a tent or gaussian profile
 (\code{halftone_band()}), bars that fade towards the axis (\code{halftone_bars()}), map regions rasterised by
-point-in-region lookup (\code{halftone_regions()}, needs maps), or ridgelines (\code{halftone_ridges()}).
+point-in-region lookup (\code{halftone_regions()}, requires the maps package), or ridgelines (\code{halftone_ridges()}).
 }

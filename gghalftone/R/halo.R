@@ -1,13 +1,13 @@
-# halo.R — draw a line or point layer twice: first in paper colour with a hairline extra width, then as is.
+# halo.R: draw a line or point layer twice: first in paper colour with a hairline extra width, then as is.
 # A line crossing a dot field needs this (a step curve over a CI screen, contours over an elevation field); the
 # design rule is ~0.08 mm, never wider, or the halo starts to read as a second line.
 
 #' Paper halo under a line or point layer
 #'
-#' Draws the layer twice: first in paper colour with `width` mm added to each side of every stroke, then as is. A
-#' line crossing a dot field needs this to stay readable; a step curve over a screened confidence band, contours
-#' over an elevation field. Keep it a hairline: 0.09 mm (0.25 pt, the printable minimum) against dots, 0.15 mm against
-#' a line screen. Wider and it reads as a second line.
+#' Draws the layer twice: first in paper colour with `width` mm added to each side of every stroke, then as is. Use it
+#' for a line that crosses a dot field, such as a step curve over a screened confidence band or contours over an
+#' elevation field. Keep the width small: 0.09 mm (0.25 pt, the printable minimum) against dots, 0.15 mm against a
+#' line screen. A wider halo looks like a second line.
 #' @param layer A ggplot2 layer drawing lines, paths, steps, contours or points.
 #' @param width Halo width in mm on each side of the stroke.
 #' @param colour Halo colour; `NULL` uses white, or the editorial paper colour under

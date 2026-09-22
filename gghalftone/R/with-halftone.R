@@ -1,4 +1,4 @@
-# with_halftone.R — halftone the FILL of any ggplot2 layer, at draw time
+# with_halftone.R: halftone the FILL of any ggplot2 layer, at draw time
 #   with_halftone(geom_area(...)), with_halftone(geom_col(...)), with_halftone(geom_ribbon(...)), with_halftone(geom_density(...)),
 #   with_halftone(geom_polygon(...)), with_halftone(geom_sf(...)) ...
 # The wrapped geom draws as usual; we walk its grob tree, take every filled polygon/rect/path, rasterise it onto the
@@ -130,24 +130,24 @@ makeContent.halftone_fill <- function(x) {
 
 #' Screen the fill of any layer
 #'
-#' Wraps a ggplot2 layer so that its fill is printed as a halftone. The wrapped geom draws as usual; at draw time every
-#' filled polygon, rectangle or path in its grob tree is rasterised onto a millimetre lattice, given a tone field
-#' derived from its own geometry, and drawn as dots (or hatch) in its fill colour, clipped to the shape. Works with
+#' Wraps a ggplot2 layer so that its fill is drawn as a halftone. The wrapped geom draws as usual. At draw time,
+#' every filled polygon, rectangle or path in its grob tree is rasterised onto a millimetre lattice, given a tone
+#' field derived from its geometry, and drawn as dots or hatch in its fill colour, clipped to the shape. Works with
 #' ribbons, areas, bars and columns, densities and violins, polygons, tiles and `geom_sf()`.
 #'
 #' @section Tone profile:
-#' `tone = NULL` picks a profile from the geometry, which is the rule the design work converged on:
+#' With `tone = NULL`, the profile depends on the geometry:
 #' * bars, columns, tiles, areas, polygons and sf: `"flat"`, because there the interior *is* the value;
-#' * ribbons (intervals): `"likelihood"`, the normal density of the estimate across the interval, so the fade is the
-#'   evidence: 1 on the estimate, 0.146 at a 95 % limit (`level`);
-#' * densities and violins: `"vignette"`, a soft fade towards the outline so overlapping groups stay legible;
-#' * line screens: always `"flat"` (a tapered hatch reads as fringe);
-#' * a mapped `screen` is a categorical pattern, and patterns are flat.
+#' * ribbons (intervals): `"likelihood"`, the normal density of the estimate across the interval: 1 on the
+#'   estimate, 0.146 at a 95% limit (`level`);
+#' * densities and violins: `"vignette"`, a soft fade towards the outline, so that overlapping groups stay legible;
+#' * line screens: always `"flat"`, because a tapered hatch looks like fringe;
+#' * a mapped `screen`: always `"flat"`, because it is a categorical pattern.
 #'
 #' @section Register:
 #' `tone_max = NULL` sets one ink weight across figure types: flat 0.45 (polygons and sf 0.6), centre 0.6, vignette
-#' 0.7, hatching 0.4, hatched intervals a hairline (the strip width that equals `min_feature`). Alpha on the fill is folded
-#' into tone (a 30 % alpha prints as a 30 % screen); nothing translucent reaches the page.
+#' 0.7, hatching 0.4, hatched intervals a hairline (the strip width that equals `min_feature`). Alpha on the fill is
+#' folded into tone: a fill with 30% alpha prints as a 30% screen. Nothing translucent reaches the page.
 #'
 #' @inheritParams geom_halftone
 #' @param layer A ggplot2 layer, e.g. `geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))`.

@@ -14,7 +14,7 @@ library(ggplot2); library(gghalftone)
 vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
 ```
 
-`geom_halftone()` takes a gridded field (`x`, `y` and a value) and screens it directly: each dot's area is the tone at that point. Colour scales apply to the field and the dots inherit.
+`geom_halftone()` takes a gridded field (`x`, `y` and a value) and screens it directly. The area of each dot is the tone at that point. Colour scales apply to the field, and the dots inherit the colour.
 
 ## Continuous tone
 
@@ -26,11 +26,11 @@ ggplot(vol, aes(x, y, z = z)) +
   theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
 
-The 45° square lattice is the classic map and photograph screen. `gamma` below one lifts the mid-tones.
+The 45 degree square lattice is the conventional screen for maps and photographs. `gamma` below 1 lifts the mid-tones.
 
 ## Engraving
 
-A line screen whose strip width follows tone. The halo under the contours is widened to 0.15 mm: against hatch a 0.09 mm halo is invisible. Where tone falls below the printable minimum the lines break into dashes rather than thinning, as a burin would.
+A line screen draws strips along the lattice rows. Strip width follows tone. Set the halo under the contours to 0.15 mm, because a 0.09 mm halo is invisible against hatching. Where tone falls below the printable minimum, the strips break into dashes instead of getting thinner.
 
 ```{r engraving}
 ggplot(vol, aes(x, y, z = z)) +
@@ -42,7 +42,9 @@ ggplot(vol, aes(x, y, z = z)) +
 
 ## Illuminated contours
 
-Kitiro Tanaka's 1950 method: each contour segment is lit or shaded by the direction of the slope it stands on relative to a light from the upper left. Lit segments print in paper and shaded ones in ink, widening where the slope faces the light squarely. Over the engraving the paper segments knock the hatch out, which is how the original was printed, from two plates. Which side is uphill is inferred per contour from its neighbours; `light` is the one parameter.
+`with_relief()` implements Tanaka's illuminated contours (1950). Each contour segment is lit or shaded according to the direction of its slope relative to a light source, by default from the upper left. Lit segments are drawn in paper colour and shaded segments in ink. Both widen where the slope faces the light directly. Over an engraving, the paper segments cut through the hatching.
+
+The wrapper infers which side of each contour is uphill from the neighbouring contours. `light` sets the light azimuth in degrees.
 
 ```{r relief}
 ggplot(vol, aes(x, y, z = z)) +
@@ -52,11 +54,11 @@ ggplot(vol, aes(x, y, z = z)) +
   theme_halftone(axes = "box") + theme(axis.text = element_blank(), axis.ticks = element_blank())
 ```
 
-The symmetric hairline of `with_halo()` is the right form for a line over a confidence band: it is the printer's knockout channel, and an interval has no lit side. Relief is for surfaces.
+Use `with_halo()` for a line over a confidence band. Its halo is symmetric, because an interval has no lit side. Use `with_relief()` for contours over a surface.
 
 ## Stipple
 
-`levels = 1` with blue-noise dithering gives a binary stipple: every dot the same size, density carrying the value. This is the one case where dot density *is* the data. The tone is capped at 55 % so the densest region stays a stipple rather than a bare lattice.
+`levels = 1` with blue-noise dithering gives a binary stipple. Every dot has the same size, and dot density carries the value. Tone is capped at 55% by default, so the densest region remains a stipple rather than a filled lattice.
 
 ```{r stipple, fig.height = 62 / 25.4}
 kd <- MASS::kde2d(faithful$eruptions, faithful$waiting, n = 120, lims = c(1.3, 5.6, 40, 100))
@@ -69,7 +71,7 @@ ggplot(dens, aes(x, y, z = z)) +
 
 ## Maps
 
-`with_halftone()` on a polygon layer prints each region at its fill colour's tone. The default continuous ramp runs paper, ochre, red, near-black.
+`with_halftone()` on a polygon layer prints each region at the tone of its fill colour. The default continuous ramp runs from paper through ochre and red to near-black.
 
 ```{r map, fig.height = 58 / 25.4, eval = requireNamespace("maps", quietly = TRUE) && requireNamespace("mapproj", quietly = TRUE)}
 val <- setNames(USArrests$Murder, tolower(rownames(USArrests)))
@@ -82,7 +84,7 @@ ggplot(st, aes(long, lat, group = group, fill = murder)) +
 
 ## Pitch
 
-The default 0.35 mm is 73 lines per inch. The ladder below is the evidence: 0.6 mm reads as dots and the screen becomes the subject; 0.25 mm collapses into a flat tint at five times the cost.
+The default pitch is 0.35 mm, or 73 lines per inch. The comparison below shows why. At 0.6 mm the screen reads as dots. At 0.25 mm it reads as a flat tint and takes five times longer to draw.
 
 ```{r ladder, fig.width = 183 / 25.4, fig.height = 45 / 25.4, out.width = "100%"}
 d <- data.frame(x = seq(0, 10, length.out = 60)); d$y <- sin(d$x); d$lo <- d$y - 0.5 - 0.02 * d$x; d$hi <- d$y + 0.5 + 0.02 * d$x

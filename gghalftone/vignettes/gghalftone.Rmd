@@ -13,11 +13,13 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dev = "ragg_png", dpi = 3
 library(ggplot2); library(gghalftone)
 ```
 
-A halftone prints tone as dots of varying size on a fixed lattice. gghalftone does this for ggplot2 fills at draw time, on a lattice with a physical pitch in millimetres, so a figure saved at 89 mm and at 183 mm carries the same screen rather than a scaled one. The intended use is the journal figure: a confidence band that stays legible in greyscale, three overlapping intervals that do not hide one another, a bar chart that a colour-blind reader can decode from the hatching alone.
+A halftone prints tone as dots of varying size on a fixed lattice. gghalftone applies this to ggplot2 fills at draw time. The lattice has a physical pitch in millimetres, so a figure saved at 89 mm and at 183 mm gets the same screen.
 
-## A confidence band
+Use it for journal figures: a confidence band that stays legible in greyscale, overlapping intervals that do not hide one another, a bar chart that a reader can decode from the hatching alone.
 
-`with_halftone()` wraps any filled layer. The wrapped geom draws as usual; its fill is replaced by a screen, clipped to the shape, in the fill's own colour.
+## Screen a confidence band
+
+`with_halftone()` wraps any filled layer. The layer draws as usual, and its fill is replaced by a screen in the fill colour, clipped to the shape.
 
 ```{r smooth}
 m <- loess(dist ~ speed, cars, span = 0.9)
@@ -33,11 +35,15 @@ ggplot(nd, aes(speed)) +
   theme_halftone()
 ```
 
-Three things happened without being asked for. The band's tone follows the *likelihood* of the estimate across the interval: full on the fitted line, fading to the normal density at a 95 % limit, so the fade carries the evidence rather than a look. The line over the band got a hairline of paper underneath it from `with_halo()`, so it stays readable where it crosses dots. And `theme_halftone()` set the journal register: 7 pt ticks, 8 pt titles, no gridlines, a font that is installed.
+Three defaults apply here:
 
-## Kaplan–Meier with three strata
+- The band's tone follows the likelihood of the estimate across the interval. Tone is full on the fitted line and 0.146 at the 95% limit.
+- `with_halo()` draws a 0.09 mm paper stroke under the line, so the line stays readable where it crosses dots.
+- `theme_halftone()` sets the journal register: 7 pt tick labels, 8 pt axis titles, no gridlines, and an installed font.
 
-Overlapping groups are the case a flat fill handles worst and a halftone handles best. Groups that share the panel are *overprinted*: their dots are woven on one lattice, so where two bands overlap both inks stay visible.
+## Plot survival with three strata
+
+Groups that share a panel are printed on one lattice. Where two bands overlap, their dots alternate, so both inks stay visible.
 
 ```{r km, fig.width = 89 / 25.4, fig.height = 70 / 25.4}
 library(survival)
@@ -55,11 +61,11 @@ ggplot(s, aes(time, group = strata)) +
   theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.86))
 ```
 
-`km_steps()` turns a `survfit` into the step-shaped frame the ribbon needs; `km_censor()` and `km_risk()` give the censor marks and the number at risk. The three inks are the theme's default palette on ggplot2 4.0.
+`km_steps()` converts a `survfit` object into the step-shaped frame that the ribbon needs. `km_censor()` returns the censor marks and `km_risk()` the number at risk. On ggplot2 4.0 the theme sets the ink palette as the default.
 
-## Bars, and why colour is never the only encoding
+## Screen bars
 
-For geoms whose groups tile the plane (bars, areas, polygons, tiles) each fill also gets its own screen angle and shape. The figure survives greyscale and the legend keys show both.
+For geoms whose groups tile the plane (bars, areas, polygons, tiles), each fill also gets its own screen angle and shape. The legend keys show both, and the figure survives greyscale printing.
 
 ```{r bars, fig.height = 55 / 25.4}
 d <- data.frame(g = factor(c("BOS", "RAS", "Mixed", "Undef."), c("BOS", "RAS", "Mixed", "Undef.")), n = c(52, 21, 14, 13))
@@ -70,7 +76,7 @@ ggplot(d, aes(g, n, fill = g)) +
   theme_halftone()
 ```
 
-For a one-ink figure, hatch instead: `shape = "line"` with the `screen` aesthetic.
+For a one-ink figure, map the `screen` aesthetic and set `shape = "line"`.
 
 ```{r bars_bw, fig.height = 55 / 25.4}
 ggplot(d, aes(g, n, screen = g)) +
@@ -81,20 +87,20 @@ ggplot(d, aes(g, n, screen = g)) +
   theme_halftone()
 ```
 
-## Saving
+## Save
 
-`ggsave_journal()` saves at a journal column width. The extension chooses the format: PNG for proofs, TIFF for submission, PDF for a vector file in which every dot is a geometric object.
+`ggsave_journal()` saves at a journal column width. The file extension selects the format: PNG for proofs, TIFF for submission, PDF for a vector file in which every dot is a path.
 
 ```{r save, eval = FALSE}
 ggsave_journal("fig1.pdf", p, "single", height = 62)
 ggsave_journal("fig1.tiff", p, "double", height = 90)
-halftone_proof(p)   # true-size render plus a 4x crop of the panel centre
+halftone_proof(p)   # final-size render plus a 4x crop of the panel centre
 ```
 
-## The rules the defaults encode
+## Defaults
 
-- Pitch 0.35 mm (73 lines per inch). Coarser reads as a dot pattern; finer collapses into a tint.
-- Nothing smaller than 0.09 mm (0.25 pt) is drawn. Light tone becomes sparse minimum-size dots, not grey pixels.
-- Tone profile follows the geometry: flat where the interior is the value (bars, areas, maps), likelihood for intervals, a soft vignette for densities.
-- One ink register across figure types, so a set of figures reads as a set.
-- Overlaps weave; nothing translucent reaches the page. A fill's alpha becomes screen coverage.
+- Pitch is 0.35 mm (73 lines per inch). Coarser pitches read as a dot pattern. Finer pitches read as a flat tint.
+- No feature is smaller than 0.09 mm (0.25 pt). Light tone becomes sparse dots at the minimum size.
+- The tone profile follows the geometry: flat where the interior is the value (bars, areas, maps), likelihood for intervals, a soft vignette for densities.
+- One ink register applies across figure types, so a set of figures looks consistent.
+- Overlapping groups share one lattice. A fill's alpha becomes screen coverage. Nothing translucent reaches the page.

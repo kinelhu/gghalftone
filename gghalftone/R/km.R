@@ -1,13 +1,13 @@
-# km.R — survfit -> data frames ready for with_halftone(geom_ribbon()) + with_halo(geom_step()).
+# km.R: survfit -> data frames ready for with_halftone(geom_ribbon()) + with_halo(geom_step()).
 # Every KM script in the prototypes rebuilt the step-ribbon frame by hand; this is that frame, once.
 
 #' Kaplan-Meier frames for halftone survival plots
 #'
-#' Turn a `survival::survfit` object into data frames ready for `with_halftone(geom_ribbon())` and
+#' Convert a `survival::survfit` object into data frames for `with_halftone(geom_ribbon())` and
 #' `with_halo(geom_step())`. `km_steps()` returns the step outline with one row per corner (`time`, `surv`, `lo`,
-#' `hi`, `strata`), starting at `(0, 1)`, so a ribbon between `lo` and `hi` follows the staircase exactly.
-#' `km_censor()` returns the censoring marks (`time`, `surv`, `strata`); `km_risk()` the number at risk at `times`.
-#' Strata labels are the level values without the variable name (`"ph.ecog=1"` becomes `"1"`).
+#' `hi`, `strata`), starting at `(0, 1)`, so that a ribbon between `lo` and `hi` follows the steps exactly.
+#' `km_censor()` returns the censor marks (`time`, `surv`, `strata`). `km_risk()` returns the number at risk at
+#' `times`. Strata labels are the level values without the variable name; `"ph.ecog=1"` becomes `"1"`.
 #' @param fit A `survfit` object.
 #' @param conf Include the confidence limits (`lo`, `hi`); otherwise both equal `surv`.
 #' @param times Times at which to report the number at risk.

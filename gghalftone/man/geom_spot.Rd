@@ -128,8 +128,8 @@ A ggplot2 layer.
 }
 \description{
 Each point becomes a disc of radius \code{r} mm (or \code{aes(size = )}, in mm) filled with a halftone whose tone is the
-point's value: a dot plot where a second quantity is carried by ink density instead of a colour ramp. Each disc has
-its own centred hex lattice (a symmetric rosette) clipped to the disc, with a ring in the disc's colour.
+point's value. Use it for a dot plot in which a second quantity is shown by ink density instead of a colour ramp.
+Each disc has its own centred hex lattice, clipped to the disc, and a ring in the disc's colour.
 }
 \details{
 Tone comes from \code{aes(tone = )} through \code{\link[=scale_tone_continuous]{scale_tone_continuous()}}, which gives it a legend of discs at the breaks,

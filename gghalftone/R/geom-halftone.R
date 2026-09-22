@@ -1,4 +1,4 @@
-# geom_halftone.R — draw-time halftone geom (prototype v3)
+# geom_halftone.R: draw-time halftone geom (prototype v3)
 #
 # geom_halftone(aes(x, y, z = value, colour = value))
 #   * input: a gridded field (geom_raster-style: x, y, z), optionally colour/fill/alpha mapped on it
@@ -15,9 +15,9 @@
 #' spread with no periodic structure. `dither_bayer()` and `dither_blue_noise()` quantise a tone matrix `z` in `[0, 1]`
 #' to `levels` steps and dither the remainder with the tiled matrix.
 #'
-#' Bayer for graded tone, blue noise for a binary stipple (`levels = 1`). Most users never call these: pass
-#' `levels` and `algorithm` to [geom_halftone()] or [with_halftone()] instead. By default tone is continuous and no
-#' dithering takes place.
+#' Use Bayer for graded tone and blue noise for a binary stipple (`levels = 1`). You rarely need to call these
+#' functions directly. Pass `levels` and `algorithm` to [geom_halftone()] or [with_halftone()] instead. By default,
+#' tone is continuous and no dithering takes place.
 #' @param n Matrix size (Bayer: 2, 4, 8, ...; blue noise: 32 by default).
 #' @param sigma Gaussian width, in cells, of the energy filter used to build the blue-noise matrix.
 #' @param z Numeric matrix of tone in `[0, 1]`.
@@ -129,7 +129,7 @@ tone_floor <- 0.02   # absolute floor; the working floor is the printable minimu
 dot_floor <- function(p) max(tone_floor, (p$min_feature / (p$dot_max * p$pitch))^2)
 # Enforce the floor by dithering, not clipping: a cell below the floor is drawn AT the floor with probability tone/floor
 # (blue-noise threshold), else not at all. Mean coverage stays equal to tone, no feature is sub-printable, and light
-# regions dissolve into sparse minimum-size dots or broken hairlines, which is what a press does too.
+# regions become sparse minimum-size dots or broken hairlines.
 floor_dither <- function(D, floor, rows, cols) {
   if (floor <= tone_floor) return(D)
   bn <- blue_noise_matrix(32); low <- D > tone_floor & D < floor
@@ -157,7 +157,7 @@ halftone_dither_group <- function(d, lat, p, W, H) {
 }
 blend_inks <- function(cols, blend = "mix") {   # overprint colour for a cell carrying several inks
   m <- grDevices::col2rgb(cols) / 255
-  v <- switch(blend, multiply = apply(m, 1, prod), mix = rowMeans(m) * 0.72)   # mix: average, darkened so overlap reads as heavier
+  v <- switch(blend, multiply = apply(m, 1, prod), mix = rowMeans(m) * 0.72)   # mix: average, darkened so overlaps print heavier
   grDevices::rgb(v[1], v[2], v[3])
 }
 
@@ -189,7 +189,7 @@ makeContent.halftone <- function(x) {
 # ragged edge inside the outline. A clipped fill extends by a full pitch (the last centre can be anywhere within a pitch
 # of the edge; the clip removes the excess); an unclipped field by half a pitch, the cell boundary.
 # Strip width is wmax * tone, clamped below to min_feature (the printable minimum, 0.25 pt); cells whose strip would be
-# under half of that are not drawn. A burin does not cut thinner than it can: light tone shortens lines, not thins them.
+# under half of that are not drawn. Light tone therefore shortens strips instead of thinning them.
 line_strips_grob <- function(X, Y, Z, COL, on, angle, wmax, extend, min_feature = 0) {
   a <- angle * pi / 180; nx <- -sin(a); ny <- cos(a); ex <- cos(a) * extend; ey <- sin(a) * extend
   zfloor <- max(tone_floor, min_feature / wmax)
@@ -263,7 +263,7 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
   draw_panel = function(data, panel_params, coord, pitch = NULL, angle = NULL, grid = "hex",
                         levels = NULL, algorithm = "bayer", bayer_n = 4, dot_max = 0.9, range = NULL,
                         shape = "circle", gamma = 1, overlap = c("stack", "interleave", "overprint"), blend = "mix", tone_max = NULL, min_feature = 0.09) {
-    pitch <- pitch %||% 0.35   # 73 lpi: reads as tone with a visible screen; 0.6 read as dots (pitch ladder, review 2)
+    pitch <- pitch %||% 0.35   # 73 lpi (pitch ladder, design_review.md)
     tone_max <- tone_max %||% if (isTRUE(levels == 1)) 0.55 else 1       # a binary stipple must never saturate into the bare lattice
     overlap <- match.arg(overlap); angle_user <- !is.null(angle); angle <- angle %||% 15   # screen specs are absolute unless the user gave an angle offset
     use_tone <- !all(is.na(data$tone))
@@ -290,21 +290,21 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 
 #' Halftone screen of a gridded field
 #'
-#' Draws a gridded field (`x`, `y` and a value) as a print halftone: dots, or hatch lines, placed at draw time on a
-#' lattice with a physical pitch in millimetres, each dot sized so that its *area* follows the tone at that point. The
-#' screen is therefore identical whether the figure is saved at 89 mm or 183 mm. Colour and fill scales apply to the
-#' field as usual; every dot inherits the colour of the cell it samples.
+#' Draws a gridded field (`x`, `y` and a value) as a halftone. Dots or hatch lines are placed at draw time on a
+#' lattice with a physical pitch in millimetres. The area of each dot follows the tone at that point. The screen is
+#' the same whether the figure is saved at 89 mm or 183 mm. Colour and fill scales apply to the field as usual, and
+#' every dot inherits the colour of the cell it samples.
 #'
-#' The value can be given two ways. `aes(z = )` is normalised to `[0, 1]` inside the geom (over `range`, or the data
-#' range); `aes(tone = )` goes through [scale_tone_continuous()], which gives it a legend. Groups (through `colour`,
-#' `fill` or `group`) that share the panel are *overprinted* by default: their dots are woven on one lattice so every
-#' ink stays visible where they overlap.
+#' You can give the value in two ways. `aes(z = )` is normalised to `[0, 1]` inside the geom, over `range` or the
+#' data range. `aes(tone = )` goes through [scale_tone_continuous()], which adds a legend. Groups that share the panel
+#' (through `colour`, `fill` or `group`) are printed on one lattice by default, so every ink stays visible where
+#' groups overlap.
 #'
 #' @section Defaults:
-#' A 0.35 mm hex lattice (73 lines per inch) rotated 15 degrees (so no lattice axis is horizontal or vertical),
-#' continuous tone, circular dots. Coarser pitches read as a dot pattern rather than as tone: 0.6 mm is a deliberate
-#' poster or editorial look. A binary stipple (`levels = 1`) is capped at 55 % tone so
-#' the densest region still reads as a stipple rather than a bare lattice; set `tone_max` to override.
+#' A 0.35 mm hex lattice (73 lines per inch) rotated 15 degrees, so that no lattice axis is horizontal or vertical.
+#' Continuous tone and circular dots. Coarser pitches print as a dot pattern rather than as tone; 0.6 mm suits a
+#' poster. A binary stipple (`levels = 1`) is capped at 55% tone so that the densest region remains a stipple.
+#' Set `tone_max` to override.
 #'
 #' @inheritParams ggplot2::layer
 #' @param ... Other arguments passed to [ggplot2::layer()], such as fixed aesthetics (`colour = "black"`).
@@ -415,8 +415,8 @@ GeomSpot <- ggproto("GeomSpot", Geom,
 #' Tone discs
 #'
 #' Each point becomes a disc of radius `r` mm (or `aes(size = )`, in mm) filled with a halftone whose tone is the
-#' point's value: a dot plot where a second quantity is carried by ink density instead of a colour ramp. Each disc has
-#' its own centred hex lattice (a symmetric rosette) clipped to the disc, with a ring in the disc's colour.
+#' point's value. Use it for a dot plot in which a second quantity is shown by ink density instead of a colour ramp.
+#' Each disc has its own centred hex lattice, clipped to the disc, and a ring in the disc's colour.
 #'
 #' Tone comes from `aes(tone = )` through [scale_tone_continuous()], which gives it a legend of discs at the breaks,
 #' or from `aes(z = )` normalised inside the geom.
@@ -465,9 +465,9 @@ scale_tone <- scale_tone_continuous
 # ---- legend keys: a small dithered swatch (geom_halftone) / a mid-tone disc (geom_spot) ------------------------
 #' Legend keys
 #'
-#' `draw_key_halftone()` draws a mid-tone dot swatch (or hatch for line screens) at the layer's screen angle and shape;
-#' `draw_key_spot()` draws a disc at the break's tone or, for a size legend, at the break's radius. Both are the
-#' default keys of the corresponding geoms and are exported for use with `key_glyph`.
+#' `draw_key_halftone()` draws a mid-tone dot swatch, or a hatch for line screens, at the layer's screen angle and
+#' shape. `draw_key_spot()` draws a disc at the break's tone or, for a size legend, at the break's radius. Both are
+#' the default keys of the corresponding geoms. They are exported for use with `key_glyph`.
 #' @inheritParams ggplot2::draw_key
 #' @return A grob.
 #' @name draw_key_halftone
@@ -517,16 +517,17 @@ line_recipe <- function(n) rep_len(c(45, 135, 0, 90, 22.5, 112.5, 67.5, 157.5), 
 # screen scales: map a discrete variable to lattice angles (square lattice repeats every 90°, hex every 60°)
 #' Screen scales: colour-free encodings
 #'
-#' Map a discrete variable to the `screen` aesthetic of [geom_halftone()] and any layer wrapped in
-#' [with_halftone()]. A screen spec is `"angle|shape|tone|line_angle"`: the lattice angle in degrees, the dot shape
-#' (`circle`, `square`, `diamond`, or `line` to hatch that group), a tone multiplier, and the hatching angle used
-#' when the layer is a line screen. A bare number is an angle. Specs are absolute; the layer's `angle`, if given, is
-#' added.
+#' Map a discrete variable to the `screen` aesthetic of [geom_halftone()] and of any layer wrapped in
+#' [with_halftone()]. A screen specification is a string `"angle|shape|tone|line_angle"`: the lattice angle in
+#' degrees, the dot shape (`circle`, `square`, `diamond`, or `line` to hatch that group), a tone multiplier, and the
+#' hatch angle used when the layer is a line screen. A bare number is an angle. Specifications are absolute. If the
+#' layer has an `angle`, it is added.
 #'
-#' `scale_screen_discrete()` uses a recipe in which consecutive screens differ in both angle and shape (three angles
-#' spaced over the lattice period, 60 degrees for hex), and hatch angles 45, 135, 0, 90, ... for line screens.
-#' `scale_screen_manual()` takes your own specs, e.g. `c("45|line", "135|line", "15|circle")` to mix hatching and
-#' dots in one layer. Angle alone distinguishes three screens; beyond that vary shape and tone, or add a second ink.
+#' `scale_screen_discrete()` uses a recipe in which consecutive screens differ in both angle and shape: three angles
+#' spaced over the lattice period (60 degrees for hex), and hatch angles 45, 135, 0, 90 and so on for line screens.
+#' `scale_screen_manual()` takes your own specifications, for example `c("45|line", "135|line", "15|circle")` to
+#' mix hatching and dots in one layer. Angle alone distinguishes three screens. For more groups, vary shape and
+#' tone, or add a second ink.
 #' @inheritParams ggplot2::discrete_scale
 #' @param grid Lattice of the layer, which sets the angle period.
 #' @param values Character or numeric vector of screen specs, one per level.

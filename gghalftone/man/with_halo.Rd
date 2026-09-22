@@ -18,10 +18,10 @@ with_halo(layer, width = 0.09, colour = NULL)
 The layer, with its geom replaced by a halo-drawing subclass.
 }
 \description{
-Draws the layer twice: first in paper colour with \code{width} mm added to each side of every stroke, then as is. A
-line crossing a dot field needs this to stay readable; a step curve over a screened confidence band, contours
-over an elevation field. Keep it a hairline: 0.09 mm (0.25 pt, the printable minimum) against dots, 0.15 mm against
-a line screen. Wider and it reads as a second line.
+Draws the layer twice: first in paper colour with \code{width} mm added to each side of every stroke, then as is. Use it
+for a line that crosses a dot field, such as a step curve over a screened confidence band or contours over an
+elevation field. Keep the width small: 0.09 mm (0.25 pt, the printable minimum) against dots, 0.15 mm against a
+line screen. A wider halo looks like a second line.
 }
 \examples{
 \dontshow{op <- options(halftone.fonts = FALSE)}

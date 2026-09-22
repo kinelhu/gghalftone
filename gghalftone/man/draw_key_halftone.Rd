@@ -21,7 +21,7 @@ display in this key}
 A grob.
 }
 \description{
-\code{draw_key_halftone()} draws a mid-tone dot swatch (or hatch for line screens) at the layer's screen angle and shape;
-\code{draw_key_spot()} draws a disc at the break's tone or, for a size legend, at the break's radius. Both are the
-default keys of the corresponding geoms and are exported for use with \code{key_glyph}.
+\code{draw_key_halftone()} draws a mid-tone dot swatch, or a hatch for line screens, at the layer's screen angle and
+shape. \code{draw_key_spot()} draws a disc at the break's tone or, for a size legend, at the break's radius. Both are
+the default keys of the corresponding geoms. They are exported for use with \code{key_glyph}.
 }

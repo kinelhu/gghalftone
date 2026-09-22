@@ -67,20 +67,26 @@ the crop size in mm, and the magnification.}
 A ggplot2 theme; \code{ggsave_journal()} is called for its side effect.
 }
 \description{
-\code{theme_halftone()} is a print theme on one skeleton with two registers. \code{"journal"} (default): sans, absolute
-point sizes for 89 or 183 mm figures (ticks 7 pt, axis titles 8 pt, tags 8 pt bold, legend 7 pt grey), white
-paper, no gridlines, 0.7 pt axis rules, outward ticks. \code{"editorial"}: cream paper, a serif for titles, a monospace
-for labels, sized for a 120 to 183 mm page (\code{base_size = 11}); at column width use \code{base_size = 8}. Font families are resolved from what is installed (journal: Liberation Sans, Helvetica, Arial;
-editorial: EB Garamond, Garamond, Georgia, Times; mono: Inconsolata, Menlo, Courier New). \code{options(halftone.fonts = FALSE)}
-uses the device's generic \code{sans}, \code{serif} and \code{mono} instead, for devices that know no system fonts (base \code{pdf()}). On ggplot2 >= 4.0 the theme
-also makes \link{halftone_inks} the default discrete palette and \link{halftone_ramp} the default continuous one.
+\code{theme_halftone()} is a print theme with two registers.
 }
 \details{
-\code{ggsave_journal()} saves at a journal column width in mm: PNG (proofs) or TIFF at 600 dpi through ragg, or a vector
-PDF through \code{cairo_pdf()}, which most journals prefer for line art and which this package suits, every dot being a
-geometric object at physical size. The format follows the file extension. \code{halftone_proof()} renders a plot at true
-size and a magnified crop of one region (default the panel centre, 4x), which is how every default in this package
-was judged; it returns the two file paths.
+\itemize{
+\item \code{"journal"} (default): sans-serif, absolute point sizes for 89 or 183 mm figures (tick labels 7 pt, axis titles
+8 pt, tags 8 pt bold, legend 7 pt grey), white paper, no gridlines, 0.7 pt axis rules, outward ticks.
+\item \code{"editorial"}: cream paper, a serif for titles, a monospace for labels, sized for a 120 to 183 mm page
+(\code{base_size = 11}). At column width, use \code{base_size = 8}.
+}
+
+Font families are resolved from the installed fonts. Journal: Liberation Sans, Helvetica, Arial. Editorial: EB
+Garamond, Garamond, Georgia, Times. Monospace: Inconsolata, Menlo, Courier New. Set
+\code{options(halftone.fonts = FALSE)} to use the device's generic \code{sans}, \code{serif} and \code{mono} families instead, for
+devices without system fonts such as base \code{pdf()}. On ggplot2 4.0 and later, the theme also sets
+\link{halftone_inks} as the default discrete palette and \link{halftone_ramp} as the default continuous palette.
+
+\code{ggsave_journal()} saves at a journal column width in mm. The file extension selects the format: PNG or TIFF at
+600 dpi through ragg, or vector PDF through \code{cairo_pdf()}. Most journals prefer vector files for line art, and in a
+vector file every dot is a path at physical size. \code{halftone_proof()} renders a plot at final size and a magnified
+crop of one region (by default the panel centre at 4x) and returns the two file paths.
 }
 \examples{
 \dontshow{op <- options(halftone.fonts = FALSE)}

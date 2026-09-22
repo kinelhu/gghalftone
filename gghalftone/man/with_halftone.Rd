@@ -87,29 +87,29 @@ densities, whose overlapping groups are woven on one lattice; separate lattices 
 The layer, with its geom replaced by a halftone-drawing subclass.
 }
 \description{
-Wraps a ggplot2 layer so that its fill is printed as a halftone. The wrapped geom draws as usual; at draw time every
-filled polygon, rectangle or path in its grob tree is rasterised onto a millimetre lattice, given a tone field
-derived from its own geometry, and drawn as dots (or hatch) in its fill colour, clipped to the shape. Works with
+Wraps a ggplot2 layer so that its fill is drawn as a halftone. The wrapped geom draws as usual. At draw time,
+every filled polygon, rectangle or path in its grob tree is rasterised onto a millimetre lattice, given a tone
+field derived from its geometry, and drawn as dots or hatch in its fill colour, clipped to the shape. Works with
 ribbons, areas, bars and columns, densities and violins, polygons, tiles and \code{geom_sf()}.
 }
 \section{Tone profile}{
 
-\code{tone = NULL} picks a profile from the geometry, which is the rule the design work converged on:
+With \code{tone = NULL}, the profile depends on the geometry:
 \itemize{
 \item bars, columns, tiles, areas, polygons and sf: \code{"flat"}, because there the interior \emph{is} the value;
-\item ribbons (intervals): \code{"likelihood"}, the normal density of the estimate across the interval, so the fade is the
-evidence: 1 on the estimate, 0.146 at a 95 \% limit (\code{level});
-\item densities and violins: \code{"vignette"}, a soft fade towards the outline so overlapping groups stay legible;
-\item line screens: always \code{"flat"} (a tapered hatch reads as fringe);
-\item a mapped \code{screen} is a categorical pattern, and patterns are flat.
+\item ribbons (intervals): \code{"likelihood"}, the normal density of the estimate across the interval: 1 on the
+estimate, 0.146 at a 95\% limit (\code{level});
+\item densities and violins: \code{"vignette"}, a soft fade towards the outline, so that overlapping groups stay legible;
+\item line screens: always \code{"flat"}, because a tapered hatch looks like fringe;
+\item a mapped \code{screen}: always \code{"flat"}, because it is a categorical pattern.
 }
 }
 
 \section{Register}{
 
 \code{tone_max = NULL} sets one ink weight across figure types: flat 0.45 (polygons and sf 0.6), centre 0.6, vignette
-0.7, hatching 0.4, hatched intervals a hairline (the strip width that equals \code{min_feature}). Alpha on the fill is folded
-into tone (a 30 \% alpha prints as a 30 \% screen); nothing translucent reaches the page.
+0.7, hatching 0.4, hatched intervals a hairline (the strip width that equals \code{min_feature}). Alpha on the fill is
+folded into tone: a fill with 30\% alpha prints as a 30\% screen. Nothing translucent reaches the page.
 }
 
 \examples{

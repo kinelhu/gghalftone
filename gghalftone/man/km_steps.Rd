@@ -23,11 +23,11 @@ km_risk(fit, times)
 A data frame.
 }
 \description{
-Turn a \code{survival::survfit} object into data frames ready for \code{with_halftone(geom_ribbon())} and
+Convert a \code{survival::survfit} object into data frames for \code{with_halftone(geom_ribbon())} and
 \code{with_halo(geom_step())}. \code{km_steps()} returns the step outline with one row per corner (\code{time}, \code{surv}, \code{lo},
-\code{hi}, \code{strata}), starting at \verb{(0, 1)}, so a ribbon between \code{lo} and \code{hi} follows the staircase exactly.
-\code{km_censor()} returns the censoring marks (\code{time}, \code{surv}, \code{strata}); \code{km_risk()} the number at risk at \code{times}.
-Strata labels are the level values without the variable name (\code{"ph.ecog=1"} becomes \code{"1"}).
+\code{hi}, \code{strata}), starting at \verb{(0, 1)}, so that a ribbon between \code{lo} and \code{hi} follows the steps exactly.
+\code{km_censor()} returns the censor marks (\code{time}, \code{surv}, \code{strata}). \code{km_risk()} returns the number at risk at
+\code{times}. Strata labels are the level values without the variable name; \code{"ph.ecog=1"} becomes \code{"1"}.
 }
 \examples{
 \dontshow{op <- options(halftone.fonts = FALSE)}

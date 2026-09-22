@@ -1,4 +1,4 @@
-# gallery2.R — the happy-defaults gallery. Every figure uses library(gghalftone) and as few overrides as the figure allows.
+# gallery2.R: the gallery. Every figure uses library(gghalftone) and as few overrides as the figure allows.
 # Renders to figures/v2/ at 600 dpi. Run from the project root: Rscript prototypes/gallery2.R
 suppressPackageStartupMessages({library(gghalftone); library(ggplot2); library(survival); library(patchwork); library(maps); library(MASS)})
 out <- function(name, p, width = "single", height = 62) ggsave_journal(file.path("figures/v2", paste0(name, ".png")), p, width, height = height)
@@ -95,7 +95,7 @@ out("dotplot", pP, height = 70)
 ## 11 Editorial plate: the page register ---------------------------------------------------------------------------------------
 local({ op <- options(halftone.style = "editorial"); on.exit(options(op))
   pE3 <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", colour = halftone_ink, angle = 30, gamma = 1.4, pitch = 0.45) + with_relief(geom_contour(bins = 10)) +
-    coord_equal(expand = FALSE) + labs(title = "Maunga Whau", subtitle = "AUCKLAND VOLCANIC FIELD  ·  10 M CONTOURS  ·  LIT FROM THE NORTH-WEST", caption = "Line screen 0.45 mm; illuminated contours after Tanaka (1950). Data: R datasets::volcano.", x = NULL, y = NULL) +
+    coord_equal(expand = FALSE) + labs(title = "Maunga Whau", subtitle = "AUCKLAND VOLCANIC FIELD, 10 M CONTOURS, LIT FROM THE NORTH-WEST", caption = "Line screen at 0.45 mm. Illuminated contours after Tanaka (1950). Data: R datasets::volcano.", x = NULL, y = NULL) +
     theme_halftone(axes = "none") + theme(axis.text = element_blank(), plot.margin = margin(8, 8, 8, 8))
   out("editorial", pE3, width = "onehalf", height = 150) })
 cat("gallery2 ok\n")

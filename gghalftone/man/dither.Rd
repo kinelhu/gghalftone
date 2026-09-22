@@ -35,9 +35,9 @@ spread with no periodic structure. \code{dither_bayer()} and \code{dither_blue_n
 to \code{levels} steps and dither the remainder with the tiled matrix.
 }
 \details{
-Bayer for graded tone, blue noise for a binary stipple (\code{levels = 1}). Most users never call these: pass
-\code{levels} and \code{algorithm} to \code{\link[=geom_halftone]{geom_halftone()}} or \code{\link[=with_halftone]{with_halftone()}} instead. By default tone is continuous and no
-dithering takes place.
+Use Bayer for graded tone and blue noise for a binary stipple (\code{levels = 1}). You rarely need to call these
+functions directly. Pass \code{levels} and \code{algorithm} to \code{\link[=geom_halftone]{geom_halftone()}} or \code{\link[=with_halftone]{with_halftone()}} instead. By default,
+tone is continuous and no dithering takes place.
 }
 \examples{
 \dontshow{op <- options(halftone.fonts = FALSE)}

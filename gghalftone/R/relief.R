@@ -1,20 +1,20 @@
-# relief.R — illuminated contours (Tanaka, 1950). Each contour segment is lit or shaded by the angle between the slope
+# relief.R: illuminated contours (Tanaka, 1950). Each contour segment is lit or shaded by the angle between the slope
 # it stands on and a light from `light` degrees (azimuth, clockwise from north; 315 = upper left, the cartographic
-# convention). Lit segments print in paper, shaded ones in ink, both widening as the slope faces the light squarely;
-# flanks parallel to the light carry only the hairline base. Over a line-screen or dot field the paper segments knock
-# the screen out, which is how the original was made: two plates, one for the lit contours, one for the shaded.
+# convention). Lit segments print in paper, shaded ones in ink, and both widen as the slope faces the light. Flanks
+# parallel to the light carry only the hairline base. Over a line-screen or dot field the paper segments cut through
+# the screen. The original was printed from two plates, one for the lit contours and one for the shaded.
 
 #' Illuminated contours
 #'
-#' Wraps a contour (or any path) layer so that each segment is lit or shaded according to the direction of the slope
-#' it lies on relative to a light source: Kitiro Tanaka's illuminated-contour method. Lit segments are drawn in
-#' paper colour and shaded ones in ink, each widening as the slope faces the light more squarely, over a hairline
-#' base contour. Over a [geom_halftone()] field or a hatched engraving the paper segments knock the screen out and the
-#' surface reads as relief.
+#' Wraps a contour layer, or any path layer, so that each segment is lit or shaded according to the direction of
+#' its slope relative to a light source. This is Kitiro Tanaka's illuminated-contour method. Lit segments are drawn
+#' in paper colour and shaded segments in ink. Both widen as the slope faces the light more directly. A hairline base
+#' contour is drawn under both. Over a [geom_halftone()] field or a hatched engraving, the paper segments cut through
+#' the screen and the surface appears in relief.
 #'
-#' Which side of a contour is uphill is inferred per line (`uphill = "auto"`): from the nearest neighbouring contour
-#' at another level when there is one, otherwise a closed ring is taken as a summit. For a path that is not a contour,
-#' give `uphill` explicitly.
+#' With `uphill = "auto"`, the uphill side of each contour is inferred from the nearest neighbouring contour at
+#' another level. A closed ring with no such neighbour is treated as a summit. For a path that is not a contour, set
+#' `uphill` explicitly.
 #' @param layer A `geom_contour()`, `geom_path()` or `geom_line()` layer.
 #' @param light Azimuth of the light in degrees, clockwise from north; 315 is upper left.
 #' @param width Line width in mm at grazing and at full illumination, `c(min, max)`.

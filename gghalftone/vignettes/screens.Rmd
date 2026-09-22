@@ -13,7 +13,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", dev = "ragg_png", dpi = 3
 library(ggplot2); library(gghalftone)
 ```
 
-Most journals still print in black, and colour figures are converted. A figure that never needed colour is safer. The `screen` aesthetic maps a discrete variable to a screen: an angle, a dot shape, and for line screens a hatching angle. Angle alone distinguishes three groups; the default recipe varies shape as well.
+Many journals print in black, and colour figures are converted. A figure that does not depend on colour is safer. The `screen` aesthetic maps a discrete variable to a screen: a lattice angle, a dot shape, and a hatch angle for line screens. Angle alone distinguishes three groups. The default recipe also varies the shape.
 
 ## Densities
 
@@ -25,7 +25,7 @@ ggplot(iris, aes(Sepal.Length, screen = Species, group = Species)) +
   theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.85), legend.key.size = unit(5, "mm"))
 ```
 
-Where two densities overlap the hatches cross, which is the honest thing to show. With dots instead of lines the overlaps are woven on one lattice.
+Where two densities overlap, the hatches cross. With dots instead of lines, overlapping groups share one lattice.
 
 ```{r dens_dots}
 ggplot(iris, aes(Sepal.Length, fill = Species, group = Species)) +
@@ -36,7 +36,7 @@ ggplot(iris, aes(Sepal.Length, fill = Species, group = Species)) +
 
 ## Three intervals in one ink
 
-The figure only a halftone can make: three overlapping confidence bands, no colour. Hatched intervals are drawn as a hairline (the printable minimum) and the pitch is coarsened because three hatches overlap.
+Hatched intervals are drawn as a hairline at the printable minimum. The pitch is set to 0.5 mm here because three hatches overlap.
 
 ```{r kmbw, fig.height = 65 / 25.4}
 library(survival)
@@ -53,9 +53,9 @@ ggplot(s, aes(time, group = strata, screen = strata)) +
   theme_halftone() + theme(legend.position = "inside", legend.position.inside = c(0.82, 0.84), legend.key.size = unit(5, "mm"))
 ```
 
-## Screen specs
+## Screen specifications
 
-A spec is `"angle|shape|tone|line_angle"`. `scale_screen_manual()` takes your own; mixing hatch and dots in one layer is allowed:
+A screen specification is a string of the form `"angle|shape|tone|line_angle"`. A bare number is an angle. `scale_screen_manual()` accepts your own specifications. You can mix hatching and dots in one layer.
 
 ```{r spec, fig.height = 50 / 25.4}
 d <- data.frame(g = c("a", "b", "c"), n = c(3, 2, 1))
@@ -67,7 +67,7 @@ ggplot(d, aes(g, n, screen = g)) +
 
 ## Dot plots in one ink
 
-`geom_spot()` draws a disc per point whose ink density is a value. With `shape = "line"` the discs are hatched, and `screen` works per group.
+`geom_spot()` draws one disc per point. The ink density inside the disc is the value. With `shape = "line"` the discs are hatched, and `screen` applies per group.
 
 ```{r spot, fig.height = 45 / 25.4}
 dp <- expand.grid(gene = c("CD3E", "CD8A", "NKG7", "MS4A1"), cluster = paste0("C", 1:5))

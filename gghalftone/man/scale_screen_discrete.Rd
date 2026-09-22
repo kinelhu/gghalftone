@@ -25,17 +25,18 @@ omitted.}
 A ggplot2 scale.
 }
 \description{
-Map a discrete variable to the \code{screen} aesthetic of \code{\link[=geom_halftone]{geom_halftone()}} and any layer wrapped in
-\code{\link[=with_halftone]{with_halftone()}}. A screen spec is \code{"angle|shape|tone|line_angle"}: the lattice angle in degrees, the dot shape
-(\code{circle}, \code{square}, \code{diamond}, or \code{line} to hatch that group), a tone multiplier, and the hatching angle used
-when the layer is a line screen. A bare number is an angle. Specs are absolute; the layer's \code{angle}, if given, is
-added.
+Map a discrete variable to the \code{screen} aesthetic of \code{\link[=geom_halftone]{geom_halftone()}} and of any layer wrapped in
+\code{\link[=with_halftone]{with_halftone()}}. A screen specification is a string \code{"angle|shape|tone|line_angle"}: the lattice angle in
+degrees, the dot shape (\code{circle}, \code{square}, \code{diamond}, or \code{line} to hatch that group), a tone multiplier, and the
+hatch angle used when the layer is a line screen. A bare number is an angle. Specifications are absolute. If the
+layer has an \code{angle}, it is added.
 }
 \details{
-\code{scale_screen_discrete()} uses a recipe in which consecutive screens differ in both angle and shape (three angles
-spaced over the lattice period, 60 degrees for hex), and hatch angles 45, 135, 0, 90, ... for line screens.
-\code{scale_screen_manual()} takes your own specs, e.g. \code{c("45|line", "135|line", "15|circle")} to mix hatching and
-dots in one layer. Angle alone distinguishes three screens; beyond that vary shape and tone, or add a second ink.
+\code{scale_screen_discrete()} uses a recipe in which consecutive screens differ in both angle and shape: three angles
+spaced over the lattice period (60 degrees for hex), and hatch angles 45, 135, 0, 90 and so on for line screens.
+\code{scale_screen_manual()} takes your own specifications, for example \code{c("45|line", "135|line", "15|circle")} to
+mix hatching and dots in one layer. Angle alone distinguishes three screens. For more groups, vary shape and
+tone, or add a second ink.
 }
 \examples{
 \dontshow{op <- options(halftone.fonts = FALSE)}

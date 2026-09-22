@@ -1,8 +1,8 @@
-# theme_halftone.R — two styles on one skeleton
+# theme.R: two styles on one skeleton
 #   "journal"   (default): sans, absolute point sizes at final figure size, bold panel tags, sentence case.
 #                          Sized for 89 mm (single) / 183 mm (double) column figures at 7-8 pt, per Nature/Elsevier/Wiley guidance.
 #   "editorial": the print/display look (Garamond titles, mono upper-case labels) used in the galleries.
-# Shared rationale: no gridlines (halftone is texture; nothing else should be), paper ground, hard axis rules, outward ticks.
+# Shared: no gridlines (the screen is the only texture), paper ground, hard axis rules, outward ticks.
 
 
 # first installed family from a preference list (via systemfonts, which ragg uses); fallback = device generic family
@@ -15,19 +15,23 @@ halftone_font <- function(prefer, fallback = "") {
 
 #' Halftone theme and journal export
 #'
-#' `theme_halftone()` is a print theme on one skeleton with two registers. `"journal"` (default): sans, absolute
-#' point sizes for 89 or 183 mm figures (ticks 7 pt, axis titles 8 pt, tags 8 pt bold, legend 7 pt grey), white
-#' paper, no gridlines, 0.7 pt axis rules, outward ticks. `"editorial"`: cream paper, a serif for titles, a monospace
-#' for labels, sized for a 120 to 183 mm page (`base_size = 11`); at column width use `base_size = 8`. Font families are resolved from what is installed (journal: Liberation Sans, Helvetica, Arial;
-#' editorial: EB Garamond, Garamond, Georgia, Times; mono: Inconsolata, Menlo, Courier New). `options(halftone.fonts = FALSE)`
-#' uses the device's generic `sans`, `serif` and `mono` instead, for devices that know no system fonts (base `pdf()`). On ggplot2 >= 4.0 the theme
-#' also makes [halftone_inks] the default discrete palette and [halftone_ramp] the default continuous one.
+#' `theme_halftone()` is a print theme with two registers.
 #'
-#' `ggsave_journal()` saves at a journal column width in mm: PNG (proofs) or TIFF at 600 dpi through ragg, or a vector
-#' PDF through `cairo_pdf()`, which most journals prefer for line art and which this package suits, every dot being a
-#' geometric object at physical size. The format follows the file extension. `halftone_proof()` renders a plot at true
-#' size and a magnified crop of one region (default the panel centre, 4x), which is how every default in this package
-#' was judged; it returns the two file paths.
+#' * `"journal"` (default): sans-serif, absolute point sizes for 89 or 183 mm figures (tick labels 7 pt, axis titles
+#'   8 pt, tags 8 pt bold, legend 7 pt grey), white paper, no gridlines, 0.7 pt axis rules, outward ticks.
+#' * `"editorial"`: cream paper, a serif for titles, a monospace for labels, sized for a 120 to 183 mm page
+#'   (`base_size = 11`). At column width, use `base_size = 8`.
+#'
+#' Font families are resolved from the installed fonts. Journal: Liberation Sans, Helvetica, Arial. Editorial: EB
+#' Garamond, Garamond, Georgia, Times. Monospace: Inconsolata, Menlo, Courier New. Set
+#' `options(halftone.fonts = FALSE)` to use the device's generic `sans`, `serif` and `mono` families instead, for
+#' devices without system fonts such as base `pdf()`. On ggplot2 4.0 and later, the theme also sets
+#' [halftone_inks] as the default discrete palette and [halftone_ramp] as the default continuous palette.
+#'
+#' `ggsave_journal()` saves at a journal column width in mm. The file extension selects the format: PNG or TIFF at
+#' 600 dpi through ragg, or vector PDF through `cairo_pdf()`. Most journals prefer vector files for line art, and in a
+#' vector file every dot is a path at physical size. `halftone_proof()` renders a plot at final size and a magnified
+#' crop of one region (by default the panel centre at 4x) and returns the two file paths.
 #' @param style `"journal"` or `"editorial"`; the default follows `options(halftone.style = )`.
 #' @param base_size Base font size in pt (7 journal, 11 editorial).
 #' @param base_family,mono_family Font families; `NULL` resolves the first installed family from the lists above.

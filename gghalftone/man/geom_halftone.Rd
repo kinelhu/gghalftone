@@ -139,23 +139,23 @@ the default plot specification, e.g. \code{\link[ggplot2:annotation_borders]{ann
 A ggplot2 layer.
 }
 \description{
-Draws a gridded field (\code{x}, \code{y} and a value) as a print halftone: dots, or hatch lines, placed at draw time on a
-lattice with a physical pitch in millimetres, each dot sized so that its \emph{area} follows the tone at that point. The
-screen is therefore identical whether the figure is saved at 89 mm or 183 mm. Colour and fill scales apply to the
-field as usual; every dot inherits the colour of the cell it samples.
+Draws a gridded field (\code{x}, \code{y} and a value) as a halftone. Dots or hatch lines are placed at draw time on a
+lattice with a physical pitch in millimetres. The area of each dot follows the tone at that point. The screen is
+the same whether the figure is saved at 89 mm or 183 mm. Colour and fill scales apply to the field as usual, and
+every dot inherits the colour of the cell it samples.
 }
 \details{
-The value can be given two ways. \code{aes(z = )} is normalised to \verb{[0, 1]} inside the geom (over \code{range}, or the data
-range); \code{aes(tone = )} goes through \code{\link[=scale_tone_continuous]{scale_tone_continuous()}}, which gives it a legend. Groups (through \code{colour},
-\code{fill} or \code{group}) that share the panel are \emph{overprinted} by default: their dots are woven on one lattice so every
-ink stays visible where they overlap.
+You can give the value in two ways. \code{aes(z = )} is normalised to \verb{[0, 1]} inside the geom, over \code{range} or the
+data range. \code{aes(tone = )} goes through \code{\link[=scale_tone_continuous]{scale_tone_continuous()}}, which adds a legend. Groups that share the panel
+(through \code{colour}, \code{fill} or \code{group}) are printed on one lattice by default, so every ink stays visible where
+groups overlap.
 }
 \section{Defaults}{
 
-A 0.35 mm hex lattice (73 lines per inch) rotated 15 degrees (so no lattice axis is horizontal or vertical),
-continuous tone, circular dots. Coarser pitches read as a dot pattern rather than as tone: 0.6 mm is a deliberate
-poster or editorial look. A binary stipple (\code{levels = 1}) is capped at 55 \% tone so
-the densest region still reads as a stipple rather than a bare lattice; set \code{tone_max} to override.
+A 0.35 mm hex lattice (73 lines per inch) rotated 15 degrees, so that no lattice axis is horizontal or vertical.
+Continuous tone and circular dots. Coarser pitches print as a dot pattern rather than as tone; 0.6 mm suits a
+poster. A binary stipple (\code{levels = 1}) is capped at 55\% tone so that the densest region remains a stipple.
+Set \code{tone_max} to override.
 }
 
 \examples{

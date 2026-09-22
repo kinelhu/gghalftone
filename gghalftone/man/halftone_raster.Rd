@@ -24,7 +24,7 @@ halftone_raster(
 A data frame.
 }
 \description{
-Reads an image (path or \code{magick} image) and returns a field data frame (\code{x}, \code{y}, \code{z} and \code{r}, \code{g}, \code{b}) for
-\code{\link[=geom_halftone]{geom_halftone()}} or \code{\link[=geom_halftone_cmyk]{geom_halftone_cmyk()}}. Dark pixels get high tone when \code{invert = TRUE}. Needs the magick
-package.
+Reads an image from a path or a \code{magick} image object and returns a field data frame (\code{x}, \code{y}, \code{z} and \code{r},
+\code{g}, \code{b}) for \code{\link[=geom_halftone]{geom_halftone()}} or \code{\link[=geom_halftone_cmyk]{geom_halftone_cmyk()}}. When \code{invert = TRUE}, dark pixels get high tone.
+Requires the magick package.
 }

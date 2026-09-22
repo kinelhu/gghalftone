@@ -1,13 +1,13 @@
-# halftone_helpers.R — turn common statistical objects into fields for geom_halftone()
+# halftone_helpers.R: turn common statistical objects into fields for geom_halftone()
 
 # estimate +/- interval -> field. profile: "tent" (1 on estimate -> 0 at edges), "flat" (1 inside), "gauss"
 #' Fields from statistical objects
 #'
 #' Helpers that turn common objects into gridded fields (`x`, `y`, `z`) for [geom_halftone()]. Most figures do not
-#' need them: [with_halftone()] screens the fill of an ordinary ribbon, area, bar or polygon layer directly. They
-#' remain for cases where the tone field is computed rather than drawn: an estimate with a tent or gaussian profile
+#' need them, because [with_halftone()] screens the fill of a ribbon, area, bar or polygon layer directly. Use them
+#' when the tone field is computed rather than drawn: an estimate with a tent or gaussian profile
 #' (`halftone_band()`), bars that fade towards the axis (`halftone_bars()`), map regions rasterised by
-#' point-in-region lookup (`halftone_regions()`, needs maps), or ridgelines (`halftone_ridges()`).
+#' point-in-region lookup (`halftone_regions()`, requires the maps package), or ridgelines (`halftone_ridges()`).
 #' @param x,est,lo,hi Positions, estimate and interval limits.
 #' @param ny,nx Field resolution.
 #' @param profile Tone profile across the band.
@@ -56,8 +56,8 @@ halftone_regions <- function(db = "state", values, res = 0.25, ...) {
 
 #' Ink palette scales
 #'
-#' Manual colour and fill scales over [halftone_inks]. On ggplot2 >= 4.0 [theme_halftone()] already makes the inks the
-#' default palette; these are for older ggplot2 or for use without the theme.
+#' Manual colour and fill scales over [halftone_inks]. On ggplot2 4.0 and later, [theme_halftone()] sets the inks as
+#' the default palette. Use these scales with older ggplot2 versions or without the theme.
 #' @param ... Passed to [ggplot2::scale_colour_manual()] / [ggplot2::scale_fill_manual()].
 #' @return A ggplot2 scale.
 #' @name scale_halftone

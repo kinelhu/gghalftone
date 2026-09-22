@@ -1,10 +1,10 @@
-# halftone_raster.R — turn an image into a field data frame for geom_halftone()
+# halftone_raster.R: turn an image into a field data frame for geom_halftone()
 
 #' Image to field
 #'
-#' Reads an image (path or `magick` image) and returns a field data frame (`x`, `y`, `z` and `r`, `g`, `b`) for
-#' [geom_halftone()] or [geom_halftone_cmyk()]. Dark pixels get high tone when `invert = TRUE`. Needs the magick
-#' package.
+#' Reads an image from a path or a `magick` image object and returns a field data frame (`x`, `y`, `z` and `r`,
+#' `g`, `b`) for [geom_halftone()] or [geom_halftone_cmyk()]. When `invert = TRUE`, dark pixels get high tone.
+#' Requires the magick package.
 #' @param img A file path or a `magick-image`.
 #' @param max_px Longest side of the resampled image in cells.
 #' @param channel Which channel becomes `z`.

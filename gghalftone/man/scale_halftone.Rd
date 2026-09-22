@@ -17,6 +17,6 @@ scale_fill_halftone(...)
 A ggplot2 scale.
 }
 \description{
-Manual colour and fill scales over \link{halftone_inks}. On ggplot2 >= 4.0 \code{\link[=theme_halftone]{theme_halftone()}} already makes the inks the
-default palette; these are for older ggplot2 or for use without the theme.
+Manual colour and fill scales over \link{halftone_inks}. On ggplot2 4.0 and later, \code{\link[=theme_halftone]{theme_halftone()}} sets the inks as
+the default palette. Use these scales with older ggplot2 versions or without the theme.
 }
