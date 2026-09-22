@@ -30,7 +30,9 @@ Named constants shared by the geoms and \code{\link[=theme_halftone]{theme_halft
 \details{
 \itemize{
 \item \code{halftone_inks}: the six-ink palette (red, blue, ochre, green, violet, grey). On ggplot2 4.0 and later the theme
-sets it as the default palette for mapped colour and fill.
+sets it as the default palette for mapped colour and fill. It stops at six, which is already more inks than a
+press would use. Beyond six groups ggplot2 warns and the extra groups get no fill, so use
+\code{\link[=scale_screen_discrete]{scale_screen_discrete()}}, facets, or your own palette instead.
 \item \code{halftone_process}: press colours, each made of one or two process plates at 100\% (K, M+Y, C+M, C+Y, C, M).
 \item \code{halftone_ramp}: the default continuous ramp (paper, ochre, red, near-black).
 \item \code{halftone_paper}, \code{halftone_ink}: a cream paper colour and a near-black ink colour, for plates.

@@ -52,6 +52,18 @@ The defaults encode these rules. Each one was chosen by comparing renders at 600
 - **Screens are clipped to the fill.** Dots never overhang an outline.
 - **Line screens are flat.** Hatching has constant weight and a hard edge. A tapered hatch reads as fringe.
 
+## Beyond charts
+
+![A photograph as a four-colour process screen and as a one-ink newspaper screen](man/figures/photograph.png)
+
+*A photograph twice. A: four-colour process, `geom_halftone_cmyk()` separating the image into cyan, magenta, yellow and black at the classic screen angles, which produces the rosette. B: one ink with Floyd-Steinberg error diffusion, the newspaper screen. Both from `halftone_raster()`.*
+
+![A wind rose in one ink, hatch angle encoding direction](man/figures/wind_rose.png)
+
+*Hatch angle as the categorical encoding, in polar coordinates. The lattice is computed in millimetres on the panel, so it is unaffected by the coordinate system.*
+
+More of these, including an sf choropleth, ridgelines, violins and a demonstration that the screen does not change with output size, are in `prototypes/showcase.R`.
+
 ## Black and white
 
 ![Kaplan-Meier in one ink with three hatch angles](man/figures/km_bw.png)

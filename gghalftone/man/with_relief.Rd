@@ -43,6 +43,9 @@ the screen and the surface appears in relief.
 With \code{uphill = "auto"}, the uphill side of each contour is inferred from the nearest neighbouring contour at
 another level. A closed ring with no such neighbour is treated as a summit. For a path that is not a contour, set
 \code{uphill} explicitly.
+
+Draw this over a screened field. Lit segments are paper-coloured, so on bare paper they are invisible and only the
+shaded half of each contour appears.
 }
 \examples{
 vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))

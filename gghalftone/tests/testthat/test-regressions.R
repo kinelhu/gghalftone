@@ -347,3 +347,28 @@ test_that("with_relief: on a cone lit from the NW, paper segments face NW and in
   d3 <- data.frame(x = c(0, 1, 1, 0, 0), y = c(0, 0, 1, 1, 0))
   expect_no_error(content(ggplot(d3, aes(x, y)) + with_relief(geom_path(), uphill = "left") + theme_void(), "relief"))
 })
+
+test_that("the wrappers accept a list of layers, as geom_sf() returns, and leave non-layer elements alone", {
+  skip_if_not_installed("sf")
+  for (f in list(with_halftone, with_halo, with_relief)) {
+    lay <- ggplot2::geom_sf()                                # a list of a Layer and a CoordSf
+    w <- f(lay)
+    expect_type(w, "list"); expect_equal(length(w), 2)
+    expect_true(inherits(w[[1]], "Layer")); expect_s3_class(w[[2]], "CoordSf")
+    # a ggproto Layer is an environment, so wrapping replaces its geom in place; compare with a fresh layer
+    expect_false(identical(w[[1]]$geom, ggplot2::geom_sf()[[1]]$geom))
+    expect_true(inherits(w[[1]]$geom, "GeomSf"))             # still an sf geom, with a new draw_panel
+  }
+  expect_error(with_halftone("not a layer"), "expected a ggplot2 layer")
+})
+
+test_that("a polygon with a hole keeps the hole empty", {
+  skip_if_not_installed("sf")
+  outer <- rbind(c(0, 0), c(10, 0), c(10, 10), c(0, 10), c(0, 0)); hole <- rbind(c(3, 3), c(3, 7), c(7, 7), c(7, 3), c(3, 3))
+  ring <- sf::st_sf(id = 1, geometry = sf::st_sfc(sf::st_polygon(list(outer, hole))))
+  p <- ggplot(ring) + with_halftone(ggplot2::geom_sf(fill = "black", colour = NA), pitch = 1) + theme_void()
+  im <- px(render(p, w = 50, h = 50)); n <- nrow(im)
+  inner <- im[round(n * 0.42):round(n * 0.58), round(n * 0.42):round(n * 0.58), 1]
+  band  <- im[round(n * 0.15):round(n * 0.25), round(n * 0.40):round(n * 0.60), 1]
+  expect_equal(mean(inner < 0.5), 0); expect_gt(mean(band < 0.5), 0.1)
+})

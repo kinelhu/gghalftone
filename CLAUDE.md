@@ -4,7 +4,9 @@ R package: halftone, dither and line-screen fills for ggplot2. Dots are placed a
 
 ## Layout
 - `gghalftone/`: the package (R/, src/kernels.cpp, tests/testthat/test-regressions.R, vignettes/, README.md).
-- `prototypes/gallery2.R`: the current gallery. It uses `library(gghalftone)` with package defaults and renders to `figures/v2/`. Older scripts in `prototypes/` are history and are not kept in sync.
+- `prototypes/gallery2.R`: the current gallery. It uses `library(gghalftone)` with package defaults and renders to `figures/v2/`.
+- `prototypes/showcase.R`: examples that reach corners the gallery does not (sf, polar, process colour, error diffusion, ridgelines, violins, pitch invariance). Renders to `figures/v2/showcase/`. Run it after changing the drawing code; it covers more of the API than the gallery.
+- Older scripts in `prototypes/` are history and are not kept in sync.
 - `figures/v2/`: current accepted renders. `figures/*.png` are the previous set.
 
 ## Working conventions

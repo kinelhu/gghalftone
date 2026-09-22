@@ -14,7 +14,7 @@ Roxygen: list(markdown = TRUE)
 Depends: R (>= 4.1)
 Imports: ggplot2 (>= 3.4.0), grid, scales, Rcpp, stats, grDevices, utils
 LinkingTo: Rcpp
-Suggests: testthat (>= 3.0.0), ragg, magick, maps, mapproj, patchwork, survival, png, mgcv, MASS, knitr, rmarkdown
+Suggests: testthat (>= 3.0.0), ragg, magick, maps, mapproj, patchwork, survival, sf, png, mgcv, MASS, knitr, rmarkdown
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.0.0

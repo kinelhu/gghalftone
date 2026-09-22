@@ -15,10 +15,12 @@ Status (2026-09-22): builds and installs on R 4.6.1 and ggplot2 4.0.3. 86 regres
 ## Open
 
 - Blue-noise tiling: the 32 by 32 void-and-cluster matrix repeats visibly on large flat fills. Options: a 64 by 64 matrix, or a per-row phase offset from a second matrix.
-- `geom_sf` has not been tested through `with_halftone()`. It draws path grobs, which `collect_polys()` handles.
-- `halftone_raster()` (magick) and `halftone_regions()` (maps) are guarded Suggests and untested since packaging.
 
 ## Known behaviour
+
+- The ink palettes hold six colours. Past six groups ggplot2 warns and the extra groups get no fill. Map `scale_screen_discrete()` instead of colour, or set your own palette.
+- A ggproto layer is an environment, so the wrappers replace its geom in place. `with_halftone(p$layers[[1]])` would modify `p`.
+- `with_relief()` draws lit segments in paper colour, so on bare paper only the shaded half of each contour appears. It is meant to sit over a screened field.
 
 - The two-ink weave has no perfect solution on a hex lattice. Blue-noise assignment is used for k other than 3. Acceptable at 600 dpi.
 - With overprinting, the lower half of each Kaplan-Meier band is denser because it overlaps the neighbour's core. Use `overlap = "stack"` if the bands must be symmetric.

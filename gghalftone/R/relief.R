@@ -15,6 +15,9 @@
 #' With `uphill = "auto"`, the uphill side of each contour is inferred from the nearest neighbouring contour at
 #' another level. A closed ring with no such neighbour is treated as a summit. For a path that is not a contour, set
 #' `uphill` explicitly.
+#'
+#' Draw this over a screened field. Lit segments are paper-coloured, so on bare paper they are invisible and only the
+#' shaded half of each contour appears.
 #' @param layer A `geom_contour()`, `geom_path()` or `geom_line()` layer.
 #' @param light Azimuth of the light in degrees, clockwise from north; 315 is upper left.
 #' @param width Line width in mm at grazing and at full illumination, `c(min, max)`.
@@ -30,7 +33,9 @@
 #'   with_relief(ggplot2::geom_contour(bins = 10)) + ggplot2::coord_equal(expand = FALSE) + ggplot2::theme_bw() + theme_halftone()
 #' @export
 with_relief <- function(layer, light = 315, width = c(0.05, 0.35), colours = c(lit = "white", shade = "black", base = "#8A8A8A"), uphill = c("auto", "left", "right")) {
-  uphill <- match.arg(uphill); parent <- layer$geom
+  uphill <- match.arg(uphill)
+  wrap_layers(layer, function(layer) {
+  parent <- layer$geom
   P <- list(light = light, width = width, colours = colours, uphill = uphill)
   wrapped <- ggproto(NULL, parent,
     draw_panel = function(self, data, panel_params, coord, ...) {
@@ -39,6 +44,7 @@ with_relief <- function(layer, light = 315, width = c(0.05, 0.35), colours = c(l
       gTree(data = cc[order(cc$group), keep], params = P, cl = "relief")
     })
   layer$geom <- wrapped; layer
+  })
 }
 
 #' @rdname with_relief

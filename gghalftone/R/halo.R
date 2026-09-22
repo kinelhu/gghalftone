@@ -16,6 +16,7 @@
 #' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + with_halo(ggplot2::geom_line())
 #' @export
 with_halo <- function(layer, width = 0.09, colour = "white") {
+  wrap_layers(layer, function(layer) {
   parent <- layer$geom
   paper <- colour
   extra <- 2 * width * 96 / 25.4   # grid lwd is in 1/96 inch
@@ -25,6 +26,7 @@ with_halo <- function(layer, width = 0.09, colour = "white") {
       grobTree(halo_grob(orig, paper, extra), orig)
     })
   layer$geom <- wrapped; layer
+  })
 }
 halo_grob <- function(g, paper, extra) {
   if (inherits(g, "gList")) return(do.call(gList, lapply(g, halo_grob, paper = paper, extra = extra)))

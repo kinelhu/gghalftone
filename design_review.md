@@ -228,3 +228,30 @@ line was too black beside a hairline hatch.
 The editorial plate is removed from the gallery, the README and `figures/v2/`. It was there to show a second register;
 with the editorial theme gone it only showed a plot with a serif title, which is not what an R package README is for.
 The engraving already carries the line screen in the README.
+
+## Stress sweep (2026-09-22)
+
+Fourteen combinations the gallery does not reach, rendered to see what breaks: sf, polar coordinates, free-scale
+facets, violins, four-colour process from a photograph, ridgelines, Floyd-Steinberg, tile heatmaps, log scales, tiny
+multiples, stacked bars, relief on a plain path, flipped coordinates, and spots with size, screen and hatching at once.
+
+Two real bugs:
+
+- **`geom_sf()` was rejected.** It returns a list of a layer and a `CoordSf`, and all three wrappers assumed a bare
+  layer. They now accept either, through `wrap_layers()`. `match.arg(profile)` had to move out of the per-layer
+  function, because it reads the formals of the frame it is called from.
+- **The test harness hid two blanks.** Handling warnings with `tryCatch` aborted the print, so polar and violin came
+  out empty and looked broken. They were fine. The lesson is `withCallingHandlers` for warnings in a render sweep.
+
+Three pieces of behaviour worth documenting rather than changing: the ink palettes stop at six, so a seventh group
+silently gets no fill (ggplot2 does warn); the wrappers replace a layer's geom in place, because a ggproto layer is
+an environment; and `with_relief()` on bare paper shows only the shaded half of each contour, since lit segments are
+paper-coloured.
+
+Polygons with holes were the suspected third bug and turned out correct: the clip path combines rings with the
+winding rule, so an inner ring cancels the outer one. Tested.
+
+The best of the sweep became `prototypes/showcase.R`: a photograph in four-colour process beside the same photograph
+as a one-ink newspaper screen, an sf choropleth, a wind rose whose categorical encoding is hatch angle in polar
+coordinates, ridgelines, one-ink violins, and the same figure saved at 40, 89 and 183 mm with crops at equal
+magnification, which is the first direct demonstration that the screen does not scale with the figure.

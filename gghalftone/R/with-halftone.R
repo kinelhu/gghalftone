@@ -179,14 +179,15 @@ with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone 
                           levels = NULL, bayer_n = 4, dot_max = 0.9, gamma = 1, tone_max = NULL, outline = TRUE,
                           shape = "circle", algorithm = "bayer", clip = TRUE, overlap = c("overprint", "stack"), level = 0.95, min_feature = 0.09,
                           redundant = NULL) {
-  overlap <- match.arg(overlap)
+  overlap <- match.arg(overlap); profile <- match.arg(profile)   # match.arg needs this frame's formals, so it runs before the wrapper
+  wrap_layers(layer, function(layer) {
   angle_user <- !is.null(angle); angle <- angle %||% if (shape == "line") 45 else 15   # hatching at 45; dots on a hex lattice at 15 so no lattice axis is horizontal or vertical
   # defaults encode the print rules: line screens are constant weight with a hard edge; outline-defined shapes
   # (densities, violins) are edge-weighted so overlaps stay legible; everything else fades from the centre (gaussian)
   parent0 <- layer$geom; tone_user <- !is.null(tone); tone_max_user <- !is.null(tone_max)
   tone <- tone %||% if (shape == "line") "flat" else if (inherits(parent0, c("GeomDensity", "GeomViolin"))) "vignette" else
     if (inherits(parent0, c("GeomRect", "GeomTile", "GeomArea", "GeomPolygon", "GeomSf"))) "flat" else "likelihood"   # GeomBar/GeomCol inherit GeomRect
-  tone <- match.arg(tone, c("likelihood", "centre", "flat", "tent", "edge", "vignette", "centre-soft")); profile <- match.arg(profile); parent <- layer$geom
+  tone <- match.arg(tone, c("likelihood", "centre", "flat", "tent", "edge", "vignette", "centre-soft")); parent <- layer$geom
   # colour is redundant by default where groups tile the plane (bars, areas, polygons, tiles): each group also gets its
   # own screen, so the figure survives greyscale. Not for intervals and densities: there overlapping groups are woven
   # on ONE lattice, and separate lattices at different angles moire (tested; see design_review.md)
@@ -232,4 +233,5 @@ with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone 
       if ((is.null(data$screen) || is.na(data$screen)) && !is.null(data$fill) && exists(as.character(data$fill), envir = keymap, inherits = FALSE)) data$screen <- get(as.character(data$fill), envir = keymap)
       draw_key_halftone(data, utils::modifyList(params, P[c("shape", "angle", "angle_user")]), size) })
   layer$geom <- wrapped; layer
+  })
 }

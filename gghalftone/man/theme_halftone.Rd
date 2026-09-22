@@ -64,7 +64,8 @@ theme it is added to:
 \item paper ground: plot and panel backgrounds in \code{paper}, no gridlines, no panel border fill;
 \item legend keys large enough to show a screen (6 by 4 mm), no key background;
 \item on ggplot2 4.0 and later, \link{halftone_inks} (or \link{halftone_process}) as the default discrete palette and
-\link{halftone_ramp} as the default continuous palette.
+\link{halftone_ramp} as the default continuous palette. Both palettes hold six inks; past six groups, map
+\code{\link[=scale_screen_discrete]{scale_screen_discrete()}} instead of colour, or pass \code{palette = "none"} and set your own.
 }
 
 \code{ggsave_journal()} saves at a journal column width in mm. The file extension selects the format: PNG or TIFF at

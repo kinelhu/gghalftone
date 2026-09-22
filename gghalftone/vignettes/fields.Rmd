@@ -69,6 +69,20 @@ ggplot(dens, aes(x, y, z = z)) +
   labs(x = "Eruption (min)", y = "Waiting (min)") + theme_bw() + theme_classic() + theme_halftone()
 ```
 
+## Photographs
+
+`halftone_raster()` reads an image into a field. Screen it once per process ink and you get four-colour process, with the rosette that comes from the classic screen angles. Screen the luminance with error diffusion in one ink and you get the newspaper screen.
+
+```{r photo, fig.width = 183 / 25.4, fig.height = 62 / 25.4, out.width = "100%", eval = requireNamespace("magick", quietly = TRUE)}
+f <- halftone_raster(magick::image_read("rose:"), max_px = 150)
+process <- ggplot() + geom_halftone_cmyk(f, pitch = 0.6, levels = 6) +
+  coord_equal(expand = FALSE) + theme_void() + theme_halftone()
+news <- ggplot(f, aes(x, y, z = z)) +
+  geom_halftone(levels = 2, algorithm = "floyd_steinberg", colour = "black", pitch = 0.4) +
+  coord_equal(expand = FALSE) + theme_void() + theme_halftone()
+patchwork::wrap_plots(process, news, nrow = 1)
+```
+
 ## Maps
 
 `with_halftone()` on a polygon layer prints each region at the tone of its fill colour. The default continuous ramp runs from paper through ochre and red to near-black.
