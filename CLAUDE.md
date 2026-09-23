@@ -5,7 +5,7 @@ R package: halftone, dither and line-screen fills for ggplot2. Dots are placed a
 ## Layout
 - `gghalftone/`: the package (R/, src/kernels.cpp, tests/testthat/test-regressions.R, vignettes/, README.md).
 - `prototypes/gallery2.R`: the current gallery. It uses `library(gghalftone)` with package defaults and renders to `figures/v2/`.
-- `prototypes/press_gallery.R`: every gallery figure as prepared and as printed, side by side, under one house press. It sources `gallery2.R` with `options(gallery.render = FALSE)` and reads its `FIGS` registry, so there is no second copy of the figure code. Renders to `figures/v2/press/`.
+- `prototypes/press_gallery.R`: every gallery figure in three panels (as prepared, dot gain only, the whole press) under one house press, plus `control.png`, which matches the plain screen's ink weight to the pressed one so the part that is not simply more ink is visible. It sources `gallery2.R` with `options(gallery.render = FALSE)` and reads its `FIGS` registry, so there is no second copy of the figure code. Renders to `figures/v2/press/`.
 - `prototypes/showcase.R`: examples that reach corners the gallery does not (sf, polar, process colour, error diffusion, ridgelines, violins, pitch invariance). Renders to `figures/v2/showcase/`. Run it after changing the drawing code; it covers more of the API than the gallery.
 - Older scripts in `prototypes/` are history and are not kept in sync.
 - `figures/v2/`: current accepted renders. `figures/*.png` are the previous set.
