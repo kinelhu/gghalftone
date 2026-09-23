@@ -90,6 +90,10 @@ stands a tenth of a pitch clear of its neighbour. So \code{fillet} needs somethi
 about 0.2, which closes that gap in the shadows, or a heavier plate. On its own it changes nothing below the
 top of the tone range.
 
+What the bridge changes is the shape of the white interstices between dots, which are features of the pitch. At
+0.35 mm they are too small to read as shapes and the fillet arrives as ink weight alone. Use it where the screen
+already reads as dots: an editorial plate at 0.6 mm and up.
+
 It needs the polyclip package and it is the one setting here with a real cost: budget about a second per twenty
 thousand touching dots.
 }
