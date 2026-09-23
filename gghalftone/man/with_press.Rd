@@ -17,7 +17,8 @@ with_press(
 )
 }
 \arguments{
-\item{layer}{A halftone layer, or a list holding one.}
+\item{layer}{A halftone layer, a list holding one, or a whole plot. Given a plot, every layer in it is wrapped,
+each with its own seed, so the inks miss each other and mottle independently the way separate plates do.}
 
 \item{gain}{Tone value increase at a 50 \% screen. 0 leaves the screen alone.}
 

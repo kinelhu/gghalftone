@@ -495,17 +495,22 @@ scale_tone <- scale_tone_continuous
 # the same grobs the panel uses, so pitch, angle, tone, quantisation, dithering and the minimum feature
 # all behave identically. Matching the panel by re-deriving its formulas is how the key drifted before:
 # the widths agreed while the panel broke its lightest strips at the printable minimum and the key did not.
+# A pressed layer's key is pressed too, or the key reads lighter than the fill it stands for. Gain, slur and the
+# fillet apply; mottle and registration do not, because both are properties of a place on the sheet and a key is a
+# sample of the screen rather than of a place.
 key_screen_grob <- function(tone, col, pitch, angle, grid, shape, dot_max, min_feature,
-                            levels = NULL, bayer_n = 4, algorithm = "bayer", w = 6, h = 4) {
+                            levels = NULL, bayer_n = 4, algorithm = "bayer", w = 6, h = 4, press = NULL) {
+  if (!is.null(press)) press <- utils::modifyList(press, list(mottle = 0, registration = 0))
   lat <- halftone_lattice(list(pitch = pitch, grid = grid, angle = angle), w, h)
   Z <- matrix(pmin(pmax(tone, 0), 1), nrow(lat$X), ncol(lat$X))
   Z <- quantise_tone(Z, levels, algorithm, bayer_n)
+  Z <- press_gain(Z, press, press_cover(dot_max, grid, shape))
   g <- if (identical(shape, "line")) {
     line_strips_grob(lat$X, lat$Y, Z, col, lat$inside, angle, dot_max * pitch * 0.9, pitch, min_feature)
   } else {
     D <- floor_dither(Z, max(tone_floor, (min_feature / (dot_max * pitch))^2), row(Z), col(Z))
     keep <- lat$inside & D > tone_floor
-    if (any(keep)) dot_grob(lat$X[keep], lat$Y[keep], dot_max * pitch / 2 * sqrt(D[keep]), col, shape) else nullGrob()
+    if (any(keep)) press_dots(lat$X[keep], lat$Y[keep], dot_max * pitch / 2 * sqrt(D[keep]), col, shape, pitch, press) else nullGrob()
   }
   gTree(children = gList(g), vp = viewport(x = 0.5, y = 0.5, width = unit(w, "mm"), height = unit(h, "mm"), clip = "on"))
 }
@@ -530,7 +535,8 @@ draw_key_halftone <- function(data, params, size) {
                   col = scales::alpha(data$colour %||% "black", data$alpha %||% 1),
                   pitch = pitch, angle = screen_angle(sp, shp) + base, grid = params$grid %||% "hex",
                   shape = shp, dot_max = params$dot_max %||% 0.9, min_feature = params$min_feature %||% 0.09,
-                  levels = params$levels, bayer_n = params$bayer_n %||% 4, algorithm = params$algorithm %||% "bayer")
+                  levels = params$levels, bayer_n = params$bayer_n %||% 4, algorithm = params$algorithm %||% "bayer",
+                  press = params$press)
 }
 # a screen spec is a number (angle) or "angle|shape|tone|line_angle" (shape: circle/square/diamond; tone scales dot_max;
 # line_angle is used instead of angle when the screen is drawn as a line screen, so one scale serves both looks)

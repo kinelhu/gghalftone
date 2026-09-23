@@ -15,12 +15,30 @@ NULL
 # wrapped, which is the one that will receive them.
 keep_parameters <- function(parent) function(self, extra = FALSE) parent$parameters(extra)
 
-# geom_sf() returns a list of a layer and a coord, and other constructors return several layers. Apply `f` to every
-# Layer in `x` and keep the structure, so the wrappers take whatever a geom constructor hands them.
+# geom_sf() returns a list of a layer and a coord, and other constructors return several layers. A finished plot holds
+# its layers in $layers. Apply `f` to every Layer in `x` and keep the structure, so the wrappers take whatever a geom
+# constructor, or the reader, hands them.
 wrap_layers <- function(x, f) {
-  if (inherits(x, "Layer")) return(f(x))
-  if (is.list(x) && any(vapply(x, inherits, logical(1), "Layer"))) { x[] <- lapply(x, function(e) if (inherits(e, "Layer")) f(e) else e); return(x) }
-  stop("expected a ggplot2 layer, or a list containing one, but got ", paste(class(x), collapse = "/"))
+  g <- function(l) f(copy_layer(l))
+  if (inherits(x, "Layer")) return(g(x))
+  # A patchwork is a ggplot whose other plots hang off $patches$plots, so recurse before treating it as one plot.
+  if (inherits(x, "patchwork")) {
+    if (!is.list(x$patches$plots)) stop("cannot reach the plots inside this patchwork; wrap them one at a time", call. = FALSE)
+    x$patches$plots <- lapply(x$patches$plots, function(e) if (inherits(e, "ggplot")) wrap_layers(e, f) else e)
+    x$layers <- lapply(x$layers, g); return(x)
+  }
+  if (inherits(x, "ggplot")) { x$layers <- lapply(x$layers, g); return(x) }
+  if (is.list(x) && any(vapply(x, inherits, logical(1), "Layer"))) { x[] <- lapply(x, function(e) if (inherits(e, "Layer")) g(e) else e); return(x) }
+  stop("expected a ggplot2 layer, a list containing one, or a plot, but got ", paste(class(x), collapse = "/"))
+}
+# A ggproto layer is an environment, so replacing its geom in place would reach back into the plot the caller still
+# holds: with_press(p) would press p as well as its result, and a before-and-after pair would print twice the same.
+# A shallow copy of the environment is enough, because a wrapper only ever assigns $geom.
+copy_layer <- function(l) {
+  e <- new.env(parent = parent.env(l))
+  for (nm in ls(l, all.names = TRUE)) assign(nm, get(nm, envir = l), envir = e)
+  attributes(e) <- attributes(l)
+  e
 }
 
 #' Inks, paper, ramp and column widths

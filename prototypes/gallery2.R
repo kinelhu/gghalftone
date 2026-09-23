@@ -1,7 +1,15 @@
 # gallery2.R: the gallery. Every figure uses library(gghalftone) and as few overrides as the figure allows.
 # Renders to figures/v2/ at 600 dpi. Run from the project root: Rscript prototypes/gallery2.R
 suppressPackageStartupMessages({library(gghalftone); library(ggplot2); library(survival); library(patchwork); library(maps); library(MASS)})
-out <- function(name, p, width = "single", height = 62, ...) ggsave_journal(file.path("figures/v2", paste0(name, ".png")), p, width, height = height, ...)
+# Every figure is registered as it is rendered, so press_gallery.R can re-use these exact plots instead of keeping a
+# second copy of the code. Set options(gallery.render = FALSE) to build the registry without writing any file.
+FIGS <- list()
+out <- function(name, p, width = "single", height = 62, ...) {
+  FIGS[[name]] <<- list(p = p, width = width, height = height, args = list(...))
+  if (isTRUE(getOption("gallery.render", TRUE)))
+    ggsave_journal(file.path("figures/v2", paste0(name, ".png")), p, width, height = height, ...)
+  invisible(NULL)
+}
 ink <- halftone_inks; W <- "white"
 # the gallery uses stock ggplot2 themes plus the modifier: nothing in the package sets fonts or sizes
 th <- function(base = theme_classic) base(base_size = 8) + theme_halftone() + theme(plot.tag = element_text(face = "bold"), plot.tag.location = "margin")

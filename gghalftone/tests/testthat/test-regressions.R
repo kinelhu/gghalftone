@@ -580,6 +580,38 @@ test_that("the polygon a dot becomes for clipping carries the circle's ink", {
   expect_gte(cov(0.02), cov(0) - 0.005)    # below the bridging threshold a fillet must not lose ink
 })
 
+test_that("with_press() takes a plot or a patchwork, and leaves the one it was handed alone", {
+  # A ggproto layer is an environment. Wrapping a plot in place would press the plot the caller still holds, so a
+  # before-and-after pair would print the same figure twice.
+  d <- data.frame(g = c("a", "b", "c"), n = c(3, 2, 1))
+  p <- ggplot(d, aes(g, n, fill = g)) + with_halftone(geom_col()) + theme_void() + theme(legend.position = "none")
+  ink <- function(x) mean(px(render(x, w = 40, h = 30, dpi = 300))[, , 1] < 0.5)
+  a0 <- ink(p)
+  expect_gt(ink(with_press(p, gain = 0.3, seed = 5)), a0 + 0.01)
+  expect_equal(ink(p), a0, tolerance = 1e-9)
+  expect_error(with_press(1:3), "expected a ggplot2 layer")
+  skip_if_not_installed("patchwork")
+  pw <- patchwork::wrap_plots(p, p)
+  b0 <- ink(pw)
+  expect_gt(ink(with_press(pw, gain = 0.3, seed = 5)), b0 + 0.01)       # reaches the plots inside the patchwork
+  expect_equal(ink(pw), b0, tolerance = 1e-9)
+  expect_gt(ink(with_press(patchwork::wrap_plots(pw, p), gain = 0.3, seed = 5)), ink(patchwork::wrap_plots(pw, p)) + 0.01)
+})
+
+test_that("a pressed layer's key is pressed too, and one colour serves a whole field", {
+  # The key is drawn outside draw_panel, so it missed the press and read lighter than the fill it stood for. The key
+  # passes a single colour for every dot, which the ink loops took for one colour per dot.
+  key <- function(press) { g <- gghalftone:::key_screen_grob(0.55, "black", 0.35, 15, "hex", "circle", 0.9, 0.09, press = press)
+    f <- tempfile(fileext = ".png"); ragg::agg_png(f, 8, 6, units = "mm", res = 600); grid::grid.draw(g); dev.off()
+    mean(px(f)[, , 1] < 0.5) }
+  P <- list(gain = 0.3, slur = 0.06, slur_angle = 90, fillet = 0.06, mottle = 0.2, mottle_scale = 8, registration = 0.3, seed = 41)
+  expect_gt(key(P), key(NULL) + 0.02)
+  expect_equal(key(P), key(P), tolerance = 1e-9)
+  expect_no_warning(key(P))
+  # mottle and registration are properties of a place on the sheet, and a key is not a place
+  expect_equal(key(P), key(utils::modifyList(P, list(mottle = 0, registration = 0))), tolerance = 1e-9)
+})
+
 test_that("slur smears each dot into a capsule along its angle, and 0 leaves it round", {
   bbox <- function(...) { q <- gghalftone:::ink_shape(0, 0, r = 0.2, ...); c(w = diff(range(q$x)), h = diff(range(q$y))) }
   rnd <- bbox(slur = 0, angle = 90)

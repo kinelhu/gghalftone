@@ -77,8 +77,11 @@ More of these, including an sf choropleth, ridgelines, violins and a demonstrati
 - **Mottle** is the slow variation in ink density across the sheet, smooth over `mottle_scale` millimetres.
 - **Registration** is the standard deviation in mm of that ink's plate offset, which shows when a figure is built from one layer per ink.
 
+Wrap one layer, or a whole plot. Given a plot, every layer is pressed as its own plate, with its own offset and mottle, and the plot you passed in is left alone so you can print the pair.
+
 ```r
 with_press(with_halftone(geom_col()), gain = 0.3, fillet = 0.04, mottle = 0.12, registration = 0.05)
+with_press(p, gain = 0.26, slur = 0.06, fillet = 0.06, mottle = 0.13, registration = 0.05)
 ```
 
 ![The same four-colour plate, clean, then printed, then badly printed](man/figures/press.png)

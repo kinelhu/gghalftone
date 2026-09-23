@@ -56,7 +56,8 @@
 #' built from several halftone layers, one per ink, as [geom_halftone_cmyk()] does. Values around
 #' 0.05 mm read as a good press, 0.2 mm as a cheap one.
 #'
-#' @param layer A halftone layer, or a list holding one.
+#' @param layer A halftone layer, a list holding one, or a whole plot. Given a plot, every layer in it is wrapped,
+#'   each with its own seed, so the inks miss each other and mottle independently the way separate plates do.
 #' @param gain Tone value increase at a 50 % screen. 0 leaves the screen alone.
 #' @param slur Length of the smear, as a fraction of the lattice pitch, in the direction the sheet travelled.
 #'   0.1 is a press running a little fast, 0.3 a visible fault. 0 leaves the dots round.
@@ -87,12 +88,19 @@ with_press <- function(layer, gain = 0.2, slur = 0, slur_angle = 90, fillet = 0,
   press <- list(gain = gain, slur = slur, slur_angle = slur_angle, fillet = fillet, mottle = mottle,
                 mottle_scale = mottle_scale, registration = registration,
                 seed = seed %||% sample.int(.Machine$integer.max, 1L))
+  i <- 0L
   wrap_layers(layer, function(layer) {
+    # Each layer is a plate of its own, so each gets its own seed: the offsets and the mottle differ between inks, as
+    # they do on a press. The first keeps the seed it was given, so wrapping one layer is unchanged.
+    i <<- i + 1L
+    press$seed <- press$seed + i - 1L
     parent <- layer$geom
-    layer$geom <- ggproto(NULL, parent, parameters = keep_parameters(parent),
+    layer$geom <- local({ press <- press; ggproto(NULL, parent, parameters = keep_parameters(parent),
       draw_panel = function(self, data, panel_params, coord, ...) {
-      set_press(ggproto_parent(parent, self)$draw_panel(data, panel_params, coord, ...), press)
-    })
+        set_press(ggproto_parent(parent, self)$draw_panel(data, panel_params, coord, ...), press)
+      },
+      # the key is a sample of the same screen, so it goes through the same press
+      draw_key = function(data, params, size) parent$draw_key(data, utils::modifyList(params, list(press = press)), size)) })
     layer
   })
 }
@@ -144,13 +152,15 @@ press_dots <- function(xs, ys, r, cols, shape, pitch, press, k = 24) {
   fillet <- if (is.null(press) || is.null(press$fillet)) 0 else press$fillet
   round_only <- identical(shape, "circle")
   if ((fillet <= 0 && slur <= 0) || !round_only) return(dot_grob(xs, ys, r, cols, shape))
+  # dot_grob() takes one colour for the whole field or one per dot; the ink loops below need one per dot
+  if (length(cols) != length(xs)) cols <- rep_len(cols, length(xs))
   if (fillet > 0 && !requireNamespace("polyclip", quietly = TRUE)) fillet <- 0
   shapes <- function(i) Map(function(X, Y, R) ink_shape(X, Y, R, slur, press$slur_angle %||% 90, k), xs[i], ys[i], r[i])
   as_path <- function(u, cl) pathGrob(unit(unlist(lapply(u, `[[`, "x")), "mm"), unit(unlist(lapply(u, `[[`, "y")), "mm"),
                                       id.lengths = lengths(lapply(u, `[[`, "x")), rule = "evenodd", gp = gpar(fill = cl, col = NA))
   if (fillet <= 0) {   # slur alone: no union needed, each dot is just a capsule
     kids <- gList()
-    for (cl in unique(cols)) { s <- which(cols == cl); kids <- gList(kids, as_path(shapes(s), cl)) }
+    for (cl in unique(cols)) { s <- which(cols == cl); if (length(s)) kids <- gList(kids, as_path(shapes(s), cl)) }
     return(gTree(children = kids))
   }
   # Nearest neighbours on either lattice sit one pitch apart, so two dots are joined by the closing when their
@@ -162,6 +172,7 @@ press_dots <- function(xs, ys, r, cols, shape, pitch, press, k = 24) {
   for (cl in unique(cols[!touch])) { s <- which(!touch & cols == cl); if (length(s)) kids <- gList(kids, as_path(shapes(s), cl)) }
   for (cl in unique(cols[touch])) {
     s <- which(touch & cols == cl)
+    if (!length(s)) next
     u <- polyclip::polysimplify(shapes(s), filltype = "nonzero")
     u <- polyclip::polyoffset(polyclip::polyoffset(u, f, jointype = "round"), -f, jointype = "round")
     if (!length(u)) next
