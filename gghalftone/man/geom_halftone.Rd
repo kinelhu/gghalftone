@@ -111,8 +111,10 @@ the screen.}
 \item{overlap}{How groups sharing the panel combine: \code{"overprint"} (woven on one lattice, default), \code{"interleave"}
 (each group on its own phase-shifted lattice) or \code{"stack"} (last group drawn wins; hides overlaps).}
 
-\item{blend}{Colour of a cell carrying several inks under \code{"overprint"}: \code{"alternate"} (weave, default), \code{"mix"}
-or \code{"multiply"}.}
+\item{blend}{Colour of a cell carrying several inks under \code{"overprint"}. \code{"alternate"} (default) weaves them, so
+a reader can still see which inks are present. \code{"multiply"} is the subtractive physics of real ink, the product of
+the reflectances, so cyan over magenta over yellow goes black. \code{"mix"} is a darkened average, neither honest nor
+physical, and it collapses every overlap to one colour.}
 
 \item{tone_max}{Tone ceiling in \verb{[0, 1]}. \code{NULL} means 1, or 0.55 for a binary stipple.}
 

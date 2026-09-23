@@ -18,12 +18,13 @@ Two scripts render figures: `prototypes/gallery2.R` for the defaults gallery and
 
 - `blend = "mix"` and `"multiply"` render but nobody has judged them against `"alternate"` at 600 dpi.
 
-- Blue-noise tiling: the 32 by 32 void-and-cluster matrix repeats visibly on large flat fills. Options: a 64 by 64 matrix, or a per-row phase offset from a second matrix.
 
 ## Known behaviour
 
 - Cairo devices draw a small filled circle far too large: a 0.05 mm radius comes back at 0.17 mm, clearing only above about 0.2 mm, which is larger than any halftone dot. Dots therefore go through `round_dots()`, which uses a grid circle only on devices where it is faithful (ragg, base `pdf`, postscript) and a 12-sided polygon elsewhere. Do not replace that with `circleGrob`.
 - Clipping paths are honoured by ragg, cairo and base `pdf`, verified by rasterising a polygon with a hole.
+- The blue-noise tile does not repeat visibly. On a 60 by 30 mm flat stipple at 0.45 mm the rendered autocorrelation at the 32-cell period is -0.005, the same as at a non-period lag. The lattice rotation and the field mapping break any alignment between the matrix tiling and the page. The earlier note claiming a visible repeat is not reproducible.
+- Of the three blend modes, only `"alternate"` keeps ink identity. `"multiply"` is correct subtractive physics and sends a three-ink overlap to black. `"mix"` is a darkened average and is decorative.
 
 - The ink palettes hold six colours. Past six groups ggplot2 warns and the extra groups get no fill. Map `scale_screen_discrete()` instead of colour, or set your own palette.
 - A ggproto layer is an environment, so the wrappers replace its geom in place. `with_halftone(p$layers[[1]])` would modify `p`.

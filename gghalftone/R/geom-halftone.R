@@ -348,8 +348,10 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #' @param gamma Tone curve: tone is raised to this power before printing. Below 1 lifts mid-tones, above 1 deepens them.
 #' @param overlap How groups sharing the panel combine: `"overprint"` (woven on one lattice, default), `"interleave"`
 #'   (each group on its own phase-shifted lattice) or `"stack"` (last group drawn wins; hides overlaps).
-#' @param blend Colour of a cell carrying several inks under `"overprint"`: `"alternate"` (weave, default), `"mix"`
-#'   or `"multiply"`.
+#' @param blend Colour of a cell carrying several inks under `"overprint"`. `"alternate"` (default) weaves them, so
+#'   a reader can still see which inks are present. `"multiply"` is the subtractive physics of real ink, the product of
+#'   the reflectances, so cyan over magenta over yellow goes black. `"mix"` is a darkened average, neither honest nor
+#'   physical, and it collapses every overlap to one colour.
 #' @param tone_max Tone ceiling in `[0, 1]`. `NULL` means 1, or 0.55 for a binary stipple.
 #' @param min_feature Smallest printable feature in mm (0.09, i.e. 0.25 pt, the minimum line weight in journal artwork
 #'   guidelines; see References). Dots that would

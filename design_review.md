@@ -337,3 +337,18 @@ proven. The raster path is unchanged and the gallery still renders in the same t
 
 The test renders the same plot to ragg and to `cairo_pdf`, rasterises the PDF and compares coverage. It
 needs poppler, so it skips where that is missing.
+
+## Closing the last two open items (2026-09-23)
+
+**Blend modes, judged at 600 dpi on a three-ink CMY overlap.** `alternate` weaves and every ink stays
+visible, which is the only mode that answers "which criteria are present here". `multiply` is the
+subtractive physics, the product of the reflectances, and sends a full-strength three-ink overlap to
+black, correctly. `mix` averages and darkens by an arbitrary factor and turns the whole panel one muddy
+brown; it is neither honest nor physical. All three are documented for what they are; the default stays
+`alternate`.
+
+**The blue-noise repeat does not exist.** The hand-off note claimed the 32 by 32 void-and-cluster matrix
+repeats visibly on large flat fills. On a 60 by 30 mm stipple at 0.45 mm the autocorrelation of the
+rendered field at the 32-cell period is -0.005, indistinguishable from a non-period lag, and the crop
+shows no structure by eye. The lattice rotation and the field-to-lattice mapping break any alignment
+between the matrix tiling and the page. Closed as not reproducible rather than fixed.
