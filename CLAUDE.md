@@ -24,7 +24,7 @@ R package: halftone, dither and line-screen fills for ggplot2. Dots are placed a
 - `with_halftone(layer, ...)`: screen the fill of any layer. The tone profile follows the geometry.
 - `with_halo(layer)`: paper hairline under a line layer.
 - `with_relief(layer, light)`: Tanaka illuminated contours.
-- `with_press(layer, gain, fillet, mottle, registration)`: press artefacts (dot gain, ink bridges, mottle, plate offset). Off by default, never in the journal register. The fillet needs polyclip and only runs on dots close enough to touch.
+- `with_press(layer, gain, slur, fillet, mottle, registration)`: press artefacts (dot gain, smear, ink bridges, mottle, plate offset). Off by default, never in the journal register. The fillet needs polyclip and only runs on dots close enough to touch. For misregistration wrap each ink separately with its own seed, as `showcase.R` does.
 - `geom_halftone()`: screen a gridded field.
 - `geom_spot()`: one tone disc per point. Use `aes(tone = )` with `scale_tone_continuous()`.
 - `scale_screen_discrete()` and `scale_screen_manual()`: specifications of the form `"angle|shape|tone|line_angle"`.

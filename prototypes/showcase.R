@@ -58,6 +58,20 @@ pV <- ggplot(mpg, aes(reorder(class, hwy), hwy, screen = class)) +
   th() + theme(axis.text.x = element_text(angle = 30, hjust = 1))
 out("violins", pV, width = "onehalf", height = 62)
 
+## 6 Press artefacts: the same plate, then what a press does to it ----------------------------------------
+if (requireNamespace("magick", quietly = TRUE)) {
+  fr <- halftone_raster(magick::image_read("rose:"), max_px = 140)
+  plate <- function(...) { args <- list(...)
+    lay <- geom_halftone_cmyk(fr, pitch = 0.7, levels = 6)
+    if (length(args)) lay <- Map(function(l, s) do.call(with_press, c(list(l, seed = s), args)), lay, seq_along(lay))
+    ggplot() + lay + coord_equal(expand = FALSE) + theme_void(base_size = 8) + theme_halftone() +
+      theme(plot.tag = element_text(face = "bold", size = 9), plot.tag.location = "margin") }
+  pP1 <- plate() + labs(tag = "A")
+  pP2 <- plate(gain = 0.25, fillet = 0.04, mottle = 0.10) + labs(tag = "B")
+  pP3 <- plate(gain = 0.35, fillet = 0.05, mottle = 0.18, slur = 0.12, registration = 0.14) + labs(tag = "C")
+  out("press", pP1 | pP2 | pP3, width = "double", height = 62)
+}
+
 ## 6 The physical pitch: one figure at three widths, cropped at the same magnification -------------------------------------
 x <- seq(0, 10, length.out = 80); d <- data.frame(x, y = sin(x), lo = sin(x) - 0.45, hi = sin(x) + 0.45)
 pP <- ggplot(d, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = ink[["red"]])) +

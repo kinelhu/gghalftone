@@ -404,3 +404,16 @@ unioned blind.
 It also bridges a small gap, not only an overlap, which is correct: tension reaches across a gap
 narrower than twice the fillet radius. The test uses dots far enough apart that nothing can reach, and
 checks they are untouched, then a dot size just past contact and checks the bridge adds ink.
+
+## Slur, and where the examples live (2026-09-23)
+
+Slur is the last of the press set: a sheet moving under the plate smears each dot along its direction of
+travel. It is drawn as the shape the ink actually covers, a capsule swept along `slur_angle`, rather than
+as a second faint impression, because nothing translucent reaches the page here. The same `ink_shape()`
+feeds the fillet's union, so a slurred screen bridges correctly too.
+
+The press work had until now existed only in throwaway comparison sheets, which was a gap: four features
+and nothing permanent to look at. `prototypes/showcase.R` now renders `press.png`, the four-colour
+photograph three ways, as the plate describes it, printed, and badly printed. Misregistration needs each
+ink wrapped separately with its own seed, which the script shows; a single `with_press()` around all four
+layers gives them the same offset and no fringing at all.

@@ -21,6 +21,12 @@
 #' scale of `mottle_scale` millimetres, which is what separates a real impression from a clean digital screen. It
 #' varies tone, so it survives resizing like everything else here.
 #'
+#' @section Slur:
+#' A sheet moving under the plate smears each dot along its direction of travel, so the dot prints as a capsule
+#' rather than a circle. `slur` is the length of that smear as a fraction of the pitch and `slur_angle` its
+#' direction. It is drawn as the true swept shape rather than a second faint impression, because nothing
+#' translucent reaches the page here.
+#'
 #' @section Ink bridges:
 #' Where two dots overlap, the circles cross in a sharp concave cusp. Wet ink does not: surface tension pulls a
 #' fillet across the notch. `fillet` is the radius of that bridge as a fraction of the pitch, applied as a
@@ -39,6 +45,9 @@
 #'
 #' @param layer A halftone layer, or a list holding one.
 #' @param gain Tone value increase at a 50 % screen. 0 leaves the screen alone.
+#' @param slur Length of the smear, as a fraction of the lattice pitch, in the direction the sheet travelled.
+#'   0.1 is a press running a little fast, 0.3 a visible fault. 0 leaves the dots round.
+#' @param slur_angle Direction of that smear in degrees, measured anticlockwise from the x axis.
 #' @param fillet Radius of the ink bridge where two dots meet, as a fraction of the lattice pitch. Useful values are
 #'   small: 0.02 rounds the cusp, 0.05 draws a clear bridge, and much above 0.08 the closing swallows the gaps
 #'   between dots and the shadows go solid. 0 leaves the cusp where the circles cross. Needs the polyclip package.
@@ -56,11 +65,13 @@
 #'              gain = 0.3) +
 #'   ggplot2::theme_classic() + theme_halftone()
 #' @export
-with_press <- function(layer, gain = 0.2, fillet = 0, mottle = 0, mottle_scale = 4, registration = 0, seed = NULL) {
-  stopifnot(gain >= 0, fillet >= 0, mottle >= 0, mottle_scale > 0, registration >= 0)
+with_press <- function(layer, gain = 0.2, slur = 0, slur_angle = 90, fillet = 0, mottle = 0, mottle_scale = 4,
+                       registration = 0, seed = NULL) {
+  stopifnot(gain >= 0, slur >= 0, fillet >= 0, mottle >= 0, mottle_scale > 0, registration >= 0)
   if (fillet > 0 && !requireNamespace("polyclip", quietly = TRUE))
     stop("with_press(fillet = ) needs the polyclip package", call. = FALSE)
-  press <- list(gain = gain, fillet = fillet, mottle = mottle, mottle_scale = mottle_scale, registration = registration,
+  press <- list(gain = gain, slur = slur, slur_angle = slur_angle, fillet = fillet, mottle = mottle,
+                mottle_scale = mottle_scale, registration = registration,
                 seed = seed %||% sample.int(.Machine$integer.max, 1L))
   wrap_layers(layer, function(layer) {
     parent <- layer$geom
@@ -90,24 +101,40 @@ press_gain <- function(tone, press) {
 # circles cross and leaves the convex outline untouched: the bridge surface tension pulls. Dots too small to touch
 # anything are drawn as dots, so only the shadows pay. Inks are filleted separately; ink does not bridge to another
 # plate's ink.
+# One dot as the shape the ink actually covers: a circle, or a capsule when the sheet slurred under the plate.
+ink_shape <- function(cx, cy, r, slur, angle, k = 16) {
+  if (slur <= 0) { a <- seq(0, 2 * pi, length.out = k + 1)[-(k + 1)]; return(list(x = cx + r * cos(a), y = cy + r * sin(a))) }
+  th <- angle * pi / 180; h <- slur / 2
+  a1 <- seq(th - pi / 2, th + pi / 2, length.out = k / 2 + 1)
+  a2 <- seq(th + pi / 2, th + 3 * pi / 2, length.out = k / 2 + 1)
+  list(x = c(cx + h * cos(th) + r * cos(a1), cx - h * cos(th) + r * cos(a2)),
+       y = c(cy + h * sin(th) + r * sin(a1), cy - h * sin(th) + r * sin(a2)))
+}
 press_dots <- function(xs, ys, r, cols, shape, pitch, press, k = 16) {
-  plain <- function(i) dot_grob(xs[i], ys[i], r[i], cols[i], shape)
-  if (is.null(press) || is.null(press$fillet) || press$fillet <= 0 || !identical(shape, "circle") ||
-      !requireNamespace("polyclip", quietly = TRUE)) return(dot_grob(xs, ys, r, cols, shape))
+  slur <- if (is.null(press) || is.null(press$slur)) 0 else press$slur * pitch
+  fillet <- if (is.null(press) || is.null(press$fillet)) 0 else press$fillet
+  round_only <- identical(shape, "circle")
+  if ((fillet <= 0 && slur <= 0) || !round_only) return(dot_grob(xs, ys, r, cols, shape))
+  if (fillet > 0 && !requireNamespace("polyclip", quietly = TRUE)) fillet <- 0
+  shapes <- function(i) Map(function(X, Y, R) ink_shape(X, Y, R, slur, press$slur_angle %||% 90, k), xs[i], ys[i], r[i])
+  as_path <- function(u, cl) pathGrob(unit(unlist(lapply(u, `[[`, "x")), "mm"), unit(unlist(lapply(u, `[[`, "y")), "mm"),
+                                      id.lengths = lengths(lapply(u, `[[`, "x")), rule = "evenodd", gp = gpar(fill = cl, col = NA))
+  if (fillet <= 0) {   # slur alone: no union needed, each dot is just a capsule
+    kids <- gList()
+    for (cl in unique(cols)) { s <- which(cols == cl); kids <- gList(kids, as_path(shapes(s), cl)) }
+    return(gTree(children = kids))
+  }
   touch <- r >= pitch * 0.40                     # nearest neighbours on either lattice sit one pitch apart
-  if (!any(touch)) return(dot_grob(xs, ys, r, cols, shape))
-  f <- press$fillet * pitch
-  a <- seq(0, 2 * pi, length.out = k + 1)[-(k + 1)]
-  kids <- if (any(!touch)) gList(plain(!touch)) else gList()
+  if (!any(touch) && slur <= 0) return(dot_grob(xs, ys, r, cols, shape))
+  f <- fillet * pitch
+  kids <- gList()
+  for (cl in unique(cols[!touch])) { s <- which(!touch & cols == cl); if (length(s)) kids <- gList(kids, as_path(shapes(s), cl)) }
   for (cl in unique(cols[touch])) {
     s <- which(touch & cols == cl)
-    u <- polyclip::polysimplify(Map(function(X, Y, R) list(x = X + R * cos(a), y = Y + R * sin(a)), xs[s], ys[s], r[s]),
-                                filltype = "nonzero")
+    u <- polyclip::polysimplify(shapes(s), filltype = "nonzero")
     u <- polyclip::polyoffset(polyclip::polyoffset(u, f, jointype = "round"), -f, jointype = "round")
     if (!length(u)) next
-    kids <- gList(kids, pathGrob(unit(unlist(lapply(u, `[[`, "x")), "mm"), unit(unlist(lapply(u, `[[`, "y")), "mm"),
-                                 id.lengths = lengths(lapply(u, `[[`, "x")), rule = "evenodd",
-                                 gp = gpar(fill = cl, col = NA)))
+    kids <- gList(kids, as_path(u, cl))
   }
   gTree(children = kids)
 }

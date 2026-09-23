@@ -544,3 +544,23 @@ test_that("the fillet bridges touching dots only, and leaves a field that cannot
     theme_void(), "halftone")
   expect_false(is.null(find_grob(k, "pathgrob")))
 })
+
+test_that("slur smears each dot into a capsule along its angle, and 0 leaves it round", {
+  bbox <- function(...) { q <- gghalftone:::ink_shape(0, 0, r = 0.2, ...); c(w = diff(range(q$x)), h = diff(range(q$y))) }
+  rnd <- bbox(slur = 0, angle = 90)
+  expect_equal(unname(rnd[["w"]]), unname(rnd[["h"]]), tolerance = 1e-6)
+  expect_equal(unname(rnd[["w"]]), 0.4, tolerance = 0.02)
+  vert <- bbox(slur = 0.5, angle = 90)
+  expect_equal(unname(vert[["h"]]), 0.9, tolerance = 0.02)   # 2r plus the smear
+  expect_equal(unname(vert[["w"]]), 0.4, tolerance = 0.02)   # unchanged across it
+  horz <- bbox(slur = 0.5, angle = 0)
+  expect_equal(unname(horz[["w"]]), 0.9, tolerance = 0.02); expect_equal(unname(horz[["h"]]), 0.4, tolerance = 0.02)
+  # and it shows on the page: a smeared screen carries more ink than a round one
+  f <- local({ g <- expand.grid(x = seq(0, 12, 0.4), y = seq(0, 12, 0.4)); g$z <- 0.5; g })
+  cov <- function(...) { p <- ggplot(f, aes(x, y, z = z)) +
+      with_press(geom_halftone(pitch = 1, colour = "black", range = c(0, 1)), gain = 0, ...) +
+      coord_cartesian(expand = FALSE) + theme_void()
+    mean(px(render(p, w = 30, h = 30, dpi = 600))[, , 1] < 0.5) }
+  expect_gt(cov(slur = 0.3), cov(slur = 0) * 1.3)
+  expect_equal(cov(slur = 0), cov(slur = 0), tolerance = 1e-9)
+})

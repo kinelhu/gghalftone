@@ -7,6 +7,8 @@
 with_press(
   layer,
   gain = 0.2,
+  slur = 0,
+  slur_angle = 90,
   fillet = 0,
   mottle = 0,
   mottle_scale = 4,
@@ -18,6 +20,11 @@ with_press(
 \item{layer}{A halftone layer, or a list holding one.}
 
 \item{gain}{Tone value increase at a 50 \% screen. 0 leaves the screen alone.}
+
+\item{slur}{Length of the smear, as a fraction of the lattice pitch, in the direction the sheet travelled.
+0.1 is a press running a little fast, 0.3 a visible fault. 0 leaves the dots round.}
+
+\item{slur_angle}{Direction of that smear in degrees, measured anticlockwise from the x axis.}
 
 \item{fillet}{Radius of the ink bridge where two dots meet, as a fraction of the lattice pitch. Useful values are
 small: 0.02 rounds the cusp, 0.05 draws a clear bridge, and much above 0.08 the closing swallows the gaps
@@ -55,6 +62,14 @@ heavily inked impression.
 Ink does not lie down evenly. \code{mottle} adds a slow random variation in density across the sheet, smooth at the
 scale of \code{mottle_scale} millimetres, which is what separates a real impression from a clean digital screen. It
 varies tone, so it survives resizing like everything else here.
+}
+
+\section{Slur}{
+
+A sheet moving under the plate smears each dot along its direction of travel, so the dot prints as a capsule
+rather than a circle. \code{slur} is the length of that smear as a fraction of the pitch and \code{slur_angle} its
+direction. It is drawn as the true swept shape rather than a second faint impression, because nothing
+translucent reaches the page here.
 }
 
 \section{Ink bridges}{
