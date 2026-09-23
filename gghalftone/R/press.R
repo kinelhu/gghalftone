@@ -11,10 +11,14 @@
 #' @section Dot gain:
 #' Ink spreads into paper, so a printed dot is larger than its plate. The trade measures this as tone
 #' value increase, the extra coverage at a 50 % screen: roughly 0.10 to 0.20 for offset on coated stock
-#' and 0.25 to 0.35 on newsprint. `gain` is that number. The increase follows `sin(pi * tone)`, so it
-#' vanishes at paper and at solid and peaks in the midtones, which is where a press gains most. Above
-#' about 0.5 the midtone dots grow past the lattice pitch, touch and bridge, which is the blotting of a
-#' heavily inked impression.
+#' and 0.25 to 0.35 on newsprint. `gain` is that number.
+#'
+#' It applies to coverage, the fraction of paper the screen inks, which is what a densitometer reads and
+#' is not the same as the tone the screen was asked for. At the default ink weight a full-tone cell
+#' covers about three quarters of its lattice cell, not all of it. The increase follows `sin(pi * coverage)`,
+#' so it vanishes at bare paper and at a covered sheet and peaks where a press gains most. Coverage is
+#' capped at the sheet, and that cap is what fills a shadow in: above about `gain = 0.2` the dark dots
+#' grow past the pitch, touch, and print as solid with pinholes.
 #'
 #' @section Mottle:
 #' Ink does not lie down evenly. `mottle` adds a slow random variation in density across the sheet, smooth at the
@@ -34,6 +38,11 @@
 #' boundaries alone. Only dots close enough to reach a neighbour are processed, so a figure pays for it in its
 #' shadows and nowhere else. A bridge is ink, so it darkens the shadows a little on top of `gain`.
 #'
+#' Ink cannot bridge dots that do not meet, and at the default ink weight (`dot_max = 0.9`) a full-tone dot still
+#' stands a tenth of a pitch clear of its neighbour. So `fillet` needs something to work with: either `gain` above
+#' about 0.2, which closes that gap in the shadows, or a heavier plate. On its own it changes nothing below the
+#' top of the tone range.
+#'
 #' It needs the polyclip package and it is the one setting here with a real cost: budget about a second per twenty
 #' thousand touching dots.
 #'
@@ -49,8 +58,9 @@
 #'   0.1 is a press running a little fast, 0.3 a visible fault. 0 leaves the dots round.
 #' @param slur_angle Direction of that smear in degrees, measured anticlockwise from the x axis.
 #' @param fillet Radius of the ink bridge where two dots meet, as a fraction of the lattice pitch. Useful values are
-#'   small: 0.02 rounds the cusp, 0.05 draws a clear bridge, and much above 0.08 the closing swallows the gaps
-#'   between dots and the shadows go solid. 0 leaves the cusp where the circles cross. Needs the polyclip package.
+#'   small, and they act with `gain`: at `gain = 0.25`, 0.02 rounds the cusp, 0.04 draws a clear bridge and blots the
+#'   last eighth of the tone range, and 0.08 pulls the fill-in down into the midtones. Much above that the closing
+#'   swallows the gaps and the shadows go flat. 0 leaves the cusp where the circles cross. Needs the polyclip package.
 #' @param mottle Relative standard deviation of the slow variation in ink density across the sheet. 0.1 is a
 #'   visible but unremarkable impression, 0.25 a poor one.
 #' @param mottle_scale Distance in mm over which that variation changes. Real mottle runs at a few millimetres.
@@ -91,18 +101,33 @@ set_press <- function(g, press) {
   g
 }
 
-# Tone value increase. Peaks in the midtones and is allowed past 1, because a press that gains that
-# hard fills its shadows in: the dots grow past the pitch, touch, and read as solid with holes.
-press_gain <- function(tone, press) {
+# Paper that one unit of tone covers: a full-tone dot over its lattice cell, or a full-width strip over the row
+# spacing. Dot shapes are area-matched, so only the lattice and the ink weight enter. At the defaults (hex, dot_max
+# 0.9) full tone covers 0.73 of the sheet, not all of it.
+press_cover <- function(dot_max, grid, shape) {
+  cell <- if (identical(grid, "hex")) sqrt(3) / 2 else 1
+  max(if (identical(shape, "line")) 0.9 * dot_max / cell else pi / 4 * dot_max^2 / cell, 1e-6)
+}
+# Tone value increase is a measurement of ink COVERAGE, so the curve is evaluated in coverage and the result read
+# back as tone. Evaluating it on tone instead put the peak in the wrong place and, worse, left the shadows alone:
+# a full-tone cell has sin(pi * 1) = 0 gain and its dots stayed a tenth of a pitch apart forever. Coverage is capped
+# at the sheet, and that cap is what fills a shadow in: the dots grow past the pitch, touch, and print as solid
+# with holes.
+press_gain <- function(tone, press, k = 1) {
   if (is.null(press) || press$gain <= 0) return(tone)
-  pmin(tone + press$gain * sin(pi * pmin(pmax(tone, 0), 1)), 1.6)
+  cov <- pmin(pmax(tone, 0) * k, 1)
+  pmin(cov + press$gain * sin(pi * cov), 1) / k
 }
 # Dots that can reach a neighbour are unioned and morphologically closed, which rounds the concave cusp where two
 # circles cross and leaves the convex outline untouched: the bridge surface tension pulls. Dots too small to touch
 # anything are drawn as dots, so only the shadows pay. Inks are filleted separately; ink does not bridge to another
 # plate's ink.
 # One dot as the shape the ink actually covers: a circle, or a capsule when the sheet slurred under the plate.
-ink_shape <- function(cx, cy, r, slur, angle, k = 16) {
+# polyclip works on polygons, so the circle becomes a k-gon. Its circumradius is scaled so the k-gon carries the
+# circle's area: an inscribed k-gon is 4.7 % lighter at k = 12, which showed up as a fillet that removed ink.
+ngon_k <- function(k) sqrt(2 * pi / (k * sin(2 * pi / k)))
+ink_shape <- function(cx, cy, r, slur, angle, k = 24) {
+  r <- r * ngon_k(k)
   if (slur <= 0) { a <- seq(0, 2 * pi, length.out = k + 1)[-(k + 1)]; return(list(x = cx + r * cos(a), y = cy + r * sin(a))) }
   th <- angle * pi / 180; h <- slur / 2
   a1 <- seq(th - pi / 2, th + pi / 2, length.out = k / 2 + 1)
@@ -110,7 +135,7 @@ ink_shape <- function(cx, cy, r, slur, angle, k = 16) {
   list(x = c(cx + h * cos(th) + r * cos(a1), cx - h * cos(th) + r * cos(a2)),
        y = c(cy + h * sin(th) + r * sin(a1), cy - h * sin(th) + r * sin(a2)))
 }
-press_dots <- function(xs, ys, r, cols, shape, pitch, press, k = 16) {
+press_dots <- function(xs, ys, r, cols, shape, pitch, press, k = 24) {
   slur <- if (is.null(press) || is.null(press$slur)) 0 else press$slur * pitch
   fillet <- if (is.null(press) || is.null(press$fillet)) 0 else press$fillet
   round_only <- identical(shape, "circle")
@@ -124,9 +149,11 @@ press_dots <- function(xs, ys, r, cols, shape, pitch, press, k = 16) {
     for (cl in unique(cols)) { s <- which(cols == cl); kids <- gList(kids, as_path(shapes(s), cl)) }
     return(gTree(children = kids))
   }
-  touch <- r >= pitch * 0.40                     # nearest neighbours on either lattice sit one pitch apart
-  if (!any(touch) && slur <= 0) return(dot_grob(xs, ys, r, cols, shape))
+  # Nearest neighbours on either lattice sit one pitch apart, so two dots are joined by the closing when their
+  # radii, the smear and the bridge together span the gap. Everything else is drawn as a dot and costs nothing.
   f <- fillet * pitch
+  touch <- r >= pitch / 2 - f - slur / 2
+  if (!any(touch) && slur <= 0) return(dot_grob(xs, ys, r, cols, shape))
   kids <- gList()
   for (cl in unique(cols[!touch])) { s <- which(!touch & cols == cl); if (length(s)) kids <- gList(kids, as_path(shapes(s), cl)) }
   for (cl in unique(cols[touch])) {

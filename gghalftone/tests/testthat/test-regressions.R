@@ -545,6 +545,41 @@ test_that("the fillet bridges touching dots only, and leaves a field that cannot
   expect_false(is.null(find_grob(k, "pathgrob")))
 })
 
+test_that("dot gain is measured on coverage, so it reaches the shadows and stops at the sheet", {
+  # Tone value increase is a coverage measurement. Applying it to tone instead left the shadows alone: a full-tone
+  # cell got sin(pi * 1) = 0 gain, its dots stayed a tenth of a pitch apart, and the fillet had nothing to bridge.
+  fld <- function(t) local({ g <- expand.grid(x = seq(0, 12, 0.3), y = seq(0, 12, 0.3)); g$z <- t; g })
+  cov <- function(t, ...) { p <- ggplot(fld(t), aes(x, y, z = z)) +
+      with_press(geom_halftone(pitch = 1, colour = "black", range = c(0, 1)), ...) +
+      coord_cartesian(expand = FALSE) + theme_void()
+    mean(px(render(p, w = 30, h = 30, dpi = 600))[, , 1] < 0.5) }
+  expect_gt(cov(1, gain = 0.25), cov(1, gain = 0) + 0.1)    # the shadows gain, which is where a press fills in
+  expect_gt(cov(1, gain = 0.25), 0.85)                      # and they gain enough for neighbouring dots to meet
+  expect_lte(cov(1, gain = 0.8), 1)                         # coverage stops at the sheet, however hard it gains
+  expect_gt(cov(1, gain = 0.8), cov(1, gain = 0.25))
+  # a full-tone cell covers pi/4 * dot_max^2 over a hex cell, not 1
+  expect_equal(gghalftone:::press_cover(0.9, "hex", "circle"), pi / 4 * 0.81 / (sqrt(3) / 2))
+  expect_equal(gghalftone:::press_cover(0.9, "square", "circle"), pi / 4 * 0.81)
+  expect_gt(gghalftone:::press_cover(0.9, "hex", "line"), gghalftone:::press_cover(0.9, "hex", "circle"))
+  expect_equal(gghalftone:::press_gain(0.5, list(gain = 0), 0.7), 0.5)
+})
+
+test_that("the polygon a dot becomes for clipping carries the circle's ink", {
+  # polyclip needs polygons, so a filleted dot is drawn as a k-gon. An inscribed k-gon is lighter than its circle,
+  # and a fillet below the bridging threshold used to come out paler than no fillet at all.
+  skip_if_not_installed("polyclip")
+  expect_equal(gghalftone:::ngon_k(1e6), 1, tolerance = 1e-8)
+  area <- function(q) abs(sum((q$x - q$x[c(length(q$x), seq_len(length(q$x) - 1))]) *
+                              (q$y + q$y[c(length(q$y), seq_len(length(q$y) - 1))]))) / 2
+  for (k in c(12, 16, 24)) expect_equal(area(gghalftone:::ink_shape(0, 0, 0.3, 0, 90, k)), pi * 0.3^2, tolerance = 0.002)
+  fld <- local({ g <- expand.grid(x = seq(0, 12, 0.3), y = seq(0, 12, 0.3)); g$z <- 1; g })
+  cov <- function(f) { p <- ggplot(fld, aes(x, y, z = z)) +
+      with_press(geom_halftone(pitch = 1, colour = "black", range = c(0, 1)), gain = 0, fillet = f) +
+      coord_cartesian(expand = FALSE) + theme_void()
+    mean(px(render(p, w = 30, h = 30, dpi = 600))[, , 1] < 0.5) }
+  expect_gte(cov(0.02), cov(0) - 0.005)    # below the bridging threshold a fillet must not lose ink
+})
+
 test_that("slur smears each dot into a capsule along its angle, and 0 leaves it round", {
   bbox <- function(...) { q <- gghalftone:::ink_shape(0, 0, r = 0.2, ...); c(w = diff(range(q$x)), h = diff(range(q$y))) }
   rnd <- bbox(slur = 0, angle = 90)

@@ -27,8 +27,9 @@ with_press(
 \item{slur_angle}{Direction of that smear in degrees, measured anticlockwise from the x axis.}
 
 \item{fillet}{Radius of the ink bridge where two dots meet, as a fraction of the lattice pitch. Useful values are
-small: 0.02 rounds the cusp, 0.05 draws a clear bridge, and much above 0.08 the closing swallows the gaps
-between dots and the shadows go solid. 0 leaves the cusp where the circles cross. Needs the polyclip package.}
+small, and they act with \code{gain}: at \code{gain = 0.25}, 0.02 rounds the cusp, 0.04 draws a clear bridge and blots the
+last eighth of the tone range, and 0.08 pulls the fill-in down into the midtones. Much above that the closing
+swallows the gaps and the shadows go flat. 0 leaves the cusp where the circles cross. Needs the polyclip package.}
 
 \item{mottle}{Relative standard deviation of the slow variation in ink density across the sheet. 0.1 is a
 visible but unremarkable impression, 0.25 a poor one.}
@@ -51,10 +52,14 @@ the way the plate describes it. Compose it around \code{\link[=with_halftone]{wi
 
 Ink spreads into paper, so a printed dot is larger than its plate. The trade measures this as tone
 value increase, the extra coverage at a 50 \% screen: roughly 0.10 to 0.20 for offset on coated stock
-and 0.25 to 0.35 on newsprint. \code{gain} is that number. The increase follows \code{sin(pi * tone)}, so it
-vanishes at paper and at solid and peaks in the midtones, which is where a press gains most. Above
-about 0.5 the midtone dots grow past the lattice pitch, touch and bridge, which is the blotting of a
-heavily inked impression.
+and 0.25 to 0.35 on newsprint. \code{gain} is that number.
+
+It applies to coverage, the fraction of paper the screen inks, which is what a densitometer reads and
+is not the same as the tone the screen was asked for. At the default ink weight a full-tone cell
+covers about three quarters of its lattice cell, not all of it. The increase follows \code{sin(pi * coverage)},
+so it vanishes at bare paper and at a covered sheet and peaks where a press gains most. Coverage is
+capped at the sheet, and that cap is what fills a shadow in: above about \code{gain = 0.2} the dark dots
+grow past the pitch, touch, and print as solid with pinholes.
 }
 
 \section{Mottle}{
@@ -79,6 +84,11 @@ fillet across the notch. \code{fillet} is the radius of that bridge as a fractio
 morphological closing of the union of the overlapping dots, which rounds concave corners and leaves convex
 boundaries alone. Only dots close enough to reach a neighbour are processed, so a figure pays for it in its
 shadows and nowhere else. A bridge is ink, so it darkens the shadows a little on top of \code{gain}.
+
+Ink cannot bridge dots that do not meet, and at the default ink weight (\code{dot_max = 0.9}) a full-tone dot still
+stands a tenth of a pitch clear of its neighbour. So \code{fillet} needs something to work with: either \code{gain} above
+about 0.2, which closes that gap in the shadows, or a heavier plate. On its own it changes nothing below the
+top of the tone range.
 
 It needs the polyclip package and it is the one setting here with a real cost: budget about a second per twenty
 thousand touching dots.

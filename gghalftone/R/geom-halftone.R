@@ -178,7 +178,7 @@ makeContent.halftone <- function(x) {
   pitch <- p$pitch
   lat <- halftone_lattice(p, W, H, phase = p$phase + press_phase(p$press, pitch)); X <- lat$X; Y <- lat$Y
   r0 <- halftone_dither_group(d, lat, p, W, H); idx <- r0$idx
-  D <- press_gain(press_mottle(r0$D, p$press, X, Y), p$press)
+  D <- press_gain(press_mottle(r0$D, p$press, X, Y), p$press, press_cover(p$dot_max, p$grid, p$shape))
   D <- floor_dither(D, dot_floor(p), row(D), col(D)); keep <- D > tone_floor
   if (!any(keep)) return(setChildren(x, gList()))
   if (p$shape == "line") return(setChildren(x, gList(line_screen_grob(lat, r0, d, p, W, H))))
@@ -236,6 +236,7 @@ circle_true_devices <- c("agg_png", "agg_tiff", "agg_jpeg", "agg_ppm", "agg_capt
 round_dots <- function(xs, ys, r, gp, k = 12) {
   if (isTRUE(names(grDevices::dev.cur()) %in% circle_true_devices))
     return(circleGrob(x = unit(xs, "mm"), y = unit(ys, "mm"), r = unit(r, "mm"), gp = gp))
+  r <- r * ngon_k(k)   # an inscribed 12-gon carries 4.7 % less ink than the circle it stands in for
   a <- seq(0, 2 * pi, length.out = k + 1)[-(k + 1)]
   polygonGrob(x = unit(rep(xs, each = k) + rep(r, each = k) * cos(a), "mm"),
               y = unit(rep(ys, each = k) + rep(r, each = k) * sin(a), "mm"),
@@ -256,7 +257,7 @@ make_overprint <- function(x, W, H) {
   p <- x$params; gs <- x$groups; pitch <- p$pitch
   lat <- halftone_lattice(p, W, H, phase = press_phase(p$press, pitch)); X <- lat$X; Y <- lat$Y
   res <- lapply(gs, function(d) halftone_dither_group(d, lat, p, W, H))
-  Dmax <- press_gain(press_mottle(Reduce(pmax, lapply(res, `[[`, "D")), p$press, X, Y), p$press); nk <- Reduce(`+`, lapply(res, function(r) r$D > 0))
+  Dmax <- press_gain(press_mottle(Reduce(pmax, lapply(res, `[[`, "D")), p$press, X, Y), p$press, press_cover(p$dot_max, p$grid, "circle")); nk <- Reduce(`+`, lapply(res, function(r) r$D > 0))
   Dmax <- floor_dither(Dmax, dot_floor(p), row(Dmax), col(Dmax)); keep <- Dmax > tone_floor
   # colour per cell: single ink, or multiply-blend of all inks present
   cols <- character(sum(keep)); cells <- which(keep)
@@ -401,7 +402,7 @@ spot_grob <- function(cx, cy, rad, tone, col, pitch, dot_max, ring, ring_lwd, le
   D <- if (is.null(levels)) rep(tone, sum(inside)) else {
     b <- bayer_matrix(bayer_n); thr <- b[cbind((row(U)[inside] - 1) %% bayer_n + 1, (col(U)[inside] - 1) %% bayer_n + 1)]
     pmin(pmax(floor(tone * levels + thr) / levels, 0), 1) }
-  D <- press_gain(D, press); D <- floor_dither(D, max(tone_floor, (min_feature / (dot_max * pitch))^2), row(U)[inside], col(U)[inside]); keep <- D > tone_floor
+  D <- press_gain(D, press, press_cover(dot_max, "hex", shape)); D <- floor_dither(D, max(tone_floor, (min_feature / (dot_max * pitch))^2), row(U)[inside], col(U)[inside]); keep <- D > tone_floor
   kids <- gList()
   if (any(keep)) {
     dots <- dot_grob(cx + U[inside][keep], cy + V[inside][keep], dot_max * pitch / 2 * sqrt(D[keep]), col, shape)
