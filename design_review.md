@@ -384,7 +384,23 @@ field has no creases at the cell joins, multiplying tone so a light area mottles
 as ink does. The test checks that density now varies between tiles while the mean is preserved, that
 the field is smooth rather than white noise, and that a seed reproduces it exactly.
 
-The surface-tension fillet from the blog post is declined. Looked at 1:1, heavy gain already bridges
-correctly: the dots touch and the white interstices shrink to the star-shaped gaps between circles,
-which is what shadow fill-in looks like on paper. A fillet would round those gaps very slightly and
-would cost a polyclip dependency and a polygon union per figure. Not worth it.
+The surface-tension fillet was declined here and then built, on the author's call. Reversing was right:
+at 1:1 the bridge is clearly visible, the junctions become smooth arcs instead of cusps, and the
+interstices shrink to curved triangles rather than lenses.
+
+## The fillet, built (2026-09-23)
+
+A morphological closing of the union of the touching dots: offset out by the fillet radius with round
+joins, then back in by the same. That rounds concave corners and leaves convex boundaries alone, which
+is exactly the bridge surface tension pulls across the notch where two circles cross.
+
+Two things had to be got right. The radius is a fraction of the pitch and the useful range is much
+smaller than it first appears: at 0.15 the closing swallows the interstices entirely and the shadows go
+solid black. 0.02 rounds the cusp, 0.05 draws a clear bridge, and past about 0.08 it fills in. And the
+cost is only acceptable because the closing runs on the dots that can reach a neighbour and nowhere
+else: a gained ramp at 0.9 mm went from 0.25 s to 0.36 s, against 1.7 s for twenty thousand dots
+unioned blind.
+
+It also bridges a small gap, not only an overlap, which is correct: tension reaches across a gap
+narrower than twice the fillet radius. The test uses dots far enough apart that nothing can reach, and
+checks they are untouched, then a dot size just past contact and checks the bridge adds ink.

@@ -7,6 +7,7 @@
 with_press(
   layer,
   gain = 0.2,
+  fillet = 0,
   mottle = 0,
   mottle_scale = 4,
   registration = 0,
@@ -17,6 +18,10 @@ with_press(
 \item{layer}{A halftone layer, or a list holding one.}
 
 \item{gain}{Tone value increase at a 50 \% screen. 0 leaves the screen alone.}
+
+\item{fillet}{Radius of the ink bridge where two dots meet, as a fraction of the lattice pitch. Useful values are
+small: 0.02 rounds the cusp, 0.05 draws a clear bridge, and much above 0.08 the closing swallows the gaps
+between dots and the shadows go solid. 0 leaves the cusp where the circles cross. Needs the polyclip package.}
 
 \item{mottle}{Relative standard deviation of the slow variation in ink density across the sheet. 0.1 is a
 visible but unremarkable impression, 0.25 a poor one.}
@@ -50,6 +55,18 @@ heavily inked impression.
 Ink does not lie down evenly. \code{mottle} adds a slow random variation in density across the sheet, smooth at the
 scale of \code{mottle_scale} millimetres, which is what separates a real impression from a clean digital screen. It
 varies tone, so it survives resizing like everything else here.
+}
+
+\section{Ink bridges}{
+
+Where two dots overlap, the circles cross in a sharp concave cusp. Wet ink does not: surface tension pulls a
+fillet across the notch. \code{fillet} is the radius of that bridge as a fraction of the pitch, applied as a
+morphological closing of the union of the overlapping dots, which rounds concave corners and leaves convex
+boundaries alone. Only dots close enough to reach a neighbour are processed, so a figure pays for it in its
+shadows and nowhere else. A bridge is ink, so it darkens the shadows a little on top of \code{gain}.
+
+It needs the polyclip package and it is the one setting here with a real cost: budget about a second per twenty
+thousand touching dots.
 }
 
 \section{Registration}{

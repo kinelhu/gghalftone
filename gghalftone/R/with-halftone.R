@@ -120,7 +120,7 @@ makeContent.halftone_fill <- function(x) {
     }
     cols <- poly_cols[who]
     r <- p$dot_max * p$pitch / 2 * sqrt(Dm[keep])
-    kids <- gList(dot_grob(X[keep], Y[keep], r, cols, p$shape))
+    kids <- gList(press_dots(X[keep], Y[keep], r, cols, p$shape, p$pitch, p$press))
   }
   # clip the screen to the exact fill region (grid clipping paths, R >= 4.1; honoured by ragg/cairo/pdf)
   if (p$clip && length(kids)) kids <- gList(gTree(children = kids, vp = viewport(clip = clip_from_polys(polys))))

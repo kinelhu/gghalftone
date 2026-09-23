@@ -186,7 +186,7 @@ makeContent.halftone <- function(x) {
   src <- idx[keep]
   col <- scales::alpha(d$colour[src], d$alpha[src])
   xs <- X[keep]; ys <- Y[keep]
-  setChildren(x, gList(dot_grob(xs, ys, r, col, p$shape)))
+  setChildren(x, gList(press_dots(xs, ys, r, col, p$shape, pitch, p$press)))
 }
 
 # line screen: every lattice row becomes a strip whose width follows the (continuous) tone; rotated with the lattice.
@@ -272,7 +272,7 @@ make_overprint <- function(x, W, H) {
     } else cols[!single] <- apply(colmat[!single, , drop = FALSE], 1, function(r) blend_inks(r[!is.na(r)], p$blend))
   }
   r <- p$dot_max * pitch / 2 * sqrt(Dmax[keep])
-  setChildren(x, gList(round_dots(X[keep], Y[keep], r, gpar(fill = cols, col = NA))))
+  setChildren(x, gList(press_dots(X[keep], Y[keep], r, cols, "circle", pitch, p$press)))
 }
 
 GeomHalftone <- ggproto("GeomHalftone", Geom,

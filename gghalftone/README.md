@@ -72,11 +72,12 @@ More of these, including an sf choropleth, ridgelines, violins and a demonstrati
 `with_press()` draws the screen the way a press puts it on paper rather than the way the plate describes it. Wrap it around a halftone layer.
 
 - **Dot gain** is the tone value increase at a 50% screen: about 0.15 for offset on coated stock, 0.35 on newsprint. It vanishes at paper and at solid and peaks in the midtones, where a press gains most. Past 0.5 the midtone dots grow beyond the lattice, touch and bridge, which is the blotting of a heavy impression.
+- **Fillet** is the ink bridge where two dots meet, as a fraction of the pitch. Wet ink does not cross in a sharp cusp; surface tension pulls a curve across the notch. 0.02 rounds it, 0.05 draws a clear bridge, and much above 0.08 the shadows go solid. It needs the polyclip package.
 - **Mottle** is the slow variation in ink density across the sheet, smooth over `mottle_scale` millimetres.
 - **Registration** is the standard deviation in mm of that ink's plate offset, which shows when a figure is built from one layer per ink.
 
 ```r
-with_press(with_halftone(geom_col()), gain = 0.35, mottle = 0.12, registration = 0.05)
+with_press(with_halftone(geom_col()), gain = 0.35, fillet = 0.05, mottle = 0.12, registration = 0.05)
 ```
 
 Everything here makes a figure less faithful to its data, so it is a separate entry point, off by default, and not for the journal register.

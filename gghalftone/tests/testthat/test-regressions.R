@@ -520,3 +520,27 @@ test_that("mottle varies ink density across the sheet, smoothly, reproducibly, a
   tm <- t8(mot)
   expect_lt(mean(abs(diff(tm))), mean(abs(tm[-1, ] - tm[rev(seq_len(nrow(tm) - 1)), ])))
 })
+
+test_that("the fillet bridges touching dots only, and leaves a field that cannot touch untouched", {
+  skip_if_not_installed("polyclip")
+  fld <- function(t) local({ g <- expand.grid(x = seq(0, 12, 0.3), y = seq(0, 12, 0.3)); g$z <- t; g })
+  # dots far apart: too distant for surface tension to reach, and below the touching threshold, so nothing changes
+  far <- function(f) { p <- ggplot(fld(1), aes(x, y, z = z)) +
+      with_press(geom_halftone(pitch = 1, colour = "black", range = c(0, 1), dot_max = 0.5), gain = 0, fillet = f) +
+      coord_cartesian(expand = FALSE) + theme_void()
+    mean(px(render(p, w = 30, h = 30, dpi = 600))[, , 1] < 0.5) }
+  expect_equal(far(0.05), far(0), tolerance = 1e-9)
+  # dot_max just past 1 puts the dots in contact with small gaps left: bridging fills part of them
+  big <- function(f) { p <- ggplot(fld(1), aes(x, y, z = z)) +
+      with_press(geom_halftone(pitch = 1, colour = "black", range = c(0, 1), dot_max = 1.02), gain = 0, fillet = f) +
+      coord_cartesian(expand = FALSE) + theme_void()
+    mean(px(render(p, w = 30, h = 30, dpi = 600))[, , 1] < 0.5) }
+  expect_gt(big(0.05), big(0) + 0.005)   # the bridge is ink, so the shadows darken a little
+  expect_equal(big(0), big(0), tolerance = 1e-9)
+  expect_error(with_press(geom_halftone(), fillet = -1))
+  # the grob really is a path, not circles, once bridging happens
+  k <- content(ggplot(fld(1), aes(x, y, z = z)) +
+    with_press(geom_halftone(pitch = 1, colour = "black", range = c(0, 1), dot_max = 1.02), gain = 0, fillet = 0.05) +
+    theme_void(), "halftone")
+  expect_false(is.null(find_grob(k, "pathgrob")))
+})

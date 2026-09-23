@@ -21,6 +21,16 @@
 #' scale of `mottle_scale` millimetres, which is what separates a real impression from a clean digital screen. It
 #' varies tone, so it survives resizing like everything else here.
 #'
+#' @section Ink bridges:
+#' Where two dots overlap, the circles cross in a sharp concave cusp. Wet ink does not: surface tension pulls a
+#' fillet across the notch. `fillet` is the radius of that bridge as a fraction of the pitch, applied as a
+#' morphological closing of the union of the overlapping dots, which rounds concave corners and leaves convex
+#' boundaries alone. Only dots close enough to reach a neighbour are processed, so a figure pays for it in its
+#' shadows and nowhere else. A bridge is ink, so it darkens the shadows a little on top of `gain`.
+#'
+#' It needs the polyclip package and it is the one setting here with a real cost: budget about a second per twenty
+#' thousand touching dots.
+#'
 #' @section Registration:
 #' Each ink is a separate plate and the plates never align perfectly. `registration` is the standard
 #' deviation, in mm, of a random offset applied to this layer's lattice. It only shows when a figure is
@@ -29,6 +39,9 @@
 #'
 #' @param layer A halftone layer, or a list holding one.
 #' @param gain Tone value increase at a 50 % screen. 0 leaves the screen alone.
+#' @param fillet Radius of the ink bridge where two dots meet, as a fraction of the lattice pitch. Useful values are
+#'   small: 0.02 rounds the cusp, 0.05 draws a clear bridge, and much above 0.08 the closing swallows the gaps
+#'   between dots and the shadows go solid. 0 leaves the cusp where the circles cross. Needs the polyclip package.
 #' @param mottle Relative standard deviation of the slow variation in ink density across the sheet. 0.1 is a
 #'   visible but unremarkable impression, 0.25 a poor one.
 #' @param mottle_scale Distance in mm over which that variation changes. Real mottle runs at a few millimetres.
@@ -43,9 +56,11 @@
 #'              gain = 0.3) +
 #'   ggplot2::theme_classic() + theme_halftone()
 #' @export
-with_press <- function(layer, gain = 0.2, mottle = 0, mottle_scale = 4, registration = 0, seed = NULL) {
-  stopifnot(gain >= 0, mottle >= 0, mottle_scale > 0, registration >= 0)
-  press <- list(gain = gain, mottle = mottle, mottle_scale = mottle_scale, registration = registration,
+with_press <- function(layer, gain = 0.2, fillet = 0, mottle = 0, mottle_scale = 4, registration = 0, seed = NULL) {
+  stopifnot(gain >= 0, fillet >= 0, mottle >= 0, mottle_scale > 0, registration >= 0)
+  if (fillet > 0 && !requireNamespace("polyclip", quietly = TRUE))
+    stop("with_press(fillet = ) needs the polyclip package", call. = FALSE)
+  press <- list(gain = gain, fillet = fillet, mottle = mottle, mottle_scale = mottle_scale, registration = registration,
                 seed = seed %||% sample.int(.Machine$integer.max, 1L))
   wrap_layers(layer, function(layer) {
     parent <- layer$geom
@@ -71,6 +86,32 @@ press_gain <- function(tone, press) {
   if (is.null(press) || press$gain <= 0) return(tone)
   pmin(tone + press$gain * sin(pi * pmin(pmax(tone, 0), 1)), 1.6)
 }
+# Dots that can reach a neighbour are unioned and morphologically closed, which rounds the concave cusp where two
+# circles cross and leaves the convex outline untouched: the bridge surface tension pulls. Dots too small to touch
+# anything are drawn as dots, so only the shadows pay. Inks are filleted separately; ink does not bridge to another
+# plate's ink.
+press_dots <- function(xs, ys, r, cols, shape, pitch, press, k = 16) {
+  plain <- function(i) dot_grob(xs[i], ys[i], r[i], cols[i], shape)
+  if (is.null(press) || is.null(press$fillet) || press$fillet <= 0 || !identical(shape, "circle") ||
+      !requireNamespace("polyclip", quietly = TRUE)) return(dot_grob(xs, ys, r, cols, shape))
+  touch <- r >= pitch * 0.40                     # nearest neighbours on either lattice sit one pitch apart
+  if (!any(touch)) return(dot_grob(xs, ys, r, cols, shape))
+  f <- press$fillet * pitch
+  a <- seq(0, 2 * pi, length.out = k + 1)[-(k + 1)]
+  kids <- if (any(!touch)) gList(plain(!touch)) else gList()
+  for (cl in unique(cols[touch])) {
+    s <- which(touch & cols == cl)
+    u <- polyclip::polysimplify(Map(function(X, Y, R) list(x = X + R * cos(a), y = Y + R * sin(a)), xs[s], ys[s], r[s]),
+                                filltype = "nonzero")
+    u <- polyclip::polyoffset(polyclip::polyoffset(u, f, jointype = "round"), -f, jointype = "round")
+    if (!length(u)) next
+    kids <- gList(kids, pathGrob(unit(unlist(lapply(u, `[[`, "x")), "mm"), unit(unlist(lapply(u, `[[`, "y")), "mm"),
+                                 id.lengths = lengths(lapply(u, `[[`, "x")), rule = "evenodd",
+                                 gp = gpar(fill = cl, col = NA)))
+  }
+  gTree(children = kids)
+}
+
 # Slow variation in ink density: value noise on a grid of `mottle_scale` mm, smoothstepped so the field has no
 # creases at the cell joins. Multiplies tone, so a light area mottles less than a dark one, as ink does.
 press_mottle <- function(tone, press, X, Y) {
