@@ -438,3 +438,18 @@ test_that("each tone profile has one fixed normalisation: vertical is per column
   # over the whole shape: the tail is further from its own medial line in absolute terms, so it stays lighter
   expect_lt(peak("radial", "tail"), peak("radial", "body") * 0.8)
 })
+
+test_that("dots come out the right size on a cairo device, where grid circles do not", {
+  skip_on_cran()
+  skip_if(Sys.which("pdftoppm") == "", "poppler not available")
+  band <- data.frame(x = 0:1, lo = 0, hi = 1)
+  p <- ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"),
+        tone = "flat", tone_max = 0.45, pitch = 0.6, outline = FALSE) +
+    scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) + theme_void()
+  ink <- function(f) { im <- png::readPNG(f); if (length(dim(im)) == 3) im <- im[, , 1]; mean(im < 0.85) }
+  d <- tempdir()
+  raster <- file.path(d, "dev_raster.png"); ragg::agg_png(raster, 40, 40, units = "mm", res = 600); print(p); dev.off()
+  vec <- file.path(d, "dev_vec.pdf"); grDevices::cairo_pdf(vec, width = 40 / 25.4, height = 40 / 25.4); print(p); dev.off()
+  system2("pdftoppm", c("-r", "600", "-png", "-singlefile", shQuote(vec), shQuote(file.path(d, "dev_vec"))))
+  expect_equal(ink(file.path(d, "dev_vec.png")), ink(raster), tolerance = 0.08)
+})

@@ -228,6 +228,18 @@ weave_phase <- function(r, c, k) {
   bn <- blue_noise_matrix(32); n <- nrow(bn)
   ifelse(k == 3, (c + 2 * r) %% 3, floor(pmax(k, 1) * bn[cbind(((r - 1) %% n) + 1, ((c - 1) %% n) + 1)]))
 }
+# Cairo devices draw a small filled circle far larger than asked: a 0.05 mm radius comes back at 0.17,
+# and the error only clears above about 0.2 mm, which is larger than every dot a halftone places. Polygons
+# are faithful on every device tested, so circles are used only where they are known to be right.
+circle_true_devices <- c("agg_png", "agg_tiff", "agg_jpeg", "agg_ppm", "agg_capture", "agg_record", "pdf", "postscript")
+round_dots <- function(xs, ys, r, gp, k = 12) {
+  if (isTRUE(names(grDevices::dev.cur()) %in% circle_true_devices))
+    return(circleGrob(x = unit(xs, "mm"), y = unit(ys, "mm"), r = unit(r, "mm"), gp = gp))
+  a <- seq(0, 2 * pi, length.out = k + 1)[-(k + 1)]
+  polygonGrob(x = unit(rep(xs, each = k) + rep(r, each = k) * cos(a), "mm"),
+              y = unit(rep(ys, each = k) + rep(r, each = k) * sin(a), "mm"),
+              id.lengths = rep(k, length(xs)), gp = gp)
+}
 # dots of a given shape at (x, y) mm with radius r mm. Shapes carry equal ink at a given r: square half-side sqrt(pi)/2 r,
 # diamond half-diagonal sqrt(pi/2) r, so a mixed-shape screen stays in one tonal register
 sq_k <- sqrt(pi) / 2; di_k <- sqrt(pi / 2)
@@ -237,7 +249,7 @@ dot_grob <- function(xs, ys, r, col, shape = "circle") {
     square  = rectGrob(x = unit(xs, "mm"), y = unit(ys, "mm"), width = unit(2 * r * sq_k, "mm"), height = unit(2 * r * sq_k, "mm"), gp = gp),
     diamond = polygonGrob(x = unit(rep(xs, each = 4) + rep(c(-1, 0, 1, 0), length(xs)) * rep(r, each = 4) * di_k, "mm"),
                           y = unit(rep(ys, each = 4) + rep(c(0, 1, 0, -1), length(xs)) * rep(r, each = 4) * di_k, "mm"), id = rep(seq_along(xs), each = 4), gp = gp),
-    circleGrob(x = unit(xs, "mm"), y = unit(ys, "mm"), r = unit(r, "mm"), gp = gp))
+    round_dots(xs, ys, r, gp))
 }
 make_overprint <- function(x, W, H) {
   p <- x$params; gs <- x$groups; pitch <- p$pitch
@@ -259,7 +271,7 @@ make_overprint <- function(x, W, H) {
     } else cols[!single] <- apply(colmat[!single, , drop = FALSE], 1, function(r) blend_inks(r[!is.na(r)], p$blend))
   }
   r <- p$dot_max * pitch / 2 * sqrt(Dmax[keep])
-  setChildren(x, gList(circleGrob(x = unit(X[keep], "mm"), y = unit(Y[keep], "mm"), r = unit(r, "mm"), gp = gpar(fill = cols, col = NA))))
+  setChildren(x, gList(round_dots(X[keep], Y[keep], r, gpar(fill = cols, col = NA))))
 }
 
 GeomHalftone <- ggproto("GeomHalftone", Geom,

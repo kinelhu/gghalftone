@@ -315,3 +315,25 @@ Two real faults:
   A documented knob that cannot move is worse than no knob, so it is gone, and a test pins what each
   profile actually does: a narrow tail reaches full tone under `"vertical"` and stays lighter under
   `"radial"`.
+
+## The vector path was wrong (2026-09-23)
+
+The one output nothing had ever inspected was the PDF. Rendering the same three plots to ragg and to
+`cairo_pdf`, rasterising the PDF with poppler and comparing ink: a polygon with a hole agreed to 1 %, a
+hatched bar chart to 1 %, and three overlapping densities disagreed by **93 %**. The vector dots were
+visibly fatter and merged into blobs.
+
+Isolating it away from the package: `grid.circle` at radii 0.05, 0.10, 0.20 and 0.40 mm renders at
+diameters 0.34, 0.36, 0.38 and 0.78 mm on `cairo_pdf`, against 0.09, 0.19, 0.40 and 0.78 on ragg and on
+base `pdf()`. Cairo enforces a floor of about 0.34 mm on a small filled circle, and clears it only above
+roughly 0.2 mm radius. Every dot this package places is smaller than that, so every cairo PDF it had
+ever written was too dark, and the finer the pitch the worse the error.
+
+Polygons are faithful: a 16-sided approximation at the same radii measures 0.106, 0.191, 0.381, 0.783 on
+cairo, identical to ragg. So dots now go through `round_dots()`, which uses `circleGrob` on the devices
+where it is known to be faithful (ragg, base `pdf`, postscript) and a 12-sided polygon everywhere else,
+including any device it does not recognise. Correct by default, with the fast primitive kept where it is
+proven. The raster path is unchanged and the gallery still renders in the same time.
+
+The test renders the same plot to ragg and to `cairo_pdf`, rasterises the PDF and compares coverage. It
+needs poppler, so it skips where that is missing.
