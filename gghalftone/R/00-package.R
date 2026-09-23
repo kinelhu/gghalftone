@@ -9,6 +9,12 @@
 NULL
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
+# ggplot2 decides which layer parameters a geom accepts by reading the formals of its draw_panel, and a
+# wrapper's draw_panel takes only `...`. A wrapped layer therefore reports no parameters and ggplot2
+# drops every one of them: pitch on a halftone, arrow on a line. Hand the question to the geom being
+# wrapped, which is the one that will receive them.
+keep_parameters <- function(parent) function(self, extra = FALSE) parent$parameters(extra)
+
 # geom_sf() returns a list of a layer and a coord, and other constructors return several layers. Apply `f` to every
 # Layer in `x` and keep the structure, so the wrappers take whatever a geom constructor hands them.
 wrap_layers <- function(x, f) {

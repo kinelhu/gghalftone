@@ -352,3 +352,26 @@ repeats visibly on large flat fills. On a 60 by 30 mm stipple at 0.45 mm the aut
 rendered field at the 32-cell period is -0.005, indistinguishable from a non-period lag, and the crop
 shows no structure by eye. The lattice rotation and the field-to-lattice mapping break any alignment
 between the matrix tiling and the page. Closed as not reproducible rather than fixed.
+
+## Press artefacts, and a parameter bug they exposed (2026-09-23)
+
+The `with_*()` architecture turns out to be established practice rather than invention: ggfx is built on
+it and gives the same reason, that a modifier works with any geom while a special geom does not. ggfx
+already has `with_halftone_dither()`, but its filters run on the rasterised layer, so the dot size is in
+pixels. That is the sharpest statement of what this package is for, and it now opens the README.
+
+`with_press()` adds dot gain and plate misregistration, composed around a halftone layer. Gain follows
+`tone + g * sin(pi * tone)`, so it vanishes at paper and at solid and peaks in the midtones, which is
+where a press gains most; `g` is the trade's tone value increase at a 50 % screen. Measured on a flat
+field at 0.8 mm: a 0.25 tone gains 42 % of its area at `g = 0.15`, matching the curve. Past `g = 0.5`
+the midtone dots grow beyond the pitch, touch and bridge, which is the blotting of a heavy impression,
+and it falls out of the model rather than being drawn specially.
+
+Building it exposed a bug that had been there since the first wrapper. ggplot2 decides which parameters
+a geom accepts by reading the formals of its `draw_panel`, and a wrapper's are only `...`; it then falls
+back to `draw_group`, which for most geoms is the empty base method. So a wrapped layer reported no
+parameters and ggplot2 dropped every one of them. `with_press(geom_halftone(pitch = 0.8))` silently drew
+at the default pitch, and `with_halo(geom_line(arrow = ...))` silently dropped the arrow. `with_halftone`
+escaped only by accident, because ribbons define `draw_group` and it inherited those formals. All four
+wrappers now delegate `parameters()` to the geom they wrap, with a test comparing wrapped against
+unwrapped for each.

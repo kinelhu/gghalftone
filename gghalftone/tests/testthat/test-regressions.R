@@ -453,3 +453,47 @@ test_that("dots come out the right size on a cairo device, where grid circles do
   system2("pdftoppm", c("-r", "600", "-png", "-singlefile", shQuote(vec), shQuote(file.path(d, "dev_vec"))))
   expect_equal(ink(file.path(d, "dev_vec.png")), ink(raster), tolerance = 0.08)
 })
+
+test_that("a wrapped layer still accepts the parameters of the geom it wraps", {
+  # ggplot2 reads draw_panel's formals to decide which params a geom takes, and a wrapper's are just `...`,
+  # so without delegation the layer silently drops pitch, arrow and the rest
+  expect_equal(with_press(geom_halftone())$geom$parameters(), geom_halftone()$geom$parameters())
+  expect_equal(with_halo(geom_line())$geom$parameters(), geom_line()$geom$parameters())
+  expect_equal(with_relief(geom_path())$geom$parameters(), geom_path()$geom$parameters())
+  expect_equal(with_halftone(geom_ribbon())$geom$parameters(), geom_ribbon()$geom$parameters())
+  # and the params really arrive: a non-default pitch changes the dot count
+  n <- function(p) length(find_grob(content(p, "halftone"), "circle")$x)
+  f <- local({ g <- expand.grid(x = seq(0, 10, 0.5), y = seq(0, 10, 0.5)); g$z <- 0.5; g })
+  expect_lt(n(ggplot(f, aes(x, y, z = z)) + with_press(geom_halftone(pitch = 1), gain = 0) + theme_void()),
+            n(ggplot(f, aes(x, y, z = z)) + with_press(geom_halftone(pitch = 0.5), gain = 0) + theme_void()) * 0.5)
+})
+
+test_that("dot gain adds ink, peaks in the midtones, and is a no-op at 0", {
+  flat <- function(t) local({ g <- expand.grid(x = seq(0, 10, 0.3), y = seq(0, 10, 0.3)); g$z <- t; g })
+  cov <- function(t, g) { p <- ggplot(flat(t), aes(x, y, z = z)) +
+      (if (g > 0) with_press(geom_halftone(pitch = 1, colour = "black", range = c(0, 1)), gain = g)
+       else geom_halftone(pitch = 1, colour = "black", range = c(0, 1))) +
+      coord_cartesian(expand = FALSE) + theme_void()
+    mean(px(render(p, w = 30, h = 30, dpi = 600))[, , 1] < 0.5) }
+  expect_equal(cov(0.5, 0), cov(0.5, 0), tolerance = 1e-9)
+  expect_equal(cov(0.5, 0), mean(px(render(ggplot(flat(0.5), aes(x, y, z = z)) +
+      with_press(geom_halftone(pitch = 1, colour = "black", range = c(0, 1)), gain = 0) +
+      coord_cartesian(expand = FALSE) + theme_void(), w = 30, h = 30, dpi = 600))[, , 1] < 0.5), tolerance = 0.02)
+  mid  <- cov(0.5, 0.3) - cov(0.5, 0)
+  high <- cov(0.9, 0.3) - cov(0.9, 0)
+  expect_gt(mid, 0.05); expect_gt(mid, high)          # a press gains most in the midtones
+  expect_equal(gghalftone:::press_gain(c(0, 1), list(gain = 0.3)), c(0, 1))   # nothing at paper or solid
+})
+
+test_that("registration offsets the plate, reproducibly for a seed and differently between seeds", {
+  f <- local({ g <- expand.grid(x = seq(0, 10, 0.5), y = seq(0, 10, 0.5)); g$z <- 0.5; g })
+  xs <- function(seed) { k <- content(ggplot(f, aes(x, y, z = z)) +
+      with_press(geom_halftone(pitch = 1, colour = "black"), gain = 0, registration = 0.3, seed = seed) + theme_void(), "halftone")
+    sort(as.numeric(find_grob(k, "circle")$x))[1:20] }
+  expect_equal(xs(1), xs(1))
+  expect_false(isTRUE(all.equal(xs(1), xs(2))))
+  none <- function() { k <- content(ggplot(f, aes(x, y, z = z)) + geom_halftone(pitch = 1, colour = "black") + theme_void(), "halftone")
+    sort(as.numeric(find_grob(k, "circle")$x))[1:20] }
+  expect_equal(gghalftone:::press_phase(list(registration = 0), 1), c(0, 0))
+  expect_false(isTRUE(all.equal(xs(1), none())))
+})

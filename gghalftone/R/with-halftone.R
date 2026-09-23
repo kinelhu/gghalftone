@@ -72,7 +72,7 @@ makeContent.halftone_fill <- function(x) {
   polys <- lapply(polys, function(q) { rgba <- grDevices::col2rgb(q$fill, alpha = TRUE); q$cov <- (rgba[4] / 255) * (q$alpha %||% 1)
     q$fill <- grDevices::rgb(rgba[1], rgba[2], rgba[3], maxColorValue = 255); q$alpha <- 1; q })
   poly_cols <- vapply(polys, function(q) scales::alpha(q$fill, q$alpha), "")   # one colour per polygon, indexed per cell
-  lat <- halftone_lattice(p, W, H); X <- lat$X; Y <- lat$Y; ins <- lat$inside
+  lat <- halftone_lattice(p, W, H, phase = press_phase(p$press, p$pitch)); X <- lat$X; Y <- lat$Y; ins <- lat$inside
   # per-cell: which polygon (last wins, as in drawing order), tone
   owner <- matrix(0L, nrow(X), ncol(X)); owner2 <- owner; cnt <- owner; tone <- matrix(0, nrow(X), ncol(X))
   mask <- matrix(0, nrow(X), ncol(X))   # bitmask of polygons covering each cell (double: exact to 2^53)
@@ -99,6 +99,7 @@ makeContent.halftone_fill <- function(x) {
     tk <- tk^p$gamma * p$tone_max * q$cov
     owner2[inp & cnt > 0] <- k; owner[inp & cnt == 0] <- k; cnt[inp] <- cnt[inp] + 1L; tone[inp] <- pmax(tone[inp], tk[inp]); mask[inp] <- mask[inp] + 2^(k - 1)
   }
+  tone <- press_gain(tone, p$press)
   if (p$shape == "line") {
     COL <- matrix(NA_character_, nrow(X), ncol(X)); ok <- owner > 0
     COL[ok] <- poly_cols[owner[ok]]
@@ -206,6 +207,7 @@ with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone 
             tone_auto = !tone_user, tone_max_auto = !tone_max_user, angle_user = angle_user)
   keymap <- new.env(parent = emptyenv())   # fill colour -> auto screen spec, written at draw time, read by the legend key
   wrapped <- ggproto(NULL, parent,
+    parameters = keep_parameters(parent),
     default_aes = do.call(aes, c(as.list(parent$default_aes), list(screen = NA))),
     draw_panel = function(self, data, panel_params, coord, ...) {
       if (!is.null(data$screen) && !all(is.na(data$screen))) {          # per-group screen: one halftone_fill per group, own angle

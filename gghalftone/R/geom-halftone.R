@@ -176,8 +176,8 @@ makeContent.halftone <- function(x) {
   W <- convertWidth(unit(1, "npc"), "mm", valueOnly = TRUE); H <- convertHeight(unit(1, "npc"), "mm", valueOnly = TRUE)
   if (!is.null(x$groups)) return(make_overprint(x, W, H))
   pitch <- p$pitch
-  lat <- halftone_lattice(p, W, H, phase = p$phase); X <- lat$X; Y <- lat$Y
-  r0 <- halftone_dither_group(d, lat, p, W, H); D <- r0$D; idx <- r0$idx
+  lat <- halftone_lattice(p, W, H, phase = p$phase + press_phase(p$press, pitch)); X <- lat$X; Y <- lat$Y
+  r0 <- halftone_dither_group(d, lat, p, W, H); D <- press_gain(r0$D, p$press); idx <- r0$idx
   D <- floor_dither(D, dot_floor(p), row(D), col(D)); keep <- D > tone_floor
   if (!any(keep)) return(setChildren(x, gList()))
   if (p$shape == "line") return(setChildren(x, gList(line_screen_grob(lat, r0, d, p, W, H))))
@@ -253,9 +253,9 @@ dot_grob <- function(xs, ys, r, col, shape = "circle") {
 }
 make_overprint <- function(x, W, H) {
   p <- x$params; gs <- x$groups; pitch <- p$pitch
-  lat <- halftone_lattice(p, W, H); X <- lat$X; Y <- lat$Y
+  lat <- halftone_lattice(p, W, H, phase = press_phase(p$press, pitch)); X <- lat$X; Y <- lat$Y
   res <- lapply(gs, function(d) halftone_dither_group(d, lat, p, W, H))
-  Dmax <- Reduce(pmax, lapply(res, `[[`, "D")); nk <- Reduce(`+`, lapply(res, function(r) r$D > 0))
+  Dmax <- press_gain(Reduce(pmax, lapply(res, `[[`, "D")), p$press); nk <- Reduce(`+`, lapply(res, function(r) r$D > 0))
   Dmax <- floor_dither(Dmax, dot_floor(p), row(Dmax), col(Dmax)); keep <- Dmax > tone_floor
   # colour per cell: single ink, or multiply-blend of all inks present
   cols <- character(sum(keep)); cells <- which(keep)
@@ -384,7 +384,7 @@ geom_halftone <- function(mapping = NULL, data = NULL, stat = "identity", positi
 # ---- geom_spot: each point is a disc of radius r (mm) filled with a halftone whose tone is the value ----------------
 # tone: aes(tone = ) through scale_tone_continuous() (0..1, with a guide), or aes(z = ) normalised in the geom (no guide).
 # Each disc gets its own hex lattice centred on the disc (a symmetric rosette), and the dots are clipped to the disc.
-spot_grob <- function(cx, cy, rad, tone, col, pitch, dot_max, ring, ring_lwd, levels = NULL, bayer_n = 4, min_feature = 0.09, angle = 0, shape = "circle") {
+spot_grob <- function(cx, cy, rad, tone, col, pitch, dot_max, ring, ring_lwd, levels = NULL, bayer_n = 4, min_feature = 0.09, angle = 0, shape = "circle", press = NULL) {
   py <- pitch * sqrt(3) / 2; k <- ceiling(rad / pitch) + 1
   us <- seq(-k, k) * pitch; vs <- seq(-k, k) * py
   U <- matrix(us, length(vs), length(us), byrow = TRUE); V <- matrix(vs, length(vs), length(us)); U <- U + (row(U) %% 2) * pitch / 2
@@ -400,7 +400,7 @@ spot_grob <- function(cx, cy, rad, tone, col, pitch, dot_max, ring, ring_lwd, le
   D <- if (is.null(levels)) rep(tone, sum(inside)) else {
     b <- bayer_matrix(bayer_n); thr <- b[cbind((row(U)[inside] - 1) %% bayer_n + 1, (col(U)[inside] - 1) %% bayer_n + 1)]
     pmin(pmax(floor(tone * levels + thr) / levels, 0), 1) }
-  D <- floor_dither(D, max(tone_floor, (min_feature / (dot_max * pitch))^2), row(U)[inside], col(U)[inside]); keep <- D > tone_floor
+  D <- press_gain(D, press); D <- floor_dither(D, max(tone_floor, (min_feature / (dot_max * pitch))^2), row(U)[inside], col(U)[inside]); keep <- D > tone_floor
   kids <- gList()
   if (any(keep)) {
     dots <- dot_grob(cx + U[inside][keep], cy + V[inside][keep], dot_max * pitch / 2 * sqrt(D[keep]), col, shape)
@@ -419,7 +419,7 @@ makeContent.spot <- function(x) {
   cx <- d$x * W; cy <- d$y * H; rad <- if (is.null(d$size)) rep(p$r, nrow(d)) else d$size   # size aes = radius (mm)
   kids <- lapply(seq_len(nrow(d)), function(k) { sp <- parse_screen(d$screen[k]); shp <- if (p$shape == "line" && !identical(sp$shape, "line")) "line" else sp$shape %||% p$shape
     spot_grob(cx[k], cy[k], rad[k], d$z01[k] * sp$tone, scales::alpha(d$colour[k], d$alpha[k]), p$pitch, p$dot_max, p$ring, p$ring_lwd, p$levels, p$bayer_n, p$min_feature,
-              (if (p$angle_user) p$angle else 0) + screen_angle(sp, shp), shp) })
+              (if (p$angle_user) p$angle else 0) + screen_angle(sp, shp), shp, p$press) })
   setChildren(x, do.call(gList, kids))
 }
 GeomSpot <- ggproto("GeomSpot", Geom,

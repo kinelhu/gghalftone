@@ -21,6 +21,7 @@ with_halo <- function(layer, width = 0.09, colour = "white") {
   paper <- colour
   extra <- 2 * width * 96 / 25.4   # grid lwd is in 1/96 inch
   wrapped <- ggproto(NULL, parent,
+    parameters = keep_parameters(parent),
     draw_panel = function(self, data, panel_params, coord, ...) {
       orig <- ggproto_parent(parent, self)$draw_panel(data, panel_params, coord, ...)
       grobTree(halo_grob(orig, paper, extra), orig)

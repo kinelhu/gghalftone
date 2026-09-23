@@ -2,7 +2,7 @@
 
 ![Maunga Whau as a line-screen engraving with illuminated contours](man/figures/engraving.png)
 
-Halftone fills for ggplot2. The package places dots or hatch lines at draw time on a lattice with a physical pitch in millimetres. A figure saved at 89 mm and at 183 mm gets the same screen, not a scaled one. Overlapping groups are printed on one lattice so that every group stays visible.
+Halftone fills for ggplot2. The package places dots or hatch lines at draw time on a lattice with a physical pitch in millimetres. This is what separates it from [ggfx](https://ggfx.data-imaginist.com), whose `with_*()` filters run on the rasterised layer, so their dot size is in pixels and changes with output size. A figure saved at 89 mm and at 183 mm gets the same screen, not a scaled one. Overlapping groups are printed on one lattice so that every group stays visible.
 
 ![Kaplan-Meier with three halftone confidence bands and a risk table](man/figures/km.png)
 
@@ -67,6 +67,16 @@ The defaults encode these rules. Each one was chosen by comparing renders at 600
 
 More of these, including an sf choropleth, ridgelines, violins and a demonstration that the screen does not change with output size, are in `prototypes/showcase.R`.
 
+## Press artefacts
+
+`with_press()` draws the screen the way a press puts it on paper rather than the way the plate describes it. Wrap it around a halftone layer. Dot gain is the tone value increase at a 50% screen, about 0.15 for offset on coated stock and 0.35 on newsprint; past 0.5 the midtone dots grow beyond the lattice and bridge, which is the blotting of a heavy impression. Registration is the standard deviation in mm of that ink's plate offset, which shows when a figure is built from one layer per ink.
+
+```r
+with_press(with_halftone(geom_col()), gain = 0.35, registration = 0.05)
+```
+
+Everything here makes a figure less faithful to its data, so it is a separate entry point, off by default, and not for the journal register.
+
 ## Black and white
 
 ![Kaplan-Meier in one ink with three hatch angles](man/figures/km_bw.png)
@@ -85,7 +95,7 @@ The package does not ship a complete theme. `theme_halftone()` is a modifier tha
 
 ## Status
 
-Prototype. The API of `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `with_relief()`, the `screen` and `tone` aesthetics, `km_steps()` and the `theme_halftone()` modifier is considered stable. Every export has a help page. Start with `?with_halftone`.
+Prototype. The API of `geom_halftone()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `with_relief()`, `with_press()`, the `screen` and `tone` aesthetics, `km_steps()` and the `theme_halftone()` modifier is considered stable. Every export has a help page. Start with `?with_halftone`.
 
 ## References
 
