@@ -177,7 +177,8 @@ makeContent.halftone <- function(x) {
   if (!is.null(x$groups)) return(make_overprint(x, W, H))
   pitch <- p$pitch
   lat <- halftone_lattice(p, W, H, phase = p$phase + press_phase(p$press, pitch)); X <- lat$X; Y <- lat$Y
-  r0 <- halftone_dither_group(d, lat, p, W, H); D <- press_gain(r0$D, p$press); idx <- r0$idx
+  r0 <- halftone_dither_group(d, lat, p, W, H); idx <- r0$idx
+  D <- press_gain(press_mottle(r0$D, p$press, X, Y), p$press)
   D <- floor_dither(D, dot_floor(p), row(D), col(D)); keep <- D > tone_floor
   if (!any(keep)) return(setChildren(x, gList()))
   if (p$shape == "line") return(setChildren(x, gList(line_screen_grob(lat, r0, d, p, W, H))))
@@ -255,7 +256,7 @@ make_overprint <- function(x, W, H) {
   p <- x$params; gs <- x$groups; pitch <- p$pitch
   lat <- halftone_lattice(p, W, H, phase = press_phase(p$press, pitch)); X <- lat$X; Y <- lat$Y
   res <- lapply(gs, function(d) halftone_dither_group(d, lat, p, W, H))
-  Dmax <- press_gain(Reduce(pmax, lapply(res, `[[`, "D")), p$press); nk <- Reduce(`+`, lapply(res, function(r) r$D > 0))
+  Dmax <- press_gain(press_mottle(Reduce(pmax, lapply(res, `[[`, "D")), p$press, X, Y), p$press); nk <- Reduce(`+`, lapply(res, function(r) r$D > 0))
   Dmax <- floor_dither(Dmax, dot_floor(p), row(Dmax), col(Dmax)); keep <- Dmax > tone_floor
   # colour per cell: single ink, or multiply-blend of all inks present
   cols <- character(sum(keep)); cells <- which(keep)

@@ -16,6 +16,11 @@
 #' about 0.5 the midtone dots grow past the lattice pitch, touch and bridge, which is the blotting of a
 #' heavily inked impression.
 #'
+#' @section Mottle:
+#' Ink does not lie down evenly. `mottle` adds a slow random variation in density across the sheet, smooth at the
+#' scale of `mottle_scale` millimetres, which is what separates a real impression from a clean digital screen. It
+#' varies tone, so it survives resizing like everything else here.
+#'
 #' @section Registration:
 #' Each ink is a separate plate and the plates never align perfectly. `registration` is the standard
 #' deviation, in mm, of a random offset applied to this layer's lattice. It only shows when a figure is
@@ -24,6 +29,9 @@
 #'
 #' @param layer A halftone layer, or a list holding one.
 #' @param gain Tone value increase at a 50 % screen. 0 leaves the screen alone.
+#' @param mottle Relative standard deviation of the slow variation in ink density across the sheet. 0.1 is a
+#'   visible but unremarkable impression, 0.25 a poor one.
+#' @param mottle_scale Distance in mm over which that variation changes. Real mottle runs at a few millimetres.
 #' @param registration Standard deviation in mm of this layer's plate offset. 0 is perfect registration.
 #' @param seed Seed for the plate offset, so a figure rebuilds identically. `NULL` draws a new one.
 #' @return The layer, with its geom replaced by one that carries the press settings.
@@ -35,9 +43,9 @@
 #'              gain = 0.3) +
 #'   ggplot2::theme_classic() + theme_halftone()
 #' @export
-with_press <- function(layer, gain = 0.2, registration = 0, seed = NULL) {
-  stopifnot(gain >= 0, registration >= 0)
-  press <- list(gain = gain, registration = registration,
+with_press <- function(layer, gain = 0.2, mottle = 0, mottle_scale = 4, registration = 0, seed = NULL) {
+  stopifnot(gain >= 0, mottle >= 0, mottle_scale > 0, registration >= 0)
+  press <- list(gain = gain, mottle = mottle, mottle_scale = mottle_scale, registration = registration,
                 seed = seed %||% sample.int(.Machine$integer.max, 1L))
   wrap_layers(layer, function(layer) {
     parent <- layer$geom
@@ -62,6 +70,22 @@ set_press <- function(g, press) {
 press_gain <- function(tone, press) {
   if (is.null(press) || press$gain <= 0) return(tone)
   pmin(tone + press$gain * sin(pi * pmin(pmax(tone, 0), 1)), 1.6)
+}
+# Slow variation in ink density: value noise on a grid of `mottle_scale` mm, smoothstepped so the field has no
+# creases at the cell joins. Multiplies tone, so a light area mottles less than a dark one, as ink does.
+press_mottle <- function(tone, press, X, Y) {
+  if (is.null(press) || is.null(press$mottle) || press$mottle <= 0) return(tone)
+  s <- press$mottle_scale
+  i0 <- floor(as.vector(X) / s); j0 <- floor(as.vector(Y) / s)
+  i1 <- min(i0); j1 <- min(j0); ni <- max(i0) - i1 + 2L; nj <- max(j0) - j1 + 2L
+  n <- withr_seed(press$seed + 1L, matrix(stats::rnorm(ni * nj), nj, ni))
+  ii <- i0 - i1 + 1L; jj <- j0 - j1 + 1L
+  fx <- as.vector(X) / s - i0; fy <- as.vector(Y) / s - j0
+  sx <- fx * fx * (3 - 2 * fx); sy <- fy * fy * (3 - 2 * fy)
+  v <- (n[cbind(jj, ii)] * (1 - sx) + n[cbind(jj, ii + 1L)] * sx) * (1 - sy) +
+       (n[cbind(jj + 1L, ii)] * (1 - sx) + n[cbind(jj + 1L, ii + 1L)] * sx) * sy
+  out <- pmax(as.vector(tone) * (1 + press$mottle * v), 0)
+  if (is.matrix(tone)) matrix(out, nrow(tone), ncol(tone)) else out
 }
 # The plate offset, in units of pitch, so it can go straight into halftone_lattice()'s phase.
 press_phase <- function(press, pitch) {

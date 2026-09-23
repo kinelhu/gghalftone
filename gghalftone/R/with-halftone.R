@@ -99,7 +99,7 @@ makeContent.halftone_fill <- function(x) {
     tk <- tk^p$gamma * p$tone_max * q$cov
     owner2[inp & cnt > 0] <- k; owner[inp & cnt == 0] <- k; cnt[inp] <- cnt[inp] + 1L; tone[inp] <- pmax(tone[inp], tk[inp]); mask[inp] <- mask[inp] + 2^(k - 1)
   }
-  tone <- press_gain(tone, p$press)
+  tone <- press_gain(press_mottle(tone, p$press, X, Y), p$press)
   if (p$shape == "line") {
     COL <- matrix(NA_character_, nrow(X), ncol(X)); ok <- owner > 0
     COL[ok] <- poly_cols[owner[ok]]

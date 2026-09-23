@@ -497,3 +497,26 @@ test_that("registration offsets the plate, reproducibly for a seed and different
   expect_equal(gghalftone:::press_phase(list(registration = 0), 1), c(0, 0))
   expect_false(isTRUE(all.equal(xs(1), none())))
 })
+
+test_that("mottle varies ink density across the sheet, smoothly, reproducibly, and not at all when 0", {
+  flat <- local({ g <- expand.grid(x = seq(0, 40, 0.4), y = seq(0, 40, 0.4)); g$z <- 0.45; g })
+  img <- function(...) { p <- ggplot(flat, aes(x, y, z = z)) +
+      with_press(geom_halftone(pitch = 0.6, colour = "black", range = c(0, 1)), ...) +
+      coord_equal(expand = FALSE) + theme_void()
+    px(render(p, w = 40, h = 40, dpi = 600))[, , 1] < 0.5 }
+  tile_sd <- function(m, k = 8) { n <- nrow(m) %/% k; c <- ncol(m) %/% k
+    sd(outer(seq_len(k), seq_len(k), Vectorize(function(i, j)
+      mean(m[((i - 1) * n + 1):(i * n), ((j - 1) * c + 1):(j * c)]))))}
+  plain <- img(gain = 0.2, seed = 7)
+  mot   <- img(gain = 0.2, mottle = 0.25, seed = 7)
+  expect_gt(tile_sd(mot), tile_sd(plain) * 2)          # density now varies from place to place
+  expect_equal(mean(mot), mean(plain), tolerance = 0.12)  # but the average is roughly preserved
+  expect_equal(img(gain = 0.2, mottle = 0, seed = 7), plain)   # 0 is exactly a no-op
+  expect_equal(img(gain = 0.2, mottle = 0.25, seed = 3), img(gain = 0.2, mottle = 0.25, seed = 3))
+  expect_false(identical(img(gain = 0.2, mottle = 0.25, seed = 3), mot))
+  # the field is smooth: neighbouring tiles differ less than distant ones
+  t8 <- function(m, k = 8) { n <- nrow(m) %/% k; c <- ncol(m) %/% k
+    outer(seq_len(k), seq_len(k), Vectorize(function(i, j) mean(m[((i-1)*n+1):(i*n), ((j-1)*c+1):(j*c)]))) }
+  tm <- t8(mot)
+  expect_lt(mean(abs(diff(tm))), mean(abs(tm[-1, ] - tm[rev(seq_len(nrow(tm) - 1)), ])))
+})

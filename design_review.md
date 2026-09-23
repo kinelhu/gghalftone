@@ -375,3 +375,16 @@ at the default pitch, and `with_halo(geom_line(arrow = ...))` silently dropped t
 escaped only by accident, because ribbons define `draw_group` and it inherited those formals. All four
 wrappers now delegate `parameters()` to the geom they wrap, with a test comparing wrapped against
 unwrapped for each.
+
+## Mottle, and the fillet declined (2026-09-23)
+
+`with_press()` gained `mottle`, the slow variation in ink density that separates a real impression from
+a clean digital screen. It is value noise on a grid of `mottle_scale` millimetres, smoothstepped so the
+field has no creases at the cell joins, multiplying tone so a light area mottles less than a dark one,
+as ink does. The test checks that density now varies between tiles while the mean is preserved, that
+the field is smooth rather than white noise, and that a seed reproduces it exactly.
+
+The surface-tension fillet from the blog post is declined. Looked at 1:1, heavy gain already bridges
+correctly: the dots touch and the white interstices shrink to the star-shaped gaps between circles,
+which is what shadow fill-in looks like on paper. A fillet would round those gaps very slightly and
+would cost a polyclip dependency and a polygon union per figure. Not worth it.

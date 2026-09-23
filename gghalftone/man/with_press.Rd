@@ -4,12 +4,24 @@
 \alias{with_press}
 \title{Press artefacts}
 \usage{
-with_press(layer, gain = 0.2, registration = 0, seed = NULL)
+with_press(
+  layer,
+  gain = 0.2,
+  mottle = 0,
+  mottle_scale = 4,
+  registration = 0,
+  seed = NULL
+)
 }
 \arguments{
 \item{layer}{A halftone layer, or a list holding one.}
 
 \item{gain}{Tone value increase at a 50 \% screen. 0 leaves the screen alone.}
+
+\item{mottle}{Relative standard deviation of the slow variation in ink density across the sheet. 0.1 is a
+visible but unremarkable impression, 0.25 a poor one.}
+
+\item{mottle_scale}{Distance in mm over which that variation changes. Real mottle runs at a few millimetres.}
 
 \item{registration}{Standard deviation in mm of this layer's plate offset. 0 is perfect registration.}
 
@@ -31,6 +43,13 @@ and 0.25 to 0.35 on newsprint. \code{gain} is that number. The increase follows 
 vanishes at paper and at solid and peaks in the midtones, which is where a press gains most. Above
 about 0.5 the midtone dots grow past the lattice pitch, touch and bridge, which is the blotting of a
 heavily inked impression.
+}
+
+\section{Mottle}{
+
+Ink does not lie down evenly. \code{mottle} adds a slow random variation in density across the sheet, smooth at the
+scale of \code{mottle_scale} millimetres, which is what separates a real impression from a clean digital screen. It
+varies tone, so it survives resizing like everything else here.
 }
 
 \section{Registration}{
