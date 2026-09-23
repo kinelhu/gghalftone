@@ -580,6 +580,36 @@ test_that("the polygon a dot becomes for clipping carries the circle's ink", {
   expect_gte(cov(0.02), cov(0) - 0.005)    # below the bridging threshold a fillet must not lose ink
 })
 
+test_that("a filleted shadow of any size renders, with no tile seam and the same ink per unit area", {
+  # A union of a few thousand overlapping dots overflowed R's protection stack when polyclip ran at the depth of a
+  # draw, so any filleted shadow bigger than a swatch crashed. The closing is local, so it is done in tiles; the
+  # clips overlap by a hairline, because edges that merely abut leave an anti-aliased light line along every join.
+  skip_if_not_installed("polyclip")
+  ink <- function(side, ...) {
+    g <- expand.grid(x = seq(0, side, 0.5), y = seq(0, side, 0.5)); g$z <- 0.6
+    p <- ggplot(g, aes(x, y, z = z)) +
+      with_press(geom_halftone(pitch = 0.5, colour = "black", range = c(0, 1), tone_max = 1), ...) +
+      coord_equal(expand = FALSE) + theme_void() +
+      theme(plot.margin = margin(0, 0, 0, 0), panel.background = element_rect(fill = "white", colour = NA))
+    mean(px(render(p, w = 40, h = 40, dpi = 300))[, , 1] < 0.5)
+  }
+  small <- ink(6, gain = 0.26, slur = 0.06, fillet = 0.06)     # one tile
+  big   <- ink(60, gain = 0.26, slur = 0.06, fillet = 0.06)    # many
+  expect_gt(small, 0.5)
+  expect_equal(big, small, tolerance = 0.02)                   # ink per unit area does not depend on the field size
+  expect_no_error(ink(60, gain = 0.26, fillet = 0.06, mottle = 0.13))
+  # no seam: no interior row or column of the raster is short of ink
+  g <- expand.grid(x = seq(0, 50, 0.5), y = seq(0, 50, 0.5)); g$z <- 0.62
+  p <- ggplot(g, aes(x, y, z = z)) +
+    with_press(geom_halftone(pitch = 1.2, colour = "black", range = c(0, 1), tone_max = 1), gain = 0.3, slur = 0.06, fillet = 0.06) +
+    coord_equal(expand = FALSE) + theme_void() +
+    theme(plot.margin = margin(0, 0, 0, 0), panel.background = element_rect(fill = "white", colour = NA))
+  m <- 1 - px(render(p, w = 50, h = 50, dpi = 300))[, , 1]
+  k <- 30:(nrow(m) - 30); mi <- m[k, k]
+  expect_gt(min(colMeans(mi)) / stats::median(colMeans(mi)), 0.97)
+  expect_gt(min(rowMeans(mi)) / stats::median(rowMeans(mi)), 0.97)
+})
+
 test_that("with_press() takes a plot or a patchwork, and leaves the one it was handed alone", {
   # A ggproto layer is an environment. Wrapping a plot in place would press the plot the caller still holds, so a
   # before-and-after pair would print the same figure twice.

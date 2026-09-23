@@ -169,14 +169,42 @@ press_dots <- function(xs, ys, r, cols, shape, pitch, press, k = 24) {
   touch <- r >= pitch / 2 - f - slur / 2
   if (!any(touch) && slur <= 0) return(dot_grob(xs, ys, r, cols, shape))
   kids <- gList()
-  for (cl in unique(cols[!touch])) { s <- which(!touch & cols == cl); if (length(s)) kids <- gList(kids, as_path(shapes(s), cl)) }
+  # Dots with nothing to bridge to are just dots: circles when the sheet did not move, capsules when it did. Sending
+  # them through the union as well cost time and, for a field of any size, the protection stack.
+  loose <- which(!touch)
+  if (length(loose)) kids <- gList(kids, if (slur <= 0) dot_grob(xs[loose], ys[loose], r[loose], cols[loose], shape) else {
+    k2 <- gList(); for (cl in unique(cols[loose])) { s <- loose[cols[loose] == cl]
+      k2 <- gList(k2, as_path(shapes(s), cl)) }; gTree(children = k2) })
+  if (!any(touch)) return(gTree(children = kids))
+  # A union of a few thousand overlapping dots overflows R's protection stack when polyclip runs at the depth of a
+  # draw, and a shadow of any size is exactly that. The closing is local: whether a point is inked depends only on
+  # dots within 2f of it. So the field is cut into tiles, each tile is closed from the dots within a margin of it,
+  # and the result is clipped back to the tile. Same geometry, bounded work per call.
+  margin <- 2 * f + max(r[touch]) + slur / 2
+  side <- max(sqrt(600 * sqrt(3) / 2) * pitch, 4 * margin)
+  x0 <- min(xs) - margin; y0 <- min(ys) - margin; seam <- 0.03
   for (cl in unique(cols[touch])) {
-    s <- which(touch & cols == cl)
-    if (!length(s)) next
-    u <- polyclip::polysimplify(shapes(s), filltype = "nonzero")
-    u <- polyclip::polyoffset(polyclip::polyoffset(u, f, jointype = "round"), -f, jointype = "round")
-    if (!length(u)) next
-    kids <- gList(kids, as_path(u, cl))
+    sel <- which(touch & cols == cl)
+    if (!length(sel)) next
+    tx <- floor((xs[sel] - x0) / side); ty <- floor((ys[sel] - y0) / side)
+    for (t in unique(paste(tx, ty))) {
+      ab <- as.integer(strsplit(t, " ")[[1]]); a <- ab[1]; b <- ab[2]
+      cx0 <- x0 + a * side; cy0 <- y0 + b * side
+      s <- sel[xs[sel] >= cx0 - margin & xs[sel] <= cx0 + side + margin &
+               ys[sel] >= cy0 - margin & ys[sel] <= cy0 + side + margin]
+      if (!length(s)) next
+      u <- polyclip::polysimplify(shapes(s), filltype = "nonzero")
+      u <- polyclip::polyoffset(polyclip::polyoffset(u, f, jointype = "round"), -f, jointype = "round")
+      if (!length(u)) next
+      if (length(unique(paste(tx, ty))) > 1) {
+        # the clips overlap by a hairline: edges that merely abut leave an anti-aliased light line along every join
+        core <- list(x = c(cx0 - seam, cx0 + side + seam, cx0 + side + seam, cx0 - seam),
+                     y = c(cy0 - seam, cy0 - seam, cy0 + side + seam, cy0 + side + seam))
+        u <- polyclip::polyclip(u, core, op = "intersection", fillA = "nonzero", fillB = "nonzero")
+        if (!length(u)) next
+      }
+      kids <- gList(kids, as_path(u, cl))
+    }
   }
   gTree(children = kids)
 }
