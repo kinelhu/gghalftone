@@ -23,6 +23,7 @@ R package: halftone, dither and line-screen fills for ggplot2. Dots are placed a
 - Prose in docs, vignettes, help pages and figure text: short sentences, no em dashes, no middots, no aphorisms.
 
 ## Key functions
+- `halftone_plot(plot, ...)`: screen a whole plot in one call. Screens the filled layers, haloes the lines that sit over a screen, adds the theme modifier. Dispatches on geom class; anything it does not recognise draws as it always did. Idempotent, and it leaves a layer you wrapped yourself alone.
 - `with_halftone(layer, ...)`: screen the fill of any layer. The tone profile follows the geometry.
 - `with_halo(layer)`: paper hairline under a line layer.
 - `with_relief(layer, light)`: Tanaka illuminated contours.

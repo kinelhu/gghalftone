@@ -67,6 +67,23 @@ The defaults encode these rules. Each one was chosen by comparing renders at 600
 
 More of these, including an sf choropleth, ridgelines, violins and a demonstration that the screen does not change with output size, are in `prototypes/showcase.R`.
 
+## Screen a whole plot
+
+`halftone_plot()` takes a finished plot and returns it printed. It screens every filled layer, draws a paper hairline under every line that crosses a screen, and adds the theme modifier.
+
+```r
+halftone_plot(p)
+halftone_plot(p, pitch = 0.6, shape = "line")   # any with_halftone() argument
+```
+
+The treatment follows the geom. Ribbons, areas, densities, bars, tiles, polygons, sf geometries, violins, boxplots and smooths are screened, each with the tone profile its geometry calls for. Lines, paths, steps and contours are haloed, but only where a screen sits under them. Points, text, error bars, rugs and reference lines are left alone, and so is any geom it does not recognise: an unknown layer draws exactly as it did before, so the worst case is an unscreened layer rather than a wrong figure.
+
+It screens the fill and nothing else. Line weights, point shapes and fill colours stay as the plot set them, so a figure built for the screen from the start still reads better. Applying it twice changes nothing, and a layer you wrapped yourself is left as you wrapped it.
+
+![The same plot as given, through halftone_plot(), and composed by hand](man/figures/engine.png)
+
+*Left: the plot as given. Middle: `halftone_plot(p)`, one call. Right: the same figure composed layer by layer with the package's inks and weights.*
+
 ## Press artefacts
 
 `with_press()` draws the screen as a press puts it on paper, not as the plate describes it. Wrap it around a halftone layer, a plot, or a patchwork; given more than one layer, each is pressed as its own plate.

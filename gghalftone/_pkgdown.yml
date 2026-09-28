@@ -16,6 +16,8 @@ articles:
   navbar: ~
   contents: [gghalftone, screens, fields]
 reference:
+- title: Screening a plot
+  contents: [halftone_plot]
 - title: Screening a layer
   contents: [with_halftone, with_halo, with_relief, with_press]
 - title: Geoms

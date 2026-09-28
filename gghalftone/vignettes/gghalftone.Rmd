@@ -17,6 +17,29 @@ A halftone prints tone as dots of varying size on a fixed lattice. gghalftone ap
 
 Use it for journal figures. A confidence band stays legible in greyscale, overlapping intervals do not hide one another, and a bar chart can be decoded from its hatching alone.
 
+## Screen a whole plot
+
+`halftone_plot()` takes a finished plot and returns it printed. It screens every filled layer, draws a paper hairline under every line that crosses a screen, and adds the theme modifier. Any argument of `with_halftone()` passes through.
+
+```{r engine}
+m <- loess(dist ~ speed, cars, span = 0.9)
+nd <- data.frame(speed = seq(4, 25, length.out = 80))
+pr <- predict(m, nd, se = TRUE)
+nd$fit <- pr$fit; nd$lo <- pr$fit - 1.96 * pr$se.fit; nd$hi <- pr$fit + 1.96 * pr$se.fit
+
+p <- ggplot(nd, aes(speed)) +
+  geom_ribbon(aes(ymin = lo, ymax = hi), fill = "steelblue") +
+  geom_line(aes(y = fit), linewidth = 0.6) +
+  geom_point(data = cars, aes(speed, dist), size = 1) +
+  labs(x = "Speed (mph)", y = "Stopping distance (ft)") + theme_classic(base_size = 8)
+
+halftone_plot(p)
+```
+
+The treatment follows the geom. Ribbons, areas, densities, bars, tiles, polygons, sf geometries, violins, boxplots and smooths are screened. Lines, paths, steps and contours are haloed, but only where a screen sits under them. Points, text, error bars, rugs and reference lines are left alone, and so is any geom it does not recognise.
+
+It screens the fill and nothing else, so line weights, point shapes and fill colours stay as you set them. The rest of this vignette composes the same figure layer by layer, which is what to do when the figure is built for the screen from the start.
+
 ## Screen a confidence band
 
 `with_halftone()` wraps any filled layer. The layer draws as usual, and its fill is replaced by a screen in the fill colour, clipped to the shape.

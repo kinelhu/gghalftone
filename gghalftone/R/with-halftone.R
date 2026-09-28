@@ -210,6 +210,7 @@ with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone 
             tone_auto = !tone_user, tone_max_auto = !tone_max_user, angle_user = angle_user)
   keymap <- new.env(parent = emptyenv())   # fill colour -> auto screen spec, written at draw time, read by the legend key
   wrapped <- ggproto(NULL, parent,
+    .halftone_wrapper = "with_halftone",   # read by halftone_plot(), so a layer wrapped by hand is left as it is
     parameters = keep_parameters(parent),
     default_aes = do.call(aes, c(as.list(parent$default_aes), list(screen = NA))),
     draw_panel = function(self, data, panel_params, coord, ...) {

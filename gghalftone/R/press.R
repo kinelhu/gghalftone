@@ -96,6 +96,7 @@ with_press <- function(layer, gain = 0.2, slur = 0, slur_angle = 90, fillet = 0,
     press$seed <- press$seed + i - 1L
     parent <- layer$geom
     layer$geom <- local({ press <- press; ggproto(NULL, parent, parameters = keep_parameters(parent),
+      .halftone_wrapper = "with_press",
       draw_panel = function(self, data, panel_params, coord, ...) {
         set_press(ggproto_parent(parent, self)$draw_panel(data, panel_params, coord, ...), press)
       },

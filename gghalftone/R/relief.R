@@ -39,6 +39,7 @@ with_relief <- function(layer, light = 315, width = c(0.05, 0.35), colours = c(l
   parent <- layer$geom
   P <- list(light = light, width = width, colours = colours, uphill = uphill)
   wrapped <- ggproto(NULL, parent,
+    .halftone_wrapper = "with_relief",
     parameters = keep_parameters(parent),
     draw_panel = function(self, data, panel_params, coord, ...) {
       cc <- coord$transform(data, panel_params)

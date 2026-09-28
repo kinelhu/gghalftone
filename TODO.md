@@ -20,6 +20,17 @@ Nothing outstanding.
 
 ## Known behaviour
 
+- `halftone_plot()` dispatches on geom class across the layer stack: fills are screened, paths and segments over a
+  screen are haloed, everything else is left alone. The safe default is that an unrecognised layer draws exactly as
+  it did, so the worst case is an unscreened layer. That is the difference from a converter such as ggplotly, which
+  reimplements each geom and therefore carries a support matrix. Layer-stack dispatch is ordinary practice: ggpubr
+  classifies by geom class, ggfun by stat class. ggdark avoids it and mutates global geom defaults instead, which
+  needs an explicit undo.
+- `geom_raster()` draws an image rather than polygons, so there is nothing to clip a screen to. It is a no-op, not
+  an error. Use `geom_tile()`.
+- Wrapped geoms carry `.halftone_wrapper`, which is what makes `halftone_plot()` idempotent and what stops it
+  re-wrapping a layer wrapped by hand.
+
 - Cairo devices draw a small filled circle far too large: a 0.05 mm radius comes back at 0.17 mm, clearing only above about 0.2 mm, which is larger than any halftone dot. Dots therefore go through `round_dots()`, which uses a grid circle only on devices where it is faithful (ragg, base `pdf`, postscript) and a 12-sided polygon elsewhere. Do not replace that with `circleGrob`.
 - Clipping paths are honoured by ragg, cairo and base `pdf`, verified by rasterising a polygon with a hole.
 - The blue-noise tile does not repeat visibly. On a 60 by 30 mm flat stipple at 0.45 mm the rendered autocorrelation at the 32-cell period is -0.005, the same as at a non-period lag. The lattice rotation and the field mapping break any alignment between the matrix tiling and the page. The earlier note claiming a visible repeat is not reproducible.

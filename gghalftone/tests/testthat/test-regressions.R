@@ -610,6 +610,70 @@ test_that("a filleted shadow of any size renders, with no tile seam and the same
   expect_gt(min(rowMeans(mi)) / stats::median(rowMeans(mi)), 0.97)
 })
 
+test_that("halftone_plot() screens by role, haloes only lines over a screen, and is idempotent", {
+  d <- data.frame(x = 1:30, y = sin(1:30), lo = sin(1:30) - 0.4, hi = sin(1:30) + 0.4)
+  wrapper <- function(p, i) p$layers[[i]]$geom$.halftone_wrapper
+  # ribbon, then a line over it, then points
+  p <- ggplot(d, aes(x)) + geom_ribbon(aes(ymin = lo, ymax = hi), fill = "grey30") +
+    geom_line(aes(y = y)) + geom_point(aes(y = y)) + theme_classic()
+  q <- halftone_plot(p)
+  expect_equal(wrapper(q, 1), "with_halftone")
+  expect_equal(wrapper(q, 2), "with_halo")
+  expect_null(wrapper(q, 3))                       # points are left alone
+  expect_null(wrapper(p, 1))                       # the plot handed in is untouched
+  # a line drawn BEFORE any screen has nothing to stay legible against
+  r <- halftone_plot(ggplot(d, aes(x)) + geom_line(aes(y = y)) +
+                       geom_ribbon(aes(ymin = lo, ymax = hi), fill = "grey30") + theme_classic())
+  expect_null(wrapper(r, 1))
+  expect_equal(wrapper(r, 2), "with_halftone")
+  expect_null(halftone_plot(p, halo = 0)$layers[[2]]$geom$.halftone_wrapper)
+  # reference lines are their own geoms, so they are never haloed
+  expect_null(wrapper(halftone_plot(p + geom_hline(yintercept = 0)), 4))
+  # applying it twice changes nothing, and a layer wrapped by hand is left as it was wrapped
+  ink <- function(x) mean(px(render(x, w = 45, h = 35, dpi = 300))[, , 1] < 0.5)
+  expect_equal(ink(halftone_plot(q)), ink(q), tolerance = 1e-9)
+  byhand <- ggplot(d, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "grey30"), shape = "line") +
+    geom_line(aes(y = y)) + theme_classic()
+  expect_equal(ink(halftone_plot(byhand, halo = 0)), ink(byhand + theme_halftone()), tolerance = 1e-9)
+  expect_equal(wrapper(halftone_plot(byhand), 2), "with_halo")   # but the line over it still gets its channel
+})
+
+test_that("halftone_plot() takes a patchwork, respects theme = FALSE, and refuses anything else", {
+  d <- data.frame(g = factor(c("a", "b", "c")), n = c(3, 2, 4))
+  p <- ggplot(d, aes(g, n)) + geom_col(fill = "grey30") + theme_classic()
+  ink <- function(x) mean(px(render(x, w = 45, h = 35, dpi = 300))[, , 1] < 0.5)
+  expect_lt(ink(halftone_plot(p)), ink(p) * 0.6)
+  expect_equal(ink(halftone_plot(p, theme = FALSE)), ink(halftone_plot(p)), tolerance = 0.05)
+  expect_error(halftone_plot(1:3), "ggplot or a patchwork")
+  expect_error(halftone_plot(p, halo = -1))
+  expect_no_error(halftone_plot(ggplot(d, aes(g, n)) + theme_classic()))    # a plot with no layers
+  skip_if_not_installed("patchwork")
+  pw <- patchwork::wrap_plots(p, p)
+  b0 <- ink(pw)
+  expect_lt(ink(halftone_plot(pw)), b0 * 0.6)
+  expect_equal(ink(pw), b0, tolerance = 1e-9)
+  expect_equal(halftone_plot(pw)$patches$plots[[1]]$layers[[1]]$geom$.halftone_wrapper, "with_halftone")
+})
+
+test_that("every geom either screens or is left byte-identical", {
+  # The safe default is that an unrecognised layer draws exactly as it did. Checked across the geoms a reader is
+  # likely to hand in, because the whole case for a whole-plot function rests on it.
+  ink <- function(p) mean(px(render(p, w = 45, h = 35, dpi = 300))[, , 1] < 0.5)
+  gr <- expand.grid(x = 1:8, y = 1:8); gr$z <- gr$x * gr$y
+  d <- data.frame(g = factor(c("a", "b", "c")), n = c(5, 3, 4))
+  screens <- list(col = ggplot(d, aes(g, n)) + geom_col(fill = "grey30"),
+                  tile = ggplot(gr, aes(x, y, fill = z)) + geom_tile(),
+                  density = ggplot(mpg, aes(hwy)) + geom_density(fill = "grey30"),
+                  boxplot = ggplot(mpg, aes(drv, hwy)) + geom_boxplot(fill = "grey30"))
+  for (nm in names(screens)) expect_lt(ink(halftone_plot(screens[[nm]], theme = FALSE)), ink(screens[[nm]]) * 0.75)
+  untouched <- list(point = ggplot(mpg, aes(displ, hwy)) + geom_point(),
+                    text = ggplot(d, aes(g, n, label = n)) + geom_text(),
+                    errorbar = ggplot(d, aes(g, n, ymin = n - 1, ymax = n + 1)) + geom_errorbar(),
+                    raster = ggplot(gr, aes(x, y, fill = z)) + geom_raster())
+  for (nm in names(untouched))
+    expect_equal(ink(halftone_plot(untouched[[nm]], theme = FALSE)), ink(untouched[[nm]]), tolerance = 1e-9)
+})
+
 test_that("with_press() takes a plot or a patchwork, and leaves the one it was handed alone", {
   # A ggproto layer is an environment. Wrapping a plot in place would press the plot the caller still holds, so a
   # before-and-after pair would print the same figure twice.
