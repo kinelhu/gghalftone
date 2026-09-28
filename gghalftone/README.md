@@ -8,6 +8,60 @@ Halftone fills for ggplot2. The package places dots or hatch lines at draw time 
 
 *A Kaplan-Meier plot of the North Central Cancer Treatment Group lung cancer data (Loprinzi et al. 1994) at journal size: 89 mm, 600 dpi, `theme_classic(base_size = 8)`. Three 95% confidence bands drawn with `with_halftone(geom_ribbon())`, step curves with `with_halo()`, censor marks and a risk table from `km_steps()`, `km_censor()` and `km_risk()`.*
 
+## Install
+
+There is no remote yet, so the package installs from the working copy. Compiling it needs an Rcpp toolchain; rendering needs ragg.
+
+From the repository root:
+
+```sh
+R CMD INSTALL gghalftone
+```
+
+That puts it in your user library, where `library(gghalftone)` finds it from any project that has no library of its own.
+
+While changing the package itself, skip the install:
+
+```r
+devtools::load_all("~/Dev/gghalftone/gghalftone")
+```
+
+### In an renv project
+
+renv will not see a package that is not in a repository, so give it one. Build a tarball and put it in the project's cellar:
+
+```sh
+cd ~/Dev/gghalftone && R CMD build gghalftone
+mkdir -p ~/my-project/renv/cellar
+cp gghalftone_*.tar.gz ~/my-project/renv/cellar/
+```
+
+Then, in the project:
+
+```r
+renv::install("gghalftone")
+renv::snapshot()
+```
+
+The lockfile records `"Source": "Cellar"`, and `renv::restore()` reads the tarball back out of `renv/cellar/`.
+
+Two things to watch. renv's own `renv/.gitignore` lists `cellar/`, so the tarball is untracked by default and a fresh clone restores against a file that is not there. Commit it deliberately:
+
+```sh
+git add -f renv/cellar/gghalftone_0.0.0.9000.tar.gz
+```
+
+And bump the `Version:` in `DESCRIPTION` whenever you rebuild, or renv keeps the copy it already has.
+
+### Once there is a remote
+
+The package sits in a subdirectory of its repository, so an install from GitHub needs to be told:
+
+```r
+renv::install("<user>/gghalftone/gghalftone")
+remotes::install_github("<user>/gghalftone", subdir = "gghalftone")
+```
+
 ## Usage
 
 ```r

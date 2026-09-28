@@ -73,6 +73,13 @@ Nothing outstanding.
 - With overprinting, the lower half of each Kaplan-Meier band is denser because it overlaps the neighbour's core. Use `overlap = "stack"` if the bands must be symmetric.
 - Line screens with a tapered tone profile look like fringe. The wrapper warns.
 - The package sets no fonts. The gallery uses stock ggplot2 themes.
+- `man/figures/` is resized to a web width and quantised by `prototypes/readme_figures.R`. At 600 dpi it was 22 MB
+  and the source tarball 22 MB with it, which is past what anyone should install over a network. It is 1.8 MB and
+  3.5 MB now.
+- Loading it elsewhere: there is no remote, so `R CMD INSTALL gghalftone` for a plain project and a tarball in
+  `renv/cellar/` for an renv one. Verified with an empty renv cache, so the restore really does come from the
+  cellar. renv's own `renv/.gitignore` lists `cellar/`, so the tarball needs `git add -f` or a fresh clone restores
+  against a file that is not there. Bump `Version:` on every rebuild or renv keeps the copy it has.
 - Vignette PNGs are quantised to 48 colours because halftone images compress poorly. The R magick package must be installed for that hook to run. The source tarball is 3.1 MB, of which the four-colour photograph in the fields vignette is 0.6 MB.
 
 ## Design rules

@@ -17,7 +17,7 @@ cd .. && R CMD INSTALL gghalftone
 Rscript -e 'library(gghalftone); testthat::test_dir("gghalftone/tests/testthat")'
 ```
 
-Installing needs an Rcpp toolchain. Rendering needs ragg.
+Installing needs an Rcpp toolchain. Rendering needs ragg. `gghalftone/README.md` has the routes for loading it from another project, including renv.
 
 ## Render the figures
 
