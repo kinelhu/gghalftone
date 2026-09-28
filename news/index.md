@@ -40,6 +40,12 @@
 - No feature is smaller than 0.09 mm, the journal minimum. The floor is
   held by dithering, so coverage is preserved and light tone becomes
   sparse minimum dots or broken hairlines.
+- Dot shapes now lay down the coverage the lattice says they should. The
+  agg devices rasterise a small filled circle as an inscribed polygon,
+  so a circle printed at 0.903 of its area at the journal pitch while
+  squares and diamonds were exact, and a screen that mixed shapes
+  printed its circles a tenth lighter than their neighbours while
+  encoding the same thing. Vector output is unchanged.
 - [`ggsave_journal()`](https://kinelhu.github.io/gghalftone/reference/theme_halftone.md)
   writes PDFs through base
   [`pdf()`](https://rdrr.io/r/grDevices/pdf.html) rather than
