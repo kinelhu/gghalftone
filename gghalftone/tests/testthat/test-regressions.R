@@ -669,9 +669,11 @@ test_that("halftone_plot() screens by role, haloes only lines over a screen, and
     geom_line(aes(y = y)) + theme_void()
   b1 <- halftone_plot(bare, theme = FALSE)
   expect_equal(ink(halftone_plot(b1, theme = FALSE)), ink(b1), tolerance = 1e-9)
+  # A layer wrapped by hand keeps the wrapping it was given: this one is a line screen, and must not come back as
+  # dots. theme_void() again, so the comparison is of the drawing and not of the font stack.
   byhand <- ggplot(d, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "grey30"), shape = "line") +
-    geom_line(aes(y = y)) + theme_classic()
-  expect_equal(ink(halftone_plot(byhand, halo = 0)), ink(byhand + theme_halftone()), tolerance = 1e-9)
+    geom_line(aes(y = y)) + theme_void()
+  expect_equal(ink(halftone_plot(byhand, halo = 0, theme = FALSE)), ink(byhand), tolerance = 1e-9)
   expect_equal(wrapper(halftone_plot(byhand), 2), "with_halo")   # but the line over it still gets its channel
 })
 

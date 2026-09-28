@@ -20,6 +20,10 @@ Nothing outstanding.
 
 ## Known behaviour
 
+- Comparing pixels across two renders in one session is only safe on a plot with no text. Panel size follows text
+  metrics, and on macOS the first measurement of a session is not the second: two identical plot objects came back
+  12 % apart in ink while every structural check said they matched. Tests that compare renders use `theme_void()`,
+  and idempotence is asserted on the object rather than on the raster.
 - `blue_noise_matrix()` is seeded so the matrix is identical every time, and it now restores the caller's RNG. It
   used to call `set.seed(7)` and leave it, from inside a draw: the first plot of a script silently reseeded the
   session and every random result after it changed. Anything in this package that seeds must save and restore, the
