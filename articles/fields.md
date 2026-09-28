@@ -163,9 +163,9 @@ Everything it does makes a figure less faithful to its data, so it is
 off by default and outside the journal register. Use it for a plate, a
 poster or a cover.
 
-Stacked rather than set side by side: three panels across a page this
-width leave each one too small to see the screen, which is the thing the
-figure is about.
+Stacked rather than set side by side, and narrow to suit a portrait
+subject: three panels across a page leave each one too small to see the
+screen, which is the thing the figure is about.
 
 ``` r
 
