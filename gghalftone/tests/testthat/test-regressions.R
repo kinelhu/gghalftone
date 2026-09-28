@@ -611,6 +611,31 @@ test_that("a filleted shadow of any size renders, with no tile seam and the same
   expect_gt(min(rowMeans(mi)) / stats::median(rowMeans(mi)), 0.97)
 })
 
+test_that("drawing a screen leaves the caller's RNG alone", {
+  # blue_noise_matrix() is seeded so the matrix is the same every time, and it ran set.seed(7) without putting the
+  # caller's state back. It runs inside a draw, so the first plot of a script silently reseeded the session to 7 and
+  # every random result after it changed. Found while chasing an unrelated CI failure.
+  gghalftone:::reset_blue_noise()
+  set.seed(42); before <- runif(3)
+  set.seed(42); m <- gghalftone:::blue_noise_matrix(32); after <- runif(3)
+  expect_equal(after, before)
+  expect_equal(dim(m), c(32L, 32L))
+  expect_equal(m, gghalftone:::blue_noise_matrix(32))        # and it is still deterministic
+  # nothing is invented when the session had no RNG state at all
+  if (exists(".Random.seed", .GlobalEnv)) rm(".Random.seed", envir = .GlobalEnv)
+  gghalftone:::reset_blue_noise()
+  invisible(gghalftone:::blue_noise_matrix(32))
+  expect_false(exists(".Random.seed", .GlobalEnv))
+  # the same through a real draw
+  set.seed(7); baseline <- runif(2)
+  gghalftone:::reset_blue_noise()
+  f <- local({ g <- expand.grid(x = seq(0, 10, 0.4), y = seq(0, 10, 0.4)); g$z <- 0.3; g })
+  set.seed(7)
+  invisible(render(ggplot(f, aes(x, y, z = z)) + geom_halftone(pitch = 0.5, colour = "black", levels = 1,
+                                                               algorithm = "blue_noise") + theme_void(), w = 30, h = 30))
+  expect_equal(runif(2), baseline)
+})
+
 test_that("halftone_plot() screens by role, haloes only lines over a screen, and is idempotent", {
   d <- data.frame(x = 1:30, y = sin(1:30), lo = sin(1:30) - 0.4, hi = sin(1:30) + 0.4)
   wrapper <- function(p, i) p$layers[[i]]$geom$.halftone_wrapper

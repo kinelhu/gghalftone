@@ -20,6 +20,11 @@ Nothing outstanding.
 
 ## Known behaviour
 
+- `blue_noise_matrix()` is seeded so the matrix is identical every time, and it now restores the caller's RNG. It
+  used to call `set.seed(7)` and leave it, from inside a draw: the first plot of a script silently reseeded the
+  session and every random result after it changed. Anything in this package that seeds must save and restore, the
+  way `withr_seed()` does.
+
 - An unmapped geom colour comes from `theme(geom = )` on ggplot2 4.0, whose stock accent is `#3366FF`, the blue
   `geom_smooth()` draws its line in. `theme_halftone()` sets that accent to the first ink and `paper` to the ground.
   That is where a colour nobody chose belongs: the first attempt rewrote `aes_params` on the layer instead, which

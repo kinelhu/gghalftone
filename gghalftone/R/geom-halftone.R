@@ -45,7 +45,17 @@ blue_noise_matrix <- local({
   cache <- NULL
   function(n = 32, sigma = 1.5) {
     if (!is.null(cache) && nrow(cache) == n) return(cache)
-    set.seed(7); N <- n * n
+    # The matrix has to be the same every time, so it is seeded. Restore the caller's RNG afterwards: this runs
+    # inside a draw, and a package that silently reseeds a session to 7 changes every random result after the first
+    # plot. withr_seed() is the same save-and-restore press.R uses.
+    cache <<- withr_seed(7, blue_noise_build(n, sigma))
+    cache
+  }
+})
+# tests only: drop the cached matrix so the seeded build runs again
+reset_blue_noise <- function() assign("cache", NULL, envir = environment(blue_noise_matrix))
+blue_noise_build <- function(n, sigma) {
+    N <- n * n
     gauss <- outer(seq_len(n), seq_len(n), function(i, j) { di <- pmin(abs(i - 1), n - abs(i - 1)); dj <- pmin(abs(j - 1), n - abs(j - 1)); exp(-(di^2 + dj^2) / (2 * sigma^2)) })
     G <- fft(gauss)
     energy <- function(b) Re(fft(fft(b) * G, inverse = TRUE)) / N          # toroidal blur of the binary pattern
@@ -56,9 +66,8 @@ blue_noise_matrix <- local({
     for (r in seq(ones - 1, 0)) { e <- energy(pat); tc <- which.max(ifelse(pat == 1, e, -Inf)); pat[tc] <- 0; rank[tc] <- r }   # phase 2
     pat <- b
     for (r in seq(ones, N - 1)) { e <- energy(pat); lv <- which.min(ifelse(pat == 0, e, Inf)); pat[lv] <- 1; rank[lv] <- r }  # phase 3 (fills to full)
-    cache <<- (rank + 0.5) / N; cache
-  }
-})
+    (rank + 0.5) / N
+}
 #' @rdname dither
 #' @export
 dither_blue_noise <- function(z, levels = 1, n = 32) {
