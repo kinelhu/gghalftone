@@ -1,0 +1,56 @@
+# Changelog
+
+## gghalftone 0.0.0.9000
+
+- [`with_halftone()`](https://kinelhu.github.io/gghalftone/reference/with_halftone.md)
+  screens the fill of any layer at draw time, on a lattice whose pitch
+  is in millimetres, so a figure saved at 89 mm and at 183 mm gets the
+  same screen. The tone profile follows the geometry: flat for bars,
+  areas, polygons and maps, the likelihood of the estimate for
+  intervals, a soft vignette for densities.
+- [`halftone_plot()`](https://kinelhu.github.io/gghalftone/reference/halftone_plot.md)
+  screens a whole plot, or a patchwork, in one call. It screens the
+  filled layers, haloes the lines and points that sit over a screen, and
+  adds the theme modifier. A geom it does not recognise draws exactly as
+  it did before.
+- [`geom_halftone()`](https://kinelhu.github.io/gghalftone/reference/geom_halftone.md)
+  screens a gridded field,
+  [`geom_halftone_cmyk()`](https://kinelhu.github.io/gghalftone/reference/cmyk.md)
+  separates one into four process inks, and
+  [`geom_spot()`](https://kinelhu.github.io/gghalftone/reference/geom_spot.md)
+  draws one tone disc per point.
+- [`with_halo()`](https://kinelhu.github.io/gghalftone/reference/with_halo.md)
+  draws the printer’s knockout channel under a line.
+  [`with_relief()`](https://kinelhu.github.io/gghalftone/reference/with_relief.md)
+  implements illuminated contours (Tanaka 1950).
+- The `screen` aesthetic maps a discrete variable to a lattice angle, a
+  dot shape and a hatch angle, through
+  [`scale_screen_discrete()`](https://kinelhu.github.io/gghalftone/reference/scale_screen_discrete.md)
+  and
+  [`scale_screen_manual()`](https://kinelhu.github.io/gghalftone/reference/scale_screen_discrete.md).
+  Legend keys run the real screen over a key-sized area rather than
+  re-deriving the panel’s arithmetic.
+- Line screens, and Bayer, blue-noise and Floyd-Steinberg dithering for
+  quantised tone.
+- [`with_press()`](https://kinelhu.github.io/gghalftone/reference/with_press.md)
+  draws a screen as a press puts it on paper: dot gain, slur, ink
+  bridges, mottle and plate misregistration. Gain is measured on
+  coverage rather than on tone, which is what lets it fill a shadow in.
+  It is off by default and outside the journal register.
+- No feature is smaller than 0.09 mm, the journal minimum. The floor is
+  held by dithering, so coverage is preserved and light tone becomes
+  sparse minimum dots or broken hairlines.
+- [`theme_halftone()`](https://kinelhu.github.io/gghalftone/reference/theme_halftone.md)
+  is a modifier rather than a complete theme: paper ground, no
+  gridlines, screen-sized legend keys, the ink palette, and the geom
+  accent.
+  [`ggsave_journal()`](https://kinelhu.github.io/gghalftone/reference/theme_halftone.md)
+  writes PNG, TIFF or vector PDF at a column width.
+  [`halftone_proof()`](https://kinelhu.github.io/gghalftone/reference/theme_halftone.md)
+  renders at final size plus a magnified crop.
+- [`km_steps()`](https://kinelhu.github.io/gghalftone/reference/km_steps.md),
+  [`km_censor()`](https://kinelhu.github.io/gghalftone/reference/km_steps.md)
+  and
+  [`km_risk()`](https://kinelhu.github.io/gghalftone/reference/km_steps.md)
+  turn a `survfit` object into the frames these layers want.
+- `design_review.md` carries the review log, newest entry last.
