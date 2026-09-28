@@ -632,13 +632,18 @@ test_that("halftone_plot() screens by role, haloes only lines over a screen, and
   expect_null(wrapper(halftone_plot(p + geom_hline(yintercept = 0)), 4))
   # applying it twice changes nothing, and a layer wrapped by hand is left as it was wrapped
   ink <- function(x) mean(px(render(x, w = 45, h = 35, dpi = 300))[, , 1] < 0.5)
-  # idempotence is a property of the object, so check the object. A pixel comparison here also measures whatever
-  # the device did, and a cairo failure earlier in this file once left the stack in a state that changed it.
+  # Idempotence is a property of the object, so check the object: the wrappers each layer carries and the theme.
   again <- halftone_plot(q)
   expect_equal(vapply(again$layers, function(l) l$geom$.halftone_wrapper %||% "", ""),
                vapply(q$layers, function(l) l$geom$.halftone_wrapper %||% "", ""))
   expect_identical(again$theme, q$theme)
-  expect_equal(ink(again), ink(q), tolerance = 0.02)
+  # And that the drawing really is identical, on a plot with no text in it. Comparing pixels on a plot that has axis
+  # labels measures the font stack as well: on macOS the two renders differed by 12 % while the objects were
+  # identical, because panel size follows text metrics and the first measurement of a session is not the second.
+  bare <- ggplot(d, aes(x)) + geom_ribbon(aes(ymin = lo, ymax = hi), fill = "grey30") +
+    geom_line(aes(y = y)) + theme_void()
+  b1 <- halftone_plot(bare, theme = FALSE)
+  expect_equal(ink(halftone_plot(b1, theme = FALSE)), ink(b1), tolerance = 1e-9)
   byhand <- ggplot(d, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "grey30"), shape = "line") +
     geom_line(aes(y = y)) + theme_classic()
   expect_equal(ink(halftone_plot(byhand, halo = 0)), ink(byhand + theme_halftone()), tolerance = 1e-9)
