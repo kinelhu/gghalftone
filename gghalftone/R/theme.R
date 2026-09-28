@@ -67,7 +67,8 @@ ggsave_journal <- function(filename, plot, width = c("double", "single", "onehal
   # asked for, which is the package's whole promise, and it needs neither cairo nor X11. The macOS CRAN build has
   # neither, so cairo_pdf() there fails to open and writes nothing at all.
   dev <- switch(format, png = ragg::agg_png, tiff = , tif = agg_tiff_lzw,
-                pdf = function(filename, width, height, ...) grDevices::pdf(filename, width = width, height = height, onefile = FALSE))
+                pdf = function(filename, width, height, bg = "white", ...)
+                  grDevices::pdf(filename, width = width, height = height, onefile = FALSE, bg = bg))
   ggsave(filename, plot, width = w, height = height, units = "mm", dpi = dpi, device = dev, bg = bg, ...)
 }
 # ggsave() reads a device's formals to decide what to pass (res, units, bg), so the wrapper must declare them
