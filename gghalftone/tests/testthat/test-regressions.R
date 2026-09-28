@@ -1,6 +1,7 @@
 # One test per bug found during prototyping. Each renders to a raster device and inspects the grobs or pixels.
 library(ggplot2)
 render <- function(p, w = 60, h = 45, dpi = 300) { f <- tempfile(fileext = ".png"); ragg::agg_png(f, w, h, units = "mm", res = dpi); print(p); dev.off(); f }
+`%||%` <- function(a, b) if (is.null(a)) b else a
 px <- function(f) { im <- png::readPNG(f); if (length(dim(im)) == 3) im[, , 1:3] else im }
 
 test_that("pitch is physical: dot lattice is invariant to output size", {
@@ -631,7 +632,13 @@ test_that("halftone_plot() screens by role, haloes only lines over a screen, and
   expect_null(wrapper(halftone_plot(p + geom_hline(yintercept = 0)), 4))
   # applying it twice changes nothing, and a layer wrapped by hand is left as it was wrapped
   ink <- function(x) mean(px(render(x, w = 45, h = 35, dpi = 300))[, , 1] < 0.5)
-  expect_equal(ink(halftone_plot(q)), ink(q), tolerance = 1e-9)
+  # idempotence is a property of the object, so check the object. A pixel comparison here also measures whatever
+  # the device did, and a cairo failure earlier in this file once left the stack in a state that changed it.
+  again <- halftone_plot(q)
+  expect_equal(vapply(again$layers, function(l) l$geom$.halftone_wrapper %||% "", ""),
+               vapply(q$layers, function(l) l$geom$.halftone_wrapper %||% "", ""))
+  expect_identical(again$theme, q$theme)
+  expect_equal(ink(again), ink(q), tolerance = 0.02)
   byhand <- ggplot(d, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "grey30"), shape = "line") +
     geom_line(aes(y = y)) + theme_classic()
   expect_equal(ink(halftone_plot(byhand, halo = 0)), ink(byhand + theme_halftone()), tolerance = 1e-9)
