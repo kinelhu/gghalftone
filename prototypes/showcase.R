@@ -106,8 +106,13 @@ if (requireNamespace("magick", quietly = TRUE)) {
   grid::pushViewport(grid::viewport(layout = grid::grid.layout(5, 4,
     heights = grid::unit(c(9, 26, 6, 26, 5), "mm"),
     widths  = grid::unit(c(46, 32, 32, 32), "mm"))))
+  # short headers: "saved 183 mm wide" at 10 pt bold is wider than the 32 mm column and the three run into each other
+  grid::pushViewport(grid::viewport(layout.pos.row = 1, layout.pos.col = 1))
+  grid::grid.text("saved at", x = grid::unit(1, "npc") - grid::unit(4, "mm"), y = grid::unit(3, "mm"),
+                  just = c("right", "bottom"), gp = grid::gpar(fontsize = 10, fontface = "bold", col = "grey15"))
+  grid::popViewport()
   for (j in seq_along(widths7)) { grid::pushViewport(grid::viewport(layout.pos.row = 1, layout.pos.col = j + 1))
-    grid::grid.text(sprintf("saved %d mm wide", widths7[j]), y = grid::unit(3, "mm"), just = "bottom",
+    grid::grid.text(sprintf("%d mm", widths7[j]), y = grid::unit(3, "mm"), just = "bottom",
                     gp = grid::gpar(fontsize = 10, fontface = "bold", col = "grey15")); grid::popViewport() }
   for (i in 1:2) {
     r <- c(2, 4)[i]
