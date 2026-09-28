@@ -40,6 +40,17 @@
 - No feature is smaller than 0.09 mm, the journal minimum. The floor is
   held by dithering, so coverage is preserved and light tone becomes
   sparse minimum dots or broken hairlines.
+- [`ggsave_journal()`](https://kinelhu.github.io/gghalftone/reference/theme_halftone.md)
+  writes PDFs through base
+  [`pdf()`](https://rdrr.io/r/grDevices/pdf.html) rather than
+  [`cairo_pdf()`](https://rdrr.io/r/grDevices/cairo.html). It is one of
+  the devices where a small filled circle comes back the size it was
+  asked for, and it needs neither cairo nor X11, which the macOS CRAN
+  build of R has neither of.
+- Drawing a screen no longer reseeds the caller’s session.
+  [`blue_noise_matrix()`](https://kinelhu.github.io/gghalftone/reference/dither.md)
+  is seeded so the matrix is identical every time, and it now puts the
+  RNG back where it found it.
 - [`theme_halftone()`](https://kinelhu.github.io/gghalftone/reference/theme_halftone.md)
   is a modifier rather than a complete theme: paper ground, no
   gridlines, screen-sized legend keys, the ink palette, and the geom
