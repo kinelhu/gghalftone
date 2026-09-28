@@ -144,8 +144,10 @@ flat tint and takes about 1.8 times as long to draw.
 
 d <- data.frame(x = seq(0, 10, length.out = 60)); d$y <- sin(d$x); d$lo <- d$y - 0.5 - 0.02 * d$x; d$hi <- d$y + 0.5 + 0.02 * d$x
 one <- function(p) ggplot(d, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = p) +
-  with_halo(geom_line(aes(y = y), linewidth = 0.35)) + labs(x = NULL, y = NULL, title = sprintf("%.2f mm", p)) + theme_classic(base_size = 8) + theme_halftone() + theme(plot.title = element_text(size = 7))
-patchwork::wrap_plots(lapply(c(0.6, 0.45, 0.35, 0.25), one), nrow = 1)
+  with_halo(geom_line(aes(y = y), linewidth = 0.35)) + labs(x = NULL, y = NULL, title = sprintf("%.2f mm", p)) +
+  theme_classic(base_size = 8) + theme_halftone() +
+  theme(plot.title = element_text(size = 11, face = "bold", margin = margin(b = 2)))
+patchwork::wrap_plots(lapply(c(0.6, 0.45, 0.35, 0.25), one), ncol = 1)
 ```
 
 ![](fields_files/figure-html/ladder-1.png)
@@ -161,20 +163,23 @@ Everything it does makes a figure less faithful to its data, so it is
 off by default and outside the journal register. Use it for a plate, a
 poster or a cover.
 
+Stacked rather than set side by side: three panels across a page this
+width leave each one too small to see the screen, which is the thing the
+figure is about.
+
 ``` r
 
-one <- function(...) { lay <- geom_halftone(shape = "line", colour = "black", angle = 30, gamma = 1.4, pitch = 0.6)
+one <- function(title, ...) { lay <- geom_halftone(shape = "line", colour = "black", angle = 30, gamma = 1.4, pitch = 0.6)
   args <- list(...)
   if (length(args)) lay <- do.call(with_press, c(list(lay), args))
-  ggplot(vol, aes(x, y, z = z)) + lay + coord_equal(expand = FALSE) + labs(x = NULL, y = NULL) +
-    theme_void(base_size = 8) + theme_halftone() }
-patchwork::wrap_plots(one(), one(gain = 0.3, seed = 4),
-                      one(gain = 0.3, slur = 0.08, fillet = 0.05, mottle = 0.16, seed = 4), nrow = 1)
+  ggplot(vol, aes(x, y, z = z)) + lay + coord_equal(expand = FALSE) + labs(x = NULL, y = NULL, title = title) +
+    theme_void(base_size = 8) + theme_halftone() +
+    theme(plot.title = element_text(size = 11, face = "bold", hjust = 0, margin = margin(b = 3))) }
+patchwork::wrap_plots(one("as prepared"), one("dot gain only", gain = 0.3, seed = 4),
+                      one("the whole press", gain = 0.3, slur = 0.08, fillet = 0.05, mottle = 0.16, seed = 4), ncol = 1)
 ```
 
 ![](fields_files/figure-html/press-1.png)
-
-Left: as prepared. Middle: dot gain alone. Right: the whole press.
 
 `gain` is the trade’s tone value increase at a 50 % screen, about 0.15
 for offset on coated stock and 0.35 on newsprint. It applies to
