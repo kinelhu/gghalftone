@@ -1,6 +1,6 @@
 # gghalftone: hand-off notes
 
-Status (2026-09-28): builds and installs on R 4.6.1 and ggplot2 4.0.3. The regression suite passes (53 blocks, 236 expectations) and `R CMD check` with vignettes is clean. Git repository on branch `main`. The full gallery renders in about 11 s at the 0.35 mm default. Every export has a help page.
+Status (2026-09-28): on a remote, private, CI on every push to `main`. Builds and installs on R 4.6.1 and ggplot2 4.0.3. The regression suite passes (53 blocks, 236 expectations) and `R CMD check` with vignettes is clean. Git repository on branch `main`. The full gallery renders in about 11 s at the 0.35 mm default. Every export has a help page.
 
 Four scripts render figures: `prototypes/gallery2.R` for the defaults gallery, `prototypes/showcase.R` for the wider API, `prototypes/press_gallery.R` for the press pairs, and `prototypes/readme_figures.R` to refresh `man/figures/` from them. Run all four after changing drawing code.
 
@@ -12,7 +12,7 @@ Four scripts render figures: `prototypes/gallery2.R` for the defaults gallery, `
 4. `geom_spot()`: `aes(screen = )`, `shape = "line"`, square and diamond dots.
 5. Performance: profiled on the worst case (2 by 3 facets, three woven strata, 183 mm, 0.35 mm). 6.9 s to 5.5 s after vectorising the weave and the colour lookup. The package's own work is 0.5 s of that. The rest is ragg drawing about 500k circles, which is the fastest primitive available.
 6. Vignettes: `gghalftone`, `screens`, `fields`. The pkgdown site builds into `docs/`.
-7. Git and CI: workflows for R CMD check (macOS and Ubuntu) and pkgdown are in `.github/workflows/`. They run on the first push once a remote exists. Set `url:` in `_pkgdown.yml` at that point.
+7. Git and CI: workflows for R CMD check (macOS and Ubuntu) and pkgdown are in `.github/workflows/` and run on every push to `main`. The remote is <https://github.com/kinelhu/gghalftone>, private for now; GitHub Pages needs it public on a free account, so the pkgdown deploy will not publish until it is flipped.
 
 ## Open
 
@@ -73,6 +73,10 @@ Nothing outstanding.
 - With overprinting, the lower half of each Kaplan-Meier band is denser because it overlaps the neighbour's core. Use `overlap = "stack"` if the bands must be symmetric.
 - Line screens with a tapered tone profile look like fringe. The wrapper warns.
 - The package sets no fonts. The gallery uses stock ggplot2 themes.
+- `figures/` is not tracked. Three scripts produce every file under it, and at 600 dpi each render writes fresh
+  multi-megabyte PNGs that do not delta, which took the repository to 220 MB across 41 commits. History was rewritten
+  with `git filter-repo --path figures/ --invert-paths` before the first push, when it was still free to do, and the
+  repository is 38 MB. A bundle of the old history was taken first.
 - `man/figures/` is resized to a web width and quantised by `prototypes/readme_figures.R`. At 600 dpi it was 22 MB
   and the source tarball 22 MB with it, which is past what anyone should install over a network. It is 1.8 MB and
   3.5 MB now.
