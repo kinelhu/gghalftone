@@ -242,9 +242,43 @@ weave_phase <- function(r, c, k) {
 # and the error only clears above about 0.2 mm, which is larger than every dot a halftone places. Polygons
 # are faithful on every device tested, so circles are used only where they are known to be right.
 circle_true_devices <- c("agg_png", "agg_tiff", "agg_jpeg", "agg_ppm", "agg_capture", "agg_record", "pdf", "postscript")
+# The agg devices rasterise a small filled circle as an inscribed polygon whose vertex count grows in steps with the
+# radius, so the circle comes back light: 0.903 of its area below 2.5 px, 0.977 below 5, 0.995 below 10. The
+# ratios are exactly the n-gon areas for n = 8, 12 and 24. Squares and diamonds are drawn from their own vertices and
+# are exact, so a screen mixing shapes had its circles printing a tenth lighter than their neighbours while encoding
+# the same thing. Putting the area back on the radius keeps circleGrob, which matters: drawing our own area-correct
+# polygon is exact but thirteen times slower, and drawing is already where the time goes.
+# The steps belong to agg, so a regression test pins coverage against the analytic value and fails if they move.
+agg_raster_devices <- c("agg_png", "agg_tiff", "agg_jpeg", "agg_ppm", "agg_capture", "agg_record")
+# Measured: agg switches vertex count at exactly 2.5, 5 and 10 pixels of radius, and the plateaus between are the
+# areas of the inscribed 8-, 12- and 24-gon. Inflating the radius can carry it across one of those steps, where agg
+# then uses more vertices as well as a larger radius and the dot comes back too heavy, so solve for the radius whose
+# drawn area is the area asked for: try each band, and take whichever candidate lands closest.
+agg_bands <- list(lo = c(0, 2.5, 5, 10), hi = c(2.5, 5, 10, Inf), fill = c(0.903, 0.977, 0.995, 0.999))
+agg_circle_r <- function(r_px) {
+  want <- r_px^2
+  best <- r_px; err <- rep(Inf, length(r_px))
+  for (i in seq_along(agg_bands$fill)) {
+    cand <- pmin(pmax(r_px / sqrt(agg_bands$fill[i]), agg_bands$lo[i]), agg_bands$hi[i] - 1e-9)
+    e <- abs(cand^2 * agg_bands$fill[i] - want)
+    take <- e < err; best[take] <- cand[take]; err[take] <- e[take]
+  }
+  best
+}
+device_dpi <- function() {
+  px <- tryCatch(grDevices::dev.size("px"), error = function(e) NULL)
+  ins <- tryCatch(grDevices::dev.size("in"), error = function(e) NULL)
+  if (is.null(px) || is.null(ins) || !is.finite(ins[1]) || ins[1] <= 0) return(NA_real_)
+  px[1] / ins[1]
+}
 round_dots <- function(xs, ys, r, gp, k = 12) {
-  if (isTRUE(names(grDevices::dev.cur()) %in% circle_true_devices))
+  if (isTRUE(names(grDevices::dev.cur()) %in% circle_true_devices)) {
+    if (isTRUE(names(grDevices::dev.cur()) %in% agg_raster_devices)) {
+      dpi <- device_dpi()
+      if (is.finite(dpi)) { px <- 25.4 / dpi; r <- agg_circle_r(r / px) * px }
+    }
     return(circleGrob(x = unit(xs, "mm"), y = unit(ys, "mm"), r = unit(r, "mm"), gp = gp))
+  }
   r <- r * ngon_k(k)   # an inscribed 12-gon carries 4.7 % less ink than the circle it stands in for
   a <- seq(0, 2 * pi, length.out = k + 1)[-(k + 1)]
   polygonGrob(x = unit(rep(xs, each = k) + rep(r, each = k) * cos(a), "mm"),

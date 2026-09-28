@@ -88,8 +88,12 @@ library(grid)
 find_grob <- function(g, cl) { if (inherits(g, cl)) return(g); kids <- if (inherits(g, "gTree")) g$children else if (inherits(g, "gList")) g else NULL
   for (k in kids) { r <- find_grob(k, cl); if (!is.null(r)) return(r) }; NULL }
 # the drawn content of the first grob of class cl in the panel, made inside a w x h mm viewport on a raster device
-content <- function(p, cl, w = 40, h = 40) { g <- ggplotGrob(p); pan <- g$grobs[[grep("^panel", g$layout$name)[1]]]; gt <- find_grob(pan, cl)
-  f <- tempfile(fileext = ".png"); ragg::agg_png(f, w, h, units = "mm", res = 300); on.exit(dev.off())
+# raster = FALSE builds on a vector device, where round_dots() applies no rasterisation correction, so a test can
+# read the radius the lattice asked for rather than the radius agg needs in order to draw that area.
+content <- function(p, cl, w = 40, h = 40, raster = TRUE) { g <- ggplotGrob(p); pan <- g$grobs[[grep("^panel", g$layout$name)[1]]]; gt <- find_grob(pan, cl)
+  if (raster) ragg::agg_png(tempfile(fileext = ".png"), w, h, units = "mm", res = 300)
+  else grDevices::pdf(tempfile(fileext = ".pdf"), width = w / 25.4, height = h / 25.4)
+  on.exit(dev.off())
   pushViewport(viewport(width = unit(w, "mm"), height = unit(h, "mm"))); makeContent(gt) }
 radii <- function(k) as.numeric(find_grob(k, "circle")$r)
 band <- data.frame(x = 0:1, lo = 0, hi = 1)
@@ -195,10 +199,10 @@ test_that("geom_spot: per-disc lattice is clipped to the disc, tone comes from s
 })
 
 test_that("register: centre profile prints lighter (0.6) than before; polygons flat at 0.6, bars flat at 0.45", {
-  r_rib <- max(radii(content(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1, outline = FALSE) + theme_void(), "halftone_fill")))
+  r_rib <- max(radii(content(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1, outline = FALSE) + theme_void(), "halftone_fill", raster = FALSE)))
   expect_lt(r_rib, 0.9 / 2 * sqrt(0.62)); expect_gt(r_rib, 0.9 / 2 * sqrt(0.5))
-  r_bar <- radii(content(ggplot(data.frame(g = "a", n = 1), aes(g, n)) + with_halftone(geom_col(fill = "black"), pitch = 1, outline = FALSE) + theme_void(), "halftone_fill"))[1]
-  r_pol <- radii(content(ggplot(data.frame(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1)), aes(x, y)) + with_halftone(geom_polygon(fill = "black"), pitch = 1, outline = FALSE) + theme_void(), "halftone_fill"))[1]
+  r_bar <- radii(content(ggplot(data.frame(g = "a", n = 1), aes(g, n)) + with_halftone(geom_col(fill = "black"), pitch = 1, outline = FALSE) + theme_void(), "halftone_fill", raster = FALSE))[1]
+  r_pol <- radii(content(ggplot(data.frame(x = c(0, 1, 1, 0), y = c(0, 0, 1, 1)), aes(x, y)) + with_halftone(geom_polygon(fill = "black"), pitch = 1, outline = FALSE) + theme_void(), "halftone_fill", raster = FALSE))[1]
   expect_equal(r_bar, 0.9 / 2 * sqrt(0.45), tolerance = 1e-6); expect_equal(r_pol, 0.9 / 2 * sqrt(0.6), tolerance = 1e-6)
 })
 
@@ -264,9 +268,9 @@ test_that("hatched intervals are a hairline equal to min_feature; the interval p
   strip_w <- function(p) { k <- content(p, "halftone_fill"); g <- find_grob(k, "polygon"); x <- as.numeric(g$x); y <- as.numeric(g$y); n <- g$id.lengths[1]; sqrt((x[1] - x[n])^2 + (y[1] - y[n])^2) }
   expect_equal(strip_w(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 0.5, shape = "line", outline = FALSE) + theme_void()), 0.09, tolerance = 1e-6)
   expect_message(with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi)), shape = "line", tone_max = 0.05), "printable minimum")
-  r <- radii(content(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1, outline = FALSE, min_feature = 0) + theme_void(), "halftone_fill"))
+  r <- radii(content(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1, outline = FALSE, min_feature = 0) + theme_void(), "halftone_fill", raster = FALSE))
   expect_equal(max(r), 0.9 / 2 * sqrt(0.6), tolerance = 1e-3)                     # 1 on the estimate, times the register
-  r99 <- radii(content(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1, outline = FALSE, min_feature = 0, level = 0.99) + theme_void(), "halftone_fill"))
+  r99 <- radii(content(ggplot(band, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, ymax = hi), fill = "black"), pitch = 1, outline = FALSE, min_feature = 0, level = 0.99) + theme_void(), "halftone_fill", raster = FALSE))
   expect_lt(min(r99), min(r))                                                       # a 99 % band fades further at its limit
 })
 
@@ -609,6 +613,40 @@ test_that("a filleted shadow of any size renders, with no tile seam and the same
   k <- 30:(nrow(m) - 30); mi <- m[k, k]
   expect_gt(min(colMeans(mi)) / stats::median(colMeans(mi)), 0.97)
   expect_gt(min(rowMeans(mi)) / stats::median(rowMeans(mi)), 0.97)
+})
+
+test_that("every dot shape lays down the coverage the lattice says it should", {
+  # The agg devices rasterise a small filled circle as an inscribed polygon whose vertex count steps up at 2.5, 5 and
+  # 10 px of radius, so a circle came back at 0.903 of its area at the journal pitch while squares and diamonds were
+  # exact. A screen that mixes shapes then printed its circles a tenth lighter than their neighbours while encoding
+  # the same thing. round_dots() puts the area back on the radius; this pins the result, so if agg moves its steps
+  # the test says so rather than the figures drifting.
+  cover <- function(shape, pitch, tone, dpi) {
+    g <- local({ d <- expand.grid(x = seq(0, 40, 0.5), y = seq(0, 40, 0.5)); d$z <- tone; d })
+    p <- ggplot(g, aes(x, y, z = z)) +
+      geom_halftone(pitch = pitch, colour = "black", range = c(0, 1), tone_max = 1, shape = shape, angle = 15) +
+      coord_equal(expand = FALSE) + theme_void() +
+      theme(plot.margin = margin(0, 0, 0, 0), panel.background = element_rect(fill = "white", colour = NA))
+    m <- px(render(p, w = 40, h = 40, dpi = dpi))[, , 1]
+    n <- min(dim(m)); k <- round(n * 0.3):round(n * 0.7)
+    mean(1 - m[k, k])                                  # integrated ink, not a threshold: anti-aliasing is coverage
+  }
+  # analytic coverage of a hex lattice: one dot of area pi*(dot_max*pitch/2)^2*tone in a cell of pitch^2*sqrt(3)/2
+  expect_cover <- function(tone, dm = 0.9) pi / 4 * dm^2 / (sqrt(3) / 2) * tone
+  for (shape in c("circle", "square", "diamond"))
+    expect_equal(cover(shape, 0.35, 0.45, 600), expect_cover(0.45), tolerance = 0.02,
+                 info = paste(shape, "at the journal pitch"))
+  expect_equal(cover("circle", 0.7, 0.45, 600), expect_cover(0.45), tolerance = 0.02)
+  expect_equal(cover("circle", 0.35, 0.45, 1200), expect_cover(0.45), tolerance = 0.02)
+  # and the shapes agree with each other, which is what an equal-weight encoding needs
+  a <- cover("circle", 0.35, 0.45, 600); b <- cover("square", 0.35, 0.45, 600)
+  expect_lt(abs(a - b) / a, 0.02)
+  # the model that solves for the radius: agg's steps are at 2.5, 5 and 10 px
+  fill <- function(x) ifelse(x < 2.5, 0.903, ifelse(x < 5, 0.977, ifelse(x < 10, 0.995, 0.999)))
+  r <- seq(0.8, 13, by = 0.05); rp <- gghalftone:::agg_circle_r(r)
+  expect_lt(max(abs(rp^2 * fill(rp) / r^2 - 1)), 0.025)     # worst case sits on a step, where no exact answer exists
+  expect_lt(mean(abs(rp^2 * fill(rp) / r^2 - 1)), 0.002)
+  expect_true(all(rp >= r))                                  # the correction only ever adds area
 })
 
 test_that("drawing a screen leaves the caller's RNG alone", {
