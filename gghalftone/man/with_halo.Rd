@@ -7,7 +7,8 @@
 with_halo(layer, width = 0.09, colour = "white")
 }
 \arguments{
-\item{layer}{A ggplot2 layer drawing lines, paths, steps, contours or points, or a list holding one.}
+\item{layer}{A ggplot2 layer drawing lines, paths, steps, contours or points; a list holding one; or a whole
+plot or patchwork, in which case every layer in it is wrapped. The object handed in is left alone.}
 
 \item{width}{Halo width in mm on each side of the stroke.}
 

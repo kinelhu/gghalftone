@@ -30,8 +30,11 @@ with_halftone(
 \method{makeContent}{halftone_fill}(x)
 }
 \arguments{
-\item{layer}{A ggplot2 layer, for example \code{geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))}, or a list holding
-one, which is what \code{geom_sf()} returns.}
+\item{layer}{A ggplot2 layer, for example \code{geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))}; a list holding
+one, which is what \code{geom_sf()} returns; or a whole plot or patchwork, in which case every layer in it is
+wrapped and the object handed in is left alone. Screening a whole plot gives a usable figure in one call, but
+it screens the fill and nothing else: add \code{\link[=with_halo]{with_halo()}} to the lines that cross a screen and
+\code{\link[=theme_halftone]{theme_halftone()}} for the paper ground and the ink palette.}
 
 \item{pitch}{Lattice spacing in mm (0.35, 73 lines per inch). Coarsen deliberately for a poster, or where several hatched groups overlap.}
 
