@@ -1,0 +1,30 @@
+/* pkgdown renders an image's alt text as a visible div.figcaption. Unstyled it arrives at body size and weight,
+   hard against the paragraph that follows, so a caption reads as another sentence of prose. */
+.figcaption {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #5b5b5b;
+  text-align: center;
+  margin: 0.5rem auto 1.75rem;
+  max-width: 46rem;
+}
+
+/* A fully italic paragraph under a figure is the fuller caption. Same treatment, and it closes the gap to the
+   figure above rather than to the prose below. */
+p > em:only-child {
+  display: block;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #5b5b5b;
+  text-align: left;
+}
+p:has(> em:only-child) {
+  margin-top: 0.35rem;
+  margin-bottom: 2rem;
+  max-width: 46rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* the caption belongs to the picture above it, not to the prose below */
+.float, .figure { margin-bottom: 0.25rem; }

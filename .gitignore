@@ -15,3 +15,10 @@ gghalftone/Meta/
 # multi-megabyte PNGs that do not delta against the old ones: tracking them took the repository to 220 MB across
 # 41 commits. The figures the README shows live in gghalftone/man/figures/, which is tracked, web-sized and small.
 figures/
+
+# Working notes, kept on disk and out of the public repository: CLAUDE.md is instructions to a coding assistant,
+# TODO.md the hand-off notes and design rules, design_review.md the candid review log. They are the project's memory
+# and none of them is anything a reader of the package needs.
+CLAUDE.md
+TODO.md
+design_review.md
