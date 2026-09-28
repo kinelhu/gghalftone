@@ -121,4 +121,51 @@ if (requireNamespace("magick", quietly = TRUE)) {
   invisible(dev.off())
 }
 
+## 8 A whole multipanel figure through one call -----------------------------------------------------------------------
+# Six panels built the way anyone would build them, composed with patchwork, then handed to halftone_plot() once.
+# Nothing here is written for the screen: the fills are mapped, the lines are ggplot2's defaults, and the only
+# halftone call in this section is the last line.
+if (requireNamespace("survival", quietly = TRUE) && requireNamespace("maps", quietly = TRUE)) {
+  suppressPackageStartupMessages({library(survival); library(maps)})
+  tag8 <- theme(plot.tag = element_text(face = "bold", size = 9), plot.tag.location = "margin")
+  th8 <- theme_classic(base_size = 8) + tag8
+
+  fit8 <- survfit(Surv(time, status) ~ ph.ecog, data = subset(lung, ph.ecog < 3))
+  s8 <- km_steps(fit8); levels(s8$strata) <- paste("ECOG", levels(s8$strata))
+  A8 <- ggplot(s8, aes(time, group = strata)) +
+    geom_ribbon(aes(ymin = lo, ymax = hi, fill = strata)) +
+    geom_step(aes(y = surv, colour = strata), linewidth = 0.5) +
+    scale_y_continuous(labels = scales::percent) + guides(colour = "none") +
+    labs(x = "Days", y = "Overall survival", fill = NULL, tag = "A") + th8 +
+    theme(legend.position = "inside", legend.position.inside = c(0.78, 0.86))
+
+  b8 <- data.frame(g = factor(c("BOS", "RAS", "Mixed", "Undef."), c("BOS", "RAS", "Mixed", "Undef.")), n = c(52, 21, 14, 13))
+  B8 <- ggplot(b8, aes(g, n, fill = g)) + geom_col(width = 0.7) +
+    scale_y_continuous(expand = expansion(c(0, 0.08))) +
+    labs(x = NULL, y = "Patients (%)", tag = "B") + th8 + theme(legend.position = "none")
+
+  C8 <- ggplot(iris, aes(Sepal.Length, fill = Species)) + geom_density(alpha = 0.6, linewidth = 0.25) +
+    labs(x = "Sepal length (cm)", y = "Density", fill = NULL, tag = "C") + th8 +
+    theme(legend.position = "inside", legend.position.inside = c(0.76, 0.86))
+
+  val8 <- setNames(USArrests$Murder, tolower(rownames(USArrests)))
+  st8 <- map_data("state"); st8$murder <- val8[st8$region]
+  D8 <- ggplot(st8, aes(long, lat, group = group, fill = murder)) + geom_polygon(colour = "black", linewidth = 0.15) +
+    coord_map("albers", lat0 = 30, lat1 = 45) + labs(x = NULL, y = NULL, fill = "Murders\nper 100k", tag = "D") +
+    guides(fill = guide_colourbar(barwidth = unit(3, "mm"), barheight = unit(18, "mm"))) +
+    theme_minimal(base_size = 8) + tag8 +
+    theme(axis.text = element_blank(), axis.ticks = element_blank(), panel.grid = element_blank())
+
+  E8 <- ggplot(mpg, aes(drv, hwy, fill = drv)) + geom_violin(linewidth = 0.25) +
+    labs(x = "Drive", y = "Highway mpg", tag = "E") + th8 + theme(legend.position = "none")
+
+  F8 <- ggplot(mpg, aes(displ, hwy)) + geom_point(size = 0.7) +
+    geom_smooth(method = "loess", formula = y ~ x, linewidth = 0.5) +
+    labs(x = "Displacement (l)", y = "Highway mpg", tag = "F") + th8
+
+  # the map wants a wider cell than the two charts beside it
+  fig8 <- (A8 | B8 | C8) / ((D8 | E8 | F8) + plot_layout(widths = c(1.45, 1, 1)))
+  out("whole_plot", halftone_plot(fig8), width = "double", height = 100)
+}
+
 cat("showcase ok\n")

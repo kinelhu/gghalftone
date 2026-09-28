@@ -33,9 +33,9 @@ The treatment follows the geom.
 \item \strong{Screened}: ribbons, areas, densities, bars, columns, histograms, tiles, rectangles, polygons, sf geometries,
 violins, boxplots, crossbars and smooths. Each gets the tone profile \code{\link[=with_halftone]{with_halftone()}} picks for it, so bars and
 maps come out flat, intervals follow the likelihood of the estimate, and densities get a soft vignette.
-\item \strong{Haloed}: lines, paths, steps, contours and segments, but only where a screened layer sits underneath them.
-A line drawn before any screen has nothing to stay legible against and is left alone.
-\item \strong{Left alone}: points, text, labels, error bars, rugs, reference lines, rasters, and any geom not listed above.
+\item \strong{Haloed}: lines, paths, steps, contours, segments and points, but only where a screened layer sits underneath
+them. Anything drawn before the first screen has nothing to stay legible against and is left alone.
+\item \strong{Left alone}: text, labels, error bars, rugs, reference lines, rasters, and any geom not listed above.
 }
 
 A layer you wrapped yourself is left as you wrapped it, so \code{halftone_plot()} can be applied to a plot that is
@@ -44,9 +44,14 @@ already part screened, and applying it twice changes nothing the second time.
 
 \section{What it does not do}{
 
-It screens the fill and nothing else. Line weights, point shapes and fill colours stay as the plot set them, so a
-figure built for the screen from the start still looks better: see the package README for the pair. Set
-\code{theme = FALSE} to keep your own theme untouched.
+It screens the fill and chooses no colours. Line weights, point shapes and any colour you set or mapped stay as the
+plot set them, so a figure built for the screen from the start still looks better: see the package README for the
+pair.
+
+A colour you did not choose is a different matter, and it belongs to the theme rather than here. On ggplot2 4.0 an
+unmapped geom colour comes from \code{theme(geom = )}, whose stock accent is the blue \code{geom_smooth()} draws its line in.
+\code{\link[=theme_halftone]{theme_halftone()}} sets that accent to the package's ink, so the one colour in a screened figure that would sit
+outside the register comes into it. \code{theme = FALSE} keeps your own theme, and that with it.
 
 \code{geom_raster()} draws an image rather than polygons, so there is nothing to clip a screen to and the layer prints
 as it was. Use \code{geom_tile()} instead, or \code{\link[=geom_halftone]{geom_halftone()}} on the field.

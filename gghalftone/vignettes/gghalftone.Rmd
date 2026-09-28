@@ -36,7 +36,7 @@ p <- ggplot(nd, aes(speed)) +
 halftone_plot(p)
 ```
 
-The treatment follows the geom. Ribbons, areas, densities, bars, tiles, polygons, sf geometries, violins, boxplots and smooths are screened. Lines, paths, steps and contours are haloed, but only where a screen sits under them. Points, text, error bars, rugs and reference lines are left alone, and so is any geom it does not recognise.
+The treatment follows the geom. Ribbons, areas, densities, bars, tiles, polygons, sf geometries, violins, boxplots and smooths are screened. Lines, paths, steps, contours and points are haloed, but only where a screen sits under them. Text, error bars, rugs and reference lines are left alone, and so is any geom it does not recognise.
 
 It screens the fill and nothing else, so line weights, point shapes and fill colours stay as you set them. The rest of this vignette composes the same figure layer by layer, which is what to do when the figure is built for the screen from the start.
 

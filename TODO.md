@@ -20,8 +20,13 @@ Nothing outstanding.
 
 ## Known behaviour
 
-- `halftone_plot()` dispatches on geom class across the layer stack: fills are screened, paths and segments over a
-  screen are haloed, everything else is left alone. The safe default is that an unrecognised layer draws exactly as
+- An unmapped geom colour comes from `theme(geom = )` on ggplot2 4.0, whose stock accent is `#3366FF`, the blue
+  `geom_smooth()` draws its line in. `theme_halftone()` sets that accent to the first ink and `paper` to the ground.
+  That is where a colour nobody chose belongs: the first attempt rewrote `aes_params` on the layer instead, which
+  needed a copy, a neutral test and a mapped test, and could not read `default_aes` at all on 4.0 because the entries
+  there are theme expressions rather than literals.
+- `halftone_plot()` dispatches on geom class across the layer stack: fills are screened, paths, segments and points over
+  a screen are haloed, everything else is left alone. The safe default is that an unrecognised layer draws exactly as
   it did, so the worst case is an unscreened layer. That is the difference from a converter such as ggplotly, which
   reimplements each geom and therefore carries a support matrix. Layer-stack dispatch is ordinary practice: ggpubr
   classifies by geom class, ggfun by stat class. ggdark avoids it and mutates global geom defaults instead, which

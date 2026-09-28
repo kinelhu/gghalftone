@@ -11,7 +11,10 @@
 #' * paper ground: plot and panel backgrounds in `paper`, no gridlines, no panel border fill;
 #' * legend keys large enough to show a screen (6 by 4 mm), no key background;
 #' * on ggplot2 4.0 and later, [halftone_inks] (or [halftone_process]) as the default discrete palette and
-#'   [halftone_ramp] as the default continuous palette. `halftone_inks` holds six inks and `halftone_ramp` four stops; past six groups, map
+#'   [halftone_ramp] as the default continuous palette. It also sets the geom accent, which on ggplot2 4.0 is where an
+#'   unmapped geom colour comes from: the stock accent is the blue `geom_smooth()` draws its line in, and left alone it
+#'   is the one colour in a screened figure that sits outside the register.
+#' `halftone_inks` holds six inks and `halftone_ramp` four stops; past six groups, map
 #'   [scale_screen_discrete()] instead of colour, or pass `palette = "none"` and set your own.
 #'
 #' `ggsave_journal()` saves at a journal column width in mm. The file extension selects the format: PNG or TIFF at
@@ -41,9 +44,16 @@ theme_halftone <- function(paper = "white", palette = c("inks", "process", "none
   t <- theme(plot.background = element_rect(fill = paper, colour = NA), panel.background = element_rect(fill = paper, colour = NA),
              panel.grid = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
              legend.key = element_blank(), legend.key.width = unit(6, "mm"), legend.key.height = unit(4, "mm"))
-  if (palette != "none" && utils::packageVersion("ggplot2") >= "4.0.0") {
-    inks <- unname(if (palette == "process") halftone_process else halftone_inks)
-    t <- t + theme(palette.colour.discrete = inks, palette.fill.discrete = inks, palette.colour.continuous = halftone_ramp, palette.fill.continuous = halftone_ramp)
+  if (utils::packageVersion("ggplot2") >= "4.0.0") {
+    # A geom's unmapped colour comes from the theme on ggplot2 4.0, so this is where it belongs rather than in any
+    # layer surgery. The stock accent is #3366FF, which is the blue geom_smooth() draws its line in; left alone it is
+    # the one colour in a screened figure that sits outside the register. `paper` follows the ground, so a geom that
+    # knocks out of its own fill knocks out to the right white.
+    t <- t + theme(geom = element_geom(accent = unname(halftone_inks[[1]]), paper = paper))
+    if (palette != "none") {
+      inks <- unname(if (palette == "process") halftone_process else halftone_inks)
+      t <- t + theme(palette.colour.discrete = inks, palette.fill.discrete = inks, palette.colour.continuous = halftone_ramp, palette.fill.continuous = halftone_ramp)
+    }
   }
   t
 }

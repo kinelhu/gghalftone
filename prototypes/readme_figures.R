@@ -53,3 +53,7 @@ ggsave_journal(file.path(dest, "engine.png"),
   titled(given, "as given") | titled(halftone_plot(given), "halftone_plot(p)") | titled(hand, "composed by hand"),
   width = 3 * 70, height = 58, dpi = 300)
 cat("engine figure ok\n")
+
+ok2 <- file.copy("figures/v2/showcase/whole_plot.png", file.path(dest, "whole_plot.png"), overwrite = TRUE)
+if (!ok2) stop("missing figures/v2/showcase/whole_plot.png; run showcase.R first", call. = FALSE)
+cat("whole-plot figure ok\n")

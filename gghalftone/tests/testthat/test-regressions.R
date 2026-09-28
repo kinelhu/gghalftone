@@ -619,7 +619,7 @@ test_that("halftone_plot() screens by role, haloes only lines over a screen, and
   q <- halftone_plot(p)
   expect_equal(wrapper(q, 1), "with_halftone")
   expect_equal(wrapper(q, 2), "with_halo")
-  expect_null(wrapper(q, 3))                       # points are left alone
+  expect_equal(wrapper(q, 3), "with_halo")         # points over a screen get the same knockout channel
   expect_null(wrapper(p, 1))                       # the plot handed in is untouched
   # a line drawn BEFORE any screen has nothing to stay legible against
   r <- halftone_plot(ggplot(d, aes(x)) + geom_line(aes(y = y)) +
@@ -653,6 +653,26 @@ test_that("halftone_plot() takes a patchwork, respects theme = FALSE, and refuse
   expect_lt(ink(halftone_plot(pw)), b0 * 0.6)
   expect_equal(ink(pw), b0, tolerance = 1e-9)
   expect_equal(halftone_plot(pw)$patches$plots[[1]]$layers[[1]]$geom$.halftone_wrapper, "with_halftone")
+})
+
+test_that("theme_halftone() brings the one colour nobody chose into the register", {
+  # On ggplot2 4.0 an unmapped geom colour comes from theme(geom = ), whose stock accent is #3366FF: the blue
+  # geom_smooth() draws its line in. That belongs to the theme, not to layer surgery.
+  skip_if_not(utils::packageVersion("ggplot2") >= "4.0.0")
+  expect_equal(theme_halftone()$geom$accent, unname(halftone_inks[[1]]))
+  expect_equal(theme_halftone(paper = "#F2ECD9")$geom$paper, "#F2ECD9")
+  expect_equal(theme_halftone(palette = "none")$geom$accent, unname(halftone_inks[[1]]))   # not a palette choice
+  expect_equal(ggplot2::theme_grey()$geom$accent, "#3366FF")                                # what it replaces
+  # the colour actually reaches the line, and a colour the author set is untouched
+  hex <- function(p) { f <- render(p, w = 40, h = 30, dpi = 300); im <- px(f)
+    v <- im[, , 1] > 0.35 & im[, , 1] < 0.75 & im[, , 3] > 0.8    # a blue pixel: low red, high blue
+    sum(v) }
+  p <- ggplot(mpg, aes(displ, hwy)) + geom_smooth(method = "loess", formula = y ~ x, se = FALSE) + theme_classic()
+  expect_gt(hex(p), 200)
+  expect_lt(hex(halftone_plot(p)), 20)
+  expect_gt(hex(halftone_plot(p, theme = FALSE)), 200)            # theme = FALSE keeps your theme, and that with it
+  q <- ggplot(mpg, aes(displ, hwy)) + geom_smooth(method = "loess", formula = y ~ x, se = FALSE, colour = "#3366FF") + theme_classic()
+  expect_gt(hex(halftone_plot(q)), 200)                           # a colour the author set stays
 })
 
 test_that("every geom either screens or is left byte-identical", {

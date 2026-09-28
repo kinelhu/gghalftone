@@ -76,9 +76,15 @@ halftone_plot(p)
 halftone_plot(p, pitch = 0.6, shape = "line")   # any with_halftone() argument
 ```
 
-The treatment follows the geom. Ribbons, areas, densities, bars, tiles, polygons, sf geometries, violins, boxplots and smooths are screened, each with the tone profile its geometry calls for. Lines, paths, steps and contours are haloed, but only where a screen sits under them. Points, text, error bars, rugs and reference lines are left alone, and so is any geom it does not recognise: an unknown layer draws exactly as it did before, so the worst case is an unscreened layer rather than a wrong figure.
+The treatment follows the geom. Ribbons, areas, densities, bars, tiles, polygons, sf geometries, violins, boxplots and smooths are screened, each with the tone profile its geometry calls for. Lines, paths, steps, contours and points are haloed, but only where a screen sits under them: anything drawn on a screen gets the printer's knockout channel. Text, error bars, rugs and reference lines are left alone, and so is any geom it does not recognise, because an unknown layer draws exactly as it did before. The worst case is an unscreened layer rather than a wrong figure.
 
-It screens the fill and nothing else. Line weights, point shapes and fill colours stay as the plot set them, so a figure built for the screen from the start still reads better. Applying it twice changes nothing, and a layer you wrapped yourself is left as you wrapped it.
+It screens the fill and chooses no colours. Line weights, point shapes and any colour you set or mapped stay as the plot set them, so a figure built for the screen from the start still reads better. Applying it twice changes nothing, and a layer you wrapped yourself is left as you wrapped it.
+
+A colour you did not choose is the theme's business rather than this function's. On ggplot2 4.0 an unmapped geom colour comes from `theme(geom = )`, whose stock accent is the blue `geom_smooth()` draws its line in. `theme_halftone()` sets that accent to the package's ink, so the one colour that would sit outside the register comes into it.
+
+![Six panels built plainly, then screened in one call](man/figures/whole_plot.png)
+
+*Six panels built the way anyone would build them, composed with patchwork, then handed to `halftone_plot()` once. Nothing in them is written for the screen: the fills are mapped, the lines are ggplot2's defaults. Each mapped fill also picks up its own dot shape and lattice angle, which is visible at full size.*
 
 ![The same plot as given, through halftone_plot(), and composed by hand](man/figures/engine.png)
 

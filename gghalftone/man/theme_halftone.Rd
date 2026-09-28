@@ -64,7 +64,10 @@ theme it is added to:
 \item paper ground: plot and panel backgrounds in \code{paper}, no gridlines, no panel border fill;
 \item legend keys large enough to show a screen (6 by 4 mm), no key background;
 \item on ggplot2 4.0 and later, \link{halftone_inks} (or \link{halftone_process}) as the default discrete palette and
-\link{halftone_ramp} as the default continuous palette. \code{halftone_inks} holds six inks and \code{halftone_ramp} four stops; past six groups, map
+\link{halftone_ramp} as the default continuous palette. It also sets the geom accent, which on ggplot2 4.0 is where an
+unmapped geom colour comes from: the stock accent is the blue \code{geom_smooth()} draws its line in, and left alone it
+is the one colour in a screened figure that sits outside the register.
+\code{halftone_inks} holds six inks and \code{halftone_ramp} four stops; past six groups, map
 \code{\link[=scale_screen_discrete]{scale_screen_discrete()}} instead of colour, or pass \code{palette = "none"} and set your own.
 }
 
