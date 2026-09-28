@@ -163,7 +163,7 @@ with_press(p, gain = 0.26, slur = 0.06, fillet = 0.06, mottle = 0.13, registrati
 
 ![A choropleth three ways: as prepared, with dot gain only, and with the whole press](man/figures/press.png)
 
-*One choropleth three ways. Left: as prepared. Middle: dot gain alone, which is close to what raising `dot_max` on the plain figure would give. Right: the whole press, which adds mottle, slur, ink bridges and a plate offset. `figures/v2/press/control.png` matches the plain screen's ink weight to the pressed one, so the part that is not simply more ink can be seen on its own.*
+*One choropleth three ways: as prepared, then dot gain alone, then the whole press. Gain on its own is close to what raising `dot_max` on the plain figure would give. The whole press adds mottle, slur, ink bridges and a plate offset. `figures/v2/press/control.png` matches the plain screen's ink weight to the pressed one, so the part that is not simply more ink can be seen on its own.*
 
 Everything here makes a figure less faithful to its data. It is a separate entry point, off by default and outside the journal register.
 

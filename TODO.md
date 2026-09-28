@@ -116,6 +116,16 @@ Change a rule only when a side-by-side comparison at 600 dpi shows the change is
 - The halo on lines crossing dot fields is a symmetric hairline (0.09 mm). It is the printer's knockout channel. Asymmetry belongs to surfaces: `with_relief()` for contours over a field, lit from 315 degrees.
 - Angle alone distinguishes three screens. Beyond that, vary shape and tone.
 - No grey chart furniture. The screen is the only texture, and rules, rings and borders are hairline ink. A polar chart's rings are its radial axis, so they are ink at 0.12 mm, not a grey grid.
+- Comparison figures stack, they do not sit side by side. Three panels across a double column give each one 61 mm,
+  and on a web page the image is scaled to the column and the screen goes with it, which is the thing the figure is
+  about. Stacking keeps each panel full width. Applies to the press pairs and the pitch ladder; a two-panel figure
+  about overall appearance rather than detail is fine across.
+- A panel title sits above the axis and legend text, not beside it. At `base_size = 8` a title at 8 bold reads as
+  another label. 11 bold is the heading. The first review said there was no hierarchy inside a figure and it came
+  back, so it is a rule now.
+- Guides merge only when identical. A colourbar does, so a collected guide is one. A screen key does not, because
+  the press changes it, so `legend.box = "vertical"` stacks those under the figure rather than running them off the
+  edge. A figure that keeps its legend inside the panel is left alone: collecting pulls it out.
 - Do not judge line art from thumbnails. Render at 600 dpi and compare side by side with the last accepted version.
 
 ## Environment

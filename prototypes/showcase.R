@@ -108,7 +108,7 @@ if (requireNamespace("magick", quietly = TRUE)) {
     widths  = grid::unit(c(46, 32, 32, 32), "mm"))))
   for (j in seq_along(widths7)) { grid::pushViewport(grid::viewport(layout.pos.row = 1, layout.pos.col = j + 1))
     grid::grid.text(sprintf("saved %d mm wide", widths7[j]), y = grid::unit(3, "mm"), just = "bottom",
-                    gp = grid::gpar(fontsize = 8, col = "grey20")); grid::popViewport() }
+                    gp = grid::gpar(fontsize = 10, fontface = "bold", col = "grey15")); grid::popViewport() }
   for (i in 1:2) {
     r <- c(2, 4)[i]
     grid::pushViewport(grid::viewport(layout.pos.row = r, layout.pos.col = 1))

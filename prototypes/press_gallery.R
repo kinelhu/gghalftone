@@ -19,17 +19,33 @@ GAIN  <- list(gain = 0.26)
 PRESS <- list(gain = 0.26, slur = 0.06, slur_angle = 90, fillet = 0.06, mottle = 0.13, mottle_scale = 8,
               registration = 0.05, seed = 41)
 
-# Only the top-level annotation of a patchwork survives, so each panel is sealed with wrap_elements() before the join.
+# A panel title has to sit above the axis and legend text, not beside it. base_size is 8 in the gallery, so a title
+# at 8 bold reads as another label; 11 makes it the heading it is.
+panel_title <- theme(plot.title = element_text(size = 11, face = "bold", hjust = 0, margin = margin(b = 3)))
+# Only the top-level annotation of a patchwork survives, so a patchwork panel is sealed with wrap_elements(). A plain
+# plot is not sealed, because sealing it also hides its guide from plot_layout(guides = "collect").
 panel <- function(x, title) {
-  ttl <- theme(plot.title = element_text(size = 8, face = "bold", hjust = 0))
-  wrap_elements(if (inherits(x, "patchwork")) x + plot_annotation(title = title, theme = ttl) else x + labs(title = title) + ttl)
+  if (inherits(x, "patchwork")) wrap_elements(x + plot_annotation(title = title, theme = panel_title))
+  else x + labs(title = title) + panel_title
 }
+# Stacked, not side by side. Three panels across a double column give each one 61 mm, and at that size the screen is
+# the thing you cannot see, which is the thing the figure is about. On a web page it is worse: the image is scaled to
+# the column and the dots go with it. Stacking keeps each panel full width, and one collected guide replaces three.
 pair <- function(name, fig) {
   w <- if (is.character(fig$width)) halftone_widths[[fig$width]] else fig$width
-  out <- panel(fig$p, "as prepared") |
-         panel(do.call(with_press, c(list(fig$p), GAIN)),  "dot gain only") |
+  out <- panel(fig$p, "as prepared") /
+         panel(do.call(with_press, c(list(fig$p), GAIN)),  "dot gain only") /
          panel(do.call(with_press, c(list(fig$p), PRESS)), "the whole press")
-  ggsave_journal(file.path("figures/v2/press", paste0(name, ".png")), out, width = 3 * w, height = fig$height + 6, dpi = 300)
+  # Collect the guides only where the figure keeps its legend outside the panel, and put the collection under the
+  # stack: to the right it costs a third of the width and leaves a column of paper. A figure with its legend inside
+  # the panel is left alone, because collecting pulls it out and stacks three of them in a column instead.
+  # Guides merge only when they are identical. A colourbar is, so the map ends with one. A screen key is not: the
+  # press changes it, which is the point, so three of them arrive. legend.box = "vertical" stacks those under the
+  # figure instead of running them off the right-hand edge.
+  if (!inherits(fig$p, "patchwork") && !identical(fig$p$theme$legend.position, "inside"))
+    out <- out + plot_layout(guides = "collect") &
+      theme(legend.position = "bottom", legend.box = "vertical", legend.box.just = "left")
+  ggsave_journal(file.path("figures/v2/press", paste0(name, ".png")), out, width = w, height = 3 * fig$height * 0.92, dpi = 300)
 }
 for (nm in names(FIGS)) { cat(nm, "")
   tryCatch(pair(nm, FIGS[[nm]]), error = function(e) cat("[FAILED:", conditionMessage(e), "] ")) }
