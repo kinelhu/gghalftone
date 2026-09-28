@@ -21,9 +21,9 @@ display in this key}
 A grob.
 }
 \description{
-\code{draw_key_halftone()} draws a mid-tone dot swatch, or a hatch for line screens, at the layer's screen angle and
-shape. A hatch key is a sample of the screen itself: strips one lattice row apart at the layer's strip width, so
-the key reads at the density of the fill whatever the angle. \code{draw_key_spot()} draws a disc at the break's tone
+\code{draw_key_halftone()} draws a mid-tone swatch at the layer's screen angle and shape: dots, or strips for a line
+screen. The key is a sample of the screen itself, run over a key-sized area by the code that draws the panel, so
+it reads at the density of the fill it stands for. \code{draw_key_spot()} draws a disc at the break's tone
 or, for a size legend, at the break's radius. Both are the default keys of the corresponding geoms. They are
 exported for use with \code{key_glyph}.
 }

@@ -10,7 +10,7 @@ dir.create("figures/v2/press", showWarnings = FALSE, recursive = TRUE)
 # One house press for the whole sheet, so it shows what a single impression does to different figure types rather
 # than a setting tuned per figure. Every layer gets its own plate offset and mottle, counted up from the base seed.
 #
-# Three panels, not two. Dot gain moves ink and nothing else, so on its own it is close to what you would get by
+# Three panels. Dot gain moves ink and nothing else, so on its own it is close to what you would get by
 # reaching for dot_max or gamma on the plain figure: on a flat field it is exactly that, and across a tone range it
 # differs only in curve shape, compressing the shadows by at most 8 coverage points at a matched mean. Putting gain
 # in its own panel leaves the third panel showing what no setting on the plain figure reproduces: mottle, the smear
@@ -35,7 +35,7 @@ for (nm in names(FIGS)) { cat(nm, "")
   tryCatch(pair(nm, FIGS[[nm]]), error = function(e) cat("[FAILED:", conditionMessage(e), "] ")) }
 cat("\npress gallery ok\n")
 
-## The control: is the press just more ink? ------------------------------------------------------------------------
+## The control: how much of the press is simply more ink -------------------------------------------------------------
 # Raise dot_max on the plain screen until it lays down exactly as much ink as the pressed one, and compare. Whatever
 # is left is what no setting on the plain figure reproduces.
 suppressPackageStartupMessages(library(grid))

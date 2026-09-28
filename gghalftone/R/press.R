@@ -28,15 +28,15 @@
 #' @section Slur:
 #' A sheet moving under the plate smears each dot along its direction of travel, so the dot prints as a capsule
 #' rather than a circle. `slur` is the length of that smear as a fraction of the pitch and `slur_angle` its
-#' direction. It is drawn as the true swept shape rather than a second faint impression, because nothing
-#' translucent reaches the page here.
+#' direction. It is drawn as the true swept shape, not as a second faint impression: the output holds no partial
+#' transparency.
 #'
 #' @section Ink bridges:
 #' Where two dots overlap, the circles cross in a sharp concave cusp. Wet ink does not: surface tension pulls a
 #' fillet across the notch. `fillet` is the radius of that bridge as a fraction of the pitch, applied as a
 #' morphological closing of the union of the overlapping dots, which rounds concave corners and leaves convex
 #' boundaries alone. Only dots close enough to reach a neighbour are processed, so a figure pays for it in its
-#' shadows and nowhere else. A bridge is ink, so it darkens the shadows a little on top of `gain`.
+#' shadows. A bridge is ink, so it darkens the shadows a little on top of `gain`.
 #'
 #' Ink cannot bridge dots that do not meet, and at the default ink weight (`dot_max = 0.9`) a full-tone dot still
 #' stands a tenth of a pitch clear of its neighbour. So `fillet` needs something to work with: either `gain` above

@@ -15,7 +15,7 @@ library(ggplot2); library(gghalftone)
 
 A halftone prints tone as dots of varying size on a fixed lattice. gghalftone applies this to ggplot2 fills at draw time. The lattice has a physical pitch in millimetres, so a figure saved at 89 mm and at 183 mm gets the same screen.
 
-Use it for journal figures: a confidence band that stays legible in greyscale, overlapping intervals that do not hide one another, a bar chart that a reader can decode from the hatching alone.
+Use it for journal figures. A confidence band stays legible in greyscale, overlapping intervals do not hide one another, and a bar chart can be decoded from its hatching alone.
 
 ## Screen a confidence band
 
@@ -105,7 +105,7 @@ halftone_proof(p)   # final-size render plus a 4x crop of the panel centre
 - No feature is smaller than 0.09 mm (0.25 pt), the minimum line weight in journal artwork guidelines (Nature Portfolio; Elsevier). Light tone becomes sparse dots at the minimum size.
 - The tone profile follows the geometry: flat where the interior is the value (bars, areas, maps), likelihood for intervals, a soft vignette for densities.
 - One ink register applies across figure types, so a set of figures looks consistent.
-- Overlapping groups share one lattice. A fill's alpha becomes screen coverage. Nothing translucent reaches the page.
+- Overlapping groups share one lattice. A fill's alpha becomes screen coverage, and the output holds no partial transparency.
 
 ## References
 

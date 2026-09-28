@@ -98,8 +98,9 @@ the screen.}
 \item{ring_lwd}{Line width of the ring.}
 
 \item{min_feature}{Smallest printable feature in mm (0.09, i.e. 0.25 pt, the minimum line weight in journal artwork
-guidelines; see References). Dots that would
-be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.}
+guidelines; see References). A cell whose dot would be smaller prints at the floor with probability
+tone/floor, so coverage is preserved and light tone becomes sparse minimum dots or broken hairlines. Hatch
+strips are never thinner. Set to 0 to disable.}
 
 \item{angle}{Rotation of the rosette in degrees; \code{NULL} means 15 for dots and 45 for hatching. Added to a mapped
 \code{screen} spec's angle only when given.}

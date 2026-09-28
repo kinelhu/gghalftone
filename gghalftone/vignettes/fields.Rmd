@@ -56,7 +56,7 @@ ggplot(vol, aes(x, y, z = z)) +
 
 Draw relief over a screened field. Lit segments are paper-coloured, so on bare paper only the shaded half of each contour appears.
 
-Use `with_halo()` for a line over a confidence band. Its halo is symmetric, because an interval has no lit side. Use `with_relief()` for contours over a surface.
+A line over a confidence band takes `with_halo()`, whose halo is symmetric because an interval has no lit side. Contours over a surface take `with_relief()`.
 
 ## Stipple
 
@@ -100,7 +100,7 @@ ggplot(st, aes(long, lat, group = group, fill = murder)) +
 
 ## Pitch
 
-The default pitch is 0.35 mm, or 73 lines per inch. The comparison below shows why. At 0.6 mm the screen reads as dots. At 0.25 mm it reads as a flat tint and takes five times longer to draw.
+The default pitch is 0.35 mm, or 73 lines per inch. The comparison below shows why. At 0.6 mm the screen reads as dots. At 0.25 mm it reads as a flat tint and takes about 1.8 times as long to draw.
 
 ```{r ladder, fig.width = 183 / 25.4, fig.height = 45 / 25.4, out.width = "100%"}
 d <- data.frame(x = seq(0, 10, length.out = 60)); d$y <- sin(d$x); d$lo <- d$y - 0.5 - 0.02 * d$x; d$hi <- d$y + 0.5 + 0.02 * d$x
@@ -108,6 +108,30 @@ one <- function(p) ggplot(d, aes(x)) + with_halftone(geom_ribbon(aes(ymin = lo, 
   with_halo(geom_line(aes(y = y), linewidth = 0.35)) + labs(x = NULL, y = NULL, title = sprintf("%.2f mm", p)) + theme_classic(base_size = 8) + theme_halftone() + theme(plot.title = element_text(size = 7))
 patchwork::wrap_plots(lapply(c(0.6, 0.45, 0.35, 0.25), one), nrow = 1)
 ```
+
+## Press artefacts
+
+`with_press()` draws a screen as a press puts it on paper, not as the plate describes it. It takes a layer, a plot or a patchwork; given more than one layer, each is pressed as its own plate with its own offset.
+
+Everything it does makes a figure less faithful to its data, so it is off by default and outside the journal register. Use it for a plate, a poster or a cover.
+
+```{r press, fig.width = 183 / 25.4, fig.height = 55 / 25.4, out.width = "100%"}
+one <- function(...) { lay <- geom_halftone(shape = "line", colour = "black", angle = 30, gamma = 1.4, pitch = 0.6)
+  args <- list(...)
+  if (length(args)) lay <- do.call(with_press, c(list(lay), args))
+  ggplot(vol, aes(x, y, z = z)) + lay + coord_equal(expand = FALSE) + labs(x = NULL, y = NULL) +
+    theme_void(base_size = 8) + theme_halftone() }
+patchwork::wrap_plots(one(), one(gain = 0.3, seed = 4),
+                      one(gain = 0.3, slur = 0.08, fillet = 0.05, mottle = 0.16, seed = 4), nrow = 1)
+```
+
+Left: as prepared. Middle: dot gain alone. Right: the whole press.
+
+`gain` is the trade's tone value increase at a 50 % screen, about 0.15 for offset on coated stock and 0.35 on newsprint. It applies to coverage, the fraction of paper the screen inks, which is what a densitometer reads and is not the tone the screen was asked for. Coverage stops at the sheet, and that is what fills a shadow in.
+
+Dot gain alone moves ink and nothing else, so on a flat field it is close to what raising `dot_max` would give. The settings that no plain figure reproduces are `mottle`, the slow drift in ink density across a sheet; `slur`, the smear of a sheet moving under the plate; `fillet`, the ink bridge surface tension pulls where two dots meet; and `registration`, one plate landing off another.
+
+`fillet` acts only where dots meet, so it needs `gain` above about 0.2 to give it something to bridge, and it needs the polyclip package.
 
 ## References
 

@@ -7,7 +7,7 @@ Reviewer stance: outside designer, print background, no knowledge of the build h
 The set has a real idea (tone as texture, physically pitched, explicit about overlap) and the best items (1A, 5, 11, 12, 14) prove it. But the gallery as a whole is not yet a *system*. Three things undercut it:
 
 1. **Inconsistent ink weight.** Dot screens range from feather-light (4, 6) to fully saturated blocks (8, parts of 1A). A print series needs one tonal register; right now each figure was tuned alone.
-2. **The halftone is often decorative.** In 2, 7, 13, 15 it encodes nothing a flat fill wouldn't. A reviewer will ask "why dots?" and the answer needs to be more than "it looks printed."
+2. **The halftone is often decorative.** In 2, 7, 13, 15 it encodes nothing a flat fill would not. The screen has to earn its place by carrying a variable or by surviving greyscale, not by looking printed.
 3. **Typography is competent but generic.** Liberation Sans at 7 pt is fine for submission; it is not a design. Panel tags, axis titles and legend titles are all the same weight and nearly the same size. There is no hierarchy inside a figure.
 
 ## Item by item
@@ -22,7 +22,7 @@ The set has a real idea (tone as texture, physically pitched, explicit about ove
 | 6 | Facets + groups | **cut from gallery** | Fine as a regression test, weak as a showcase: bands are barely visible at this size and the four class colours fight. |
 | 7 | Ridgelines | **rework or cut** | At 0.5 mm the fills read as solid; nothing halftone about it. Either coarsen deliberately (0.9 mm, editorial style) or drop. |
 | 8 | Expression heatmap | **rework** | Grey cell grid + dots + diverging colour is three textures. Remove the grid; let the dot area carry magnitude and colour carry sign only (two inks, no gradient). The saturated red/blue blocks are correct but the mid-tones are noise. |
-| 9 | Screens: angle by shape | **keep** | Reads correctly now; legend keys show the difference. Slightly heavy at the bottom series. Lighten the base screen by ~15%. |
+| 9 | Screens: angle by shape | **keep** | Reads correctly now; legend keys show the difference. Slightly heavy at the bottom series. Lighten the base screen by about 15%. |
 | 10 | Elevation, dots | **keep** | Good tonal range, contours crisp. Legend bar is oversized relative to the panel. |
 | 11 | Engraving, lines | **keep**, the hero | The only item that looks like it belongs in a book. Use it as the first image of the README. |
 | 12 | KM one ink, crosshatch | **keep** | Legitimate B&W figure. The subtitle text overlaps the tag "B"; fix. Consider 0.7 mm pitch. At 0.6 the crosshatch moirés slightly where three strata overlap. |
@@ -134,7 +134,7 @@ Author: "I can't help but wonder if the patterns we're using are too coarse." La
 | 0.60 | reads as dots; the screen is the subject | coarse, poster-like | 1.0 s |
 | 0.45 | texture; still countable | good | ~1.7 s |
 | 0.35 | tone with a visible screen; overlaps weave without moire | fine hatch, reads as engraving | ~2.8 s |
-| 0.25 | flat tint; the screen structure is gone, so why halftone | too fine to read as hatch | 5.3 s |
+| 0.25 | flat tint; no screen structure left to read | too fine to read as hatch | 5.3 s |
 
 Default moved from 0.6 to **0.35 mm** for `geom_halftone()`, `with_halftone()` and `geom_spot()`. The map is the clearest
 win (it now looks like the printed original), the stipple is a real stipple, and the engraving gains its fine line.
@@ -362,7 +362,8 @@ pixels. That is the sharpest statement of what this package is for, and it now o
 
 `with_press()` adds dot gain and plate misregistration, composed around a halftone layer. Gain follows
 `tone + g * sin(pi * tone)`, so it vanishes at paper and at solid and peaks in the midtones, which is
-where a press gains most; `g` is the trade's tone value increase at a 50 % screen. Measured on a flat
+where a press gains most; `g` is the trade's tone value increase at a 50 % screen. (Superseded on
+2026-09-25: the curve runs on coverage, not on tone. See the last entry.) Measured on a flat
 field at 0.8 mm: a 0.25 tone gains 42 % of its area at `g = 0.15`, matching the curve. Past `g = 0.5`
 the midtone dots grow beyond the pitch, touch and bridge, which is the blotting of a heavy impression,
 and it falls out of the model rather than being drawn specially.
@@ -396,10 +397,13 @@ is exactly the bridge surface tension pulls across the notch where two circles c
 
 Two things had to be got right. The radius is a fraction of the pitch and the useful range is much
 smaller than it first appears: at 0.15 the closing swallows the interstices entirely and the shadows go
-solid black. 0.02 rounds the cusp, 0.05 draws a clear bridge, and past about 0.08 it fills in. And the
-cost is only acceptable because the closing runs on the dots that can reach a neighbour and nowhere
+solid black. (Superseded on 2026-09-25: with gain measured correctly the ladder moved. At `gain = 0.25`,
+0.02 rounds the cusp, 0.04 draws a clear bridge, and 0.08 pulls the fill-in down into the midtones.)
+
+The cost is acceptable only because the closing runs on the dots that can reach a neighbour and nowhere
 else: a gained ramp at 0.9 mm went from 0.25 s to 0.36 s, against 1.7 s for twenty thousand dots
-unioned blind.
+unioned blind. (Superseded on 2026-09-25: the union also runs in tiles, or it overflows the protection
+stack. See the entry below.)
 
 It also bridges a small gap, not only an overlap, which is correct: tension reaches across a gap
 narrower than twice the fillet radius. The test uses dots far enough apart that nothing can reach, and
@@ -417,3 +421,76 @@ and nothing permanent to look at. `prototypes/showcase.R` now renders `press.png
 photograph three ways, as the plate describes it, printed, and badly printed. Misregistration needs each
 ink wrapped separately with its own seed, which the script shows; a single `with_press()` around all four
 layers gives them the same offset and no fringing at all.
+
+## Dot gain on coverage, and the fillet that could never fire (2026-09-25)
+
+The reader reported that the fillet looked underdone. It was doing nothing at all, at every setting the
+documentation recommended. Two units errors.
+
+Tone value increase is a measurement of ink coverage, and the code applied it to tone. The two differ
+because `dot_max` caps coverage below 1: at the defaults a full-tone hex cell covers 0.73 of its
+lattice cell, not all of it. So a full-tone cell received `sin(pi * 1) = 0` gain, its dots stayed a
+tenth of a pitch clear of their neighbours, and no closing radius under 0.05 could reach across. The
+curve now runs in coverage and is capped at the sheet. That cap is the shadow fill-in: the dots grow
+past the pitch, touch, and print as solid with pinholes.
+
+polyclip works on polygons, so a filleted dot became an inscribed 16-gon, which carries 4.7 % less ink
+than its circle. A fillet below the bridging threshold therefore printed lighter than no fillet at all:
+0.7271 coverage with none, 0.7118 with 0.04 or 0.05, the two identical because neither bridged. Dots
+are now 24-gons with the circumradius scaled to match the circle's area, and `round_dots()` takes the
+same correction for the 12-gon it draws on cairo.
+
+Both existing fillet tests set `dot_max` away from its default to make the feature fire, which is what
+hid this. A test that has to move a parameter off its default to see an effect is evidence the effect
+is not there at the default.
+
+## A filleted shadow of any size used to crash (2026-09-25)
+
+polyclip overflows R's protection stack when it unions a few thousand overlapping dots at the depth of
+a draw. Gain with slur and a fillet, or gain with a fillet and mottle, crashed at 1800 dots, which is a
+20 mm square at 0.5 mm. In isolation the same call handles 5000, so the headroom depends on how deep
+the draw already is, which is why the gallery got away with it.
+
+A closing is local: whether a point is inked depends only on dots within twice the fillet radius. The
+field is now cut into tiles of about 600 dots, each closed from the dots within a margin of it and
+clipped back to the tile. Ink per unit area is the same at 6 mm and at 160 mm. The clips overlap by
+0.03 mm, because edges that merely abut leave an anti-aliased light line along every join.
+
+## The press gallery, and the control it needed (2026-09-25)
+
+`with_press()` now takes a plot or a patchwork as well as a layer, so `prototypes/press_gallery.R`
+builds its pairs from the gallery's own plot objects rather than a second copy of the figure code.
+`wrap_layers()` copies every layer first: a ggproto layer is an environment, and pressing a plot in
+place reached back into the plot the caller still held, so a before-and-after pair printed the same
+figure twice.
+
+The legend key missed the press and read lighter than the fill it stood for, the third time the key and
+the panel have drifted apart. The wrapper now overrides the key as well as the panel. Gain, slur and
+the fillet reach a key; mottle and registration do not, because both are properties of a place on the
+sheet and a key is a sample of the screen rather than of a place.
+
+Two panels could not answer the question they raised, whether the pressed half is anything more than
+the plain half with more ink. Measured on a flat field at 0.6 tone, with `dot_max` raised from 0.90 to
+1.22 so the plain screen lays down the same 0.790 coverage: mottle, as tile standard deviation, 0.064
+against 0.003, and ink runs 23 % longer along the slur axis than across it. Neither is reachable from
+any setting on the plain figure. Gain is: on a flat field it is exactly a `dot_max` tweak, and over a
+tone range it differs only in curve shape, up to 8 coverage points darker in the midtones and lighter
+in the shadows at a matched mean. So the gallery has three panels, as prepared, dot gain only, and the
+whole press, with `control.png` carrying the matched comparison.
+
+## Four showcase figures (2026-09-28)
+
+`wind_rose` encoded an ordered variable, wind speed, as hatch angle. A reader cannot rank three angles,
+and in a wedge that size cannot tell them apart at all. The three classes now sit on one lattice and
+darken outward, through the tone field of a screen specification. Petals are 0.85 wide, so they no
+longer abut and read as a stack of overlapping discs. The polar geometry itself was never wrong: plain
+ggplot2 fills draw exactly the same wedges, checked twice.
+
+`pitch_invariance` took its three crops at a fixed offset from three renders of a sine ribbon, so each
+showed a different part of the curve and the reader compared shapes instead of dot size. It is now a
+vertical tone ramp, where tone depends on y alone and every crop comes from the same place, with a
+second row that ties the pitch to the output width for contrast.
+
+`sf_choropleth` mapped a skewed rate through a linear ramp, leaving 69 of 100 counties below a quarter
+of the maximum and the map flat. A square-root transform gives it a register. `photograph` panel B
+filled in at gamma 1 and lost its subject; it is at 1.7.

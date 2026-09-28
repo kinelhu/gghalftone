@@ -75,8 +75,9 @@ for nested intervals and ridgelines.}
 \item{level}{Confidence level the ribbon represents, for the \code{"likelihood"} profile.}
 
 \item{min_feature}{Smallest printable feature in mm (0.09, i.e. 0.25 pt, the minimum line weight in journal artwork
-guidelines; see References). Dots that would
-be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.}
+guidelines; see References). A cell whose dot would be smaller prints at the floor with probability
+tone/floor, so coverage is preserved and light tone becomes sparse minimum dots or broken hairlines. Hatch
+strips are never thinner. Set to 0 to disable.}
 
 \item{redundant}{Also give each fill group its own screen (angle and shape), so colour is never the only encoding.
 \code{NULL} means yes for geoms whose groups tile the plane (bars, areas, polygons, tiles, sf) and no for intervals and
@@ -97,7 +98,7 @@ ribbons, areas, bars and columns, densities and violins, polygons, tiles and \co
 
 With \code{tone = NULL}, the profile depends on the geometry:
 \itemize{
-\item bars, columns, tiles, areas, polygons and sf: \code{"flat"}, because there the interior \emph{is} the value;
+\item bars, columns, tiles, areas, polygons and sf: \code{"flat"}, because for those the interior carries the value;
 \item ribbons (intervals): \code{"likelihood"}, the normal density of the estimate across the interval: 1 on the
 estimate, 0.146 at a 95\% limit (\code{level});
 \item densities and violins: \code{"vignette"}, a soft fade towards the outline, so that overlapping groups stay legible;
@@ -108,9 +109,9 @@ estimate, 0.146 at a 95\% limit (\code{level});
 
 \section{Register}{
 
-\code{tone_max = NULL} sets one ink weight across figure types: flat 0.45 (polygons and sf 0.6), centre 0.6, vignette
+\code{tone_max = NULL} sets one tone ceiling across figure types: flat 0.45 (polygons and sf 0.6), centre 0.6, vignette
 0.7, hatching 0.4, hatched intervals a hairline (the strip width that equals \code{min_feature}). Alpha on the fill is
-folded into tone: a fill with 30\% alpha prints as a 30\% screen. Nothing translucent reaches the page.
+folded into tone: a fill with 30\% alpha prints as a 30\% screen, and the output holds no partial transparency.
 }
 
 \examples{

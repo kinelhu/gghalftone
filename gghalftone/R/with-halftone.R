@@ -137,7 +137,7 @@ makeContent.halftone_fill <- function(x) {
 #'
 #' @section Tone profile:
 #' With `tone = NULL`, the profile depends on the geometry:
-#' * bars, columns, tiles, areas, polygons and sf: `"flat"`, because there the interior *is* the value;
+#' * bars, columns, tiles, areas, polygons and sf: `"flat"`, because for those the interior carries the value;
 #' * ribbons (intervals): `"likelihood"`, the normal density of the estimate across the interval: 1 on the
 #'   estimate, 0.146 at a 95% limit (`level`);
 #' * densities and violins: `"vignette"`, a soft fade towards the outline, so that overlapping groups stay legible;
@@ -145,9 +145,9 @@ makeContent.halftone_fill <- function(x) {
 #' * a mapped `screen`: always `"flat"`, because it is a categorical pattern.
 #'
 #' @section Register:
-#' `tone_max = NULL` sets one ink weight across figure types: flat 0.45 (polygons and sf 0.6), centre 0.6, vignette
+#' `tone_max = NULL` sets one tone ceiling across figure types: flat 0.45 (polygons and sf 0.6), centre 0.6, vignette
 #' 0.7, hatching 0.4, hatched intervals a hairline (the strip width that equals `min_feature`). Alpha on the fill is
-#' folded into tone: a fill with 30% alpha prints as a 30% screen. Nothing translucent reaches the page.
+#' folded into tone: a fill with 30% alpha prints as a 30% screen, and the output holds no partial transparency.
 #'
 #' @inheritParams geom_halftone
 #' @param layer A ggplot2 layer, for example `geom_ribbon(aes(ymin = lo, ymax = hi, fill = g))`, or a list holding

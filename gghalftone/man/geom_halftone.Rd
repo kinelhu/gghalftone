@@ -113,14 +113,15 @@ the screen.}
 
 \item{blend}{Colour of a cell carrying several inks under \code{"overprint"}. \code{"alternate"} (default) weaves them, so
 a reader can still see which inks are present. \code{"multiply"} is the subtractive physics of real ink, the product of
-the reflectances, so cyan over magenta over yellow goes black. \code{"mix"} is a darkened average, neither honest nor
+the reflectances, so cyan over magenta over yellow goes black. \code{"mix"} is a darkened average, which is decorative rather than
 physical, and it collapses every overlap to one colour.}
 
 \item{tone_max}{Tone ceiling in \verb{[0, 1]}. \code{NULL} means 1, or 0.55 for a binary stipple.}
 
 \item{min_feature}{Smallest printable feature in mm (0.09, i.e. 0.25 pt, the minimum line weight in journal artwork
-guidelines; see References). Dots that would
-be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.}
+guidelines; see References). A cell whose dot would be smaller prints at the floor with probability
+tone/floor, so coverage is preserved and light tone becomes sparse minimum dots or broken hairlines. Hatch
+strips are never thinner. Set to 0 to disable.}
 
 \item{na.rm}{Remove missing values silently.}
 

@@ -17,7 +17,7 @@ articles:
   contents: [gghalftone, screens, fields]
 reference:
 - title: Screening a layer
-  contents: [with_halftone, with_halo, with_relief]
+  contents: [with_halftone, with_halo, with_relief, with_press]
 - title: Geoms
   contents: [geom_halftone, geom_spot]
 - title: Scales and keys
@@ -28,3 +28,5 @@ reference:
   contents: [km_steps]
 - title: Fields and dithering
   contents: [halftone_fields, halftone_raster, cmyk, dither]
+- title: Package
+  contents: [gghalftone-package]

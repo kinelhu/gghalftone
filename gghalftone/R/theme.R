@@ -11,7 +11,7 @@
 #' * paper ground: plot and panel backgrounds in `paper`, no gridlines, no panel border fill;
 #' * legend keys large enough to show a screen (6 by 4 mm), no key background;
 #' * on ggplot2 4.0 and later, [halftone_inks] (or [halftone_process]) as the default discrete palette and
-#'   [halftone_ramp] as the default continuous palette. Both palettes hold six inks; past six groups, map
+#'   [halftone_ramp] as the default continuous palette. `halftone_inks` holds six inks and `halftone_ramp` four stops; past six groups, map
 #'   [scale_screen_discrete()] instead of colour, or pass `palette = "none"` and set your own.
 #'
 #' `ggsave_journal()` saves at a journal column width in mm. The file extension selects the format: PNG or TIFF at

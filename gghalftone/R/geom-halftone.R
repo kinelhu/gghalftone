@@ -352,12 +352,13 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #'   (each group on its own phase-shifted lattice) or `"stack"` (last group drawn wins; hides overlaps).
 #' @param blend Colour of a cell carrying several inks under `"overprint"`. `"alternate"` (default) weaves them, so
 #'   a reader can still see which inks are present. `"multiply"` is the subtractive physics of real ink, the product of
-#'   the reflectances, so cyan over magenta over yellow goes black. `"mix"` is a darkened average, neither honest nor
+#'   the reflectances, so cyan over magenta over yellow goes black. `"mix"` is a darkened average, which is decorative rather than
 #'   physical, and it collapses every overlap to one colour.
 #' @param tone_max Tone ceiling in `[0, 1]`. `NULL` means 1, or 0.55 for a binary stipple.
 #' @param min_feature Smallest printable feature in mm (0.09, i.e. 0.25 pt, the minimum line weight in journal artwork
-#'   guidelines; see References). Dots that would
-#'   be smaller are not drawn; hatch strips are never thinner. Set to 0 to disable.
+#'   guidelines; see References). A cell whose dot would be smaller prints at the floor with probability
+#'   tone/floor, so coverage is preserved and light tone becomes sparse minimum dots or broken hairlines. Hatch
+#'   strips are never thinner. Set to 0 to disable.
 #' @param na.rm Remove missing values silently.
 #' @return A ggplot2 layer.
 #' @order 1
@@ -517,9 +518,9 @@ key_screen_grob <- function(tone, col, pitch, angle, grid, shape, dot_max, min_f
 
 #' Legend keys
 #'
-#' `draw_key_halftone()` draws a mid-tone dot swatch, or a hatch for line screens, at the layer's screen angle and
-#' shape. A hatch key is a sample of the screen itself: strips one lattice row apart at the layer's strip width, so
-#' the key reads at the density of the fill whatever the angle. `draw_key_spot()` draws a disc at the break's tone
+#' `draw_key_halftone()` draws a mid-tone swatch at the layer's screen angle and shape: dots, or strips for a line
+#' screen. The key is a sample of the screen itself, run over a key-sized area by the code that draws the panel, so
+#' it reads at the density of the fill it stands for. `draw_key_spot()` draws a disc at the break's tone
 #' or, for a size legend, at the break's radius. Both are the default keys of the corresponding geoms. They are
 #' exported for use with `key_glyph`.
 #' @inheritParams ggplot2::draw_key

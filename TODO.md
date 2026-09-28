@@ -1,8 +1,8 @@
 # gghalftone: hand-off notes
 
-Status (2026-09-22): builds and installs on R 4.6.1 and ggplot2 4.0.3. The regression suite passes (37 blocks, 159 expectations) and `R CMD check` with vignettes is clean. Git repository on branch `main`. The full gallery renders in about 11 s at the 0.35 mm default. Every export has a help page.
+Status (2026-09-28): builds and installs on R 4.6.1 and ggplot2 4.0.3. The regression suite passes (53 blocks, 236 expectations) and `R CMD check` with vignettes is clean. Git repository on branch `main`. The full gallery renders in about 11 s at the 0.35 mm default. Every export has a help page.
 
-Two scripts render figures: `prototypes/gallery2.R` for the defaults gallery and `prototypes/showcase.R` for the wider API. Run both after changing drawing code.
+Four scripts render figures: `prototypes/gallery2.R` for the defaults gallery, `prototypes/showcase.R` for the wider API, `prototypes/press_gallery.R` for the press pairs, and `prototypes/readme_figures.R` to refresh `man/figures/` from them. Run all four after changing drawing code.
 
 ## Done
 
@@ -16,8 +16,7 @@ Two scripts render figures: `prototypes/gallery2.R` for the defaults gallery and
 
 ## Open
 
-- `blend = "mix"` and `"multiply"` render but nobody has judged them against `"alternate"` at 600 dpi.
-
+Nothing outstanding.
 
 ## Known behaviour
 
@@ -64,7 +63,7 @@ Two scripts render figures: `prototypes/gallery2.R` for the defaults gallery and
 
 Change a rule only when a side-by-side comparison at 600 dpi shows the change is better.
 
-- Pitch is physical, in mm. 0.35 mm (73 lpi) is the default and the journal register. Editorial plates at 120 to 183 mm use 0.45. At 0.6 and above the screen prints as dots and suits posters. At 0.25 the screen collapses into a flat tint and costs five times the draw time.
+- Pitch is physical, in mm. 0.35 mm (73 lpi) is the default and the journal register. Editorial plates at 120 to 183 mm use 0.45. At 0.6 and above the screen prints as dots and suits posters. At 0.25 the screen collapses into a flat tint and costs about 1.8 times the draw time of the default (10.6 s against 18.8 s for a 183 by 90 mm ribbon at 600 dpi).
 - Tone is continuous by default (`levels = NULL`). Quantise only for a stipple or a poster.
 - No feature is smaller than 0.09 mm (0.25 pt), the journal minimum (`min_feature`). The floor is enforced by dithering, not clipping: a cell below the floor prints at the floor with probability tone/floor. Coverage is preserved and light tone becomes sparse minimum dots or broken hairlines. The hairline hatch width equals the minimum.
 - No lattice axis is horizontal or vertical: 15 degrees on hex (default), 45 degrees on square.
@@ -76,7 +75,7 @@ Change a rule only when a side-by-side comparison at 600 dpi shows the change is
 - Line screens use the same 0.35 mm pitch. Lines crossing them get a 0.15 mm halo; 0.09 mm is invisible against hatch. Hatch runs extend one pitch past the last cell so strips reach the outline.
 - Dots fade with a soft edge. Line screens are flat with a hard edge.
 - Overlap is a panel property: overprint by default, `stack` only for nested intervals and ridgelines.
-- Alpha is ink coverage. Nothing translucent reaches the page.
+- Alpha is ink coverage. The output holds no partial transparency.
 - Clip from filled polygons only, never from grobs with open outlines.
 - The halo on lines crossing dot fields is a symmetric hairline (0.09 mm). It is the printer's knockout channel. Asymmetry belongs to surfaces: `with_relief()` for contours over a field, lit from 315 degrees.
 - Angle alone distinguishes three screens. Beyond that, vary shape and tone.
