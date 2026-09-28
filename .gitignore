@@ -2,9 +2,16 @@
 .Rproj.user
 .Rhistory
 *.Rcheck/
+*.tar.gz
+Rplots.pdf
 gghalftone/src/*.o
 gghalftone/src/*.so
 gghalftone/src/*.dll
 docs/
 gghalftone/doc/
 gghalftone/Meta/
+
+# Rendered galleries. Three scripts produce every file under here, and at 600 dpi each render writes fresh
+# multi-megabyte PNGs that do not delta against the old ones: tracking them took the repository to 220 MB across
+# 41 commits. The figures the README shows live in gghalftone/man/figures/, which is tracked, web-sized and small.
+figures/

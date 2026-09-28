@@ -8,6 +8,15 @@
 \description{
 Halftone screens as ggplot2 layers. Dots are placed at draw time on a lattice with a physical pitch in millimetres, so a figure gets the same screen at any output size. Provides geom_halftone() for gridded fields, geom_spot() for per-point tone discs, with_halftone() to screen the fill of any layer (ribbons, areas, bars, polygons, sf), with_halo() and with_relief() for lines over a screen, a screen aesthetic for colour-free encodings, line screens, Bayer, blue-noise and Floyd-Steinberg dithering, overprinting of overlapping groups, with_press() for press artefacts, and a theme modifier with export helpers.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/kinelhu/gghalftone}
+  \item \url{https://kinelhu.github.io/gghalftone/}
+  \item Report bugs at \url{https://github.com/kinelhu/gghalftone/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Kinan El Husseini \email{kinelhu@gmail.com}
 
