@@ -1,6 +1,6 @@
 # gghalftone: hand-off notes
 
-Status (2026-09-28): on a remote, private, CI on every push to `main`. Builds and installs on R 4.6.1 and ggplot2 4.0.3. The regression suite passes (53 blocks, 236 expectations) and `R CMD check` with vignettes is clean. Git repository on branch `main`. The full gallery renders in about 11 s at the 0.35 mm default. Every export has a help page.
+Status (2026-09-28): on a remote, private, CI green on Ubuntu and macOS on every push to `main`. Builds and installs on R 4.6.1 and ggplot2 4.0.3. The regression suite passes (53 blocks, 236 expectations) and `R CMD check` with vignettes is clean. Git repository on branch `main`. The full gallery renders in about 11 s at the 0.35 mm default. Every export has a help page.
 
 Four scripts render figures: `prototypes/gallery2.R` for the defaults gallery, `prototypes/showcase.R` for the wider API, `prototypes/press_gallery.R` for the press pairs, and `prototypes/readme_figures.R` to refresh `man/figures/` from them. Run all four after changing drawing code.
 
