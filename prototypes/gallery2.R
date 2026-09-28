@@ -4,6 +4,8 @@ suppressPackageStartupMessages({library(gghalftone); library(ggplot2); library(s
 # Every figure is registered as it is rendered, so press_gallery.R can re-use these exact plots instead of keeping a
 # second copy of the code. Set options(gallery.render = FALSE) to build the registry without writing any file.
 FIGS <- list()
+# figures/ is gitignored, so a fresh clone has no output directory and every render fails on the first ggsave
+dir.create("figures/v2", showWarnings = FALSE, recursive = TRUE)
 out <- function(name, p, width = "single", height = 62, ...) {
   FIGS[[name]] <<- list(p = p, width = width, height = height, args = list(...))
   if (isTRUE(getOption("gallery.render", TRUE)))

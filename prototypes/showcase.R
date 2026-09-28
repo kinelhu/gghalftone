@@ -1,6 +1,8 @@
 # showcase.R: examples that exercise corners of the API the gallery does not reach.
 # Run from the project root: Rscript prototypes/showcase.R
 suppressPackageStartupMessages({library(gghalftone); library(ggplot2); library(patchwork)})
+# figures/ is gitignored, so a fresh clone has no output directory and every render fails on the first ggsave
+dir.create("figures/v2/showcase", showWarnings = FALSE, recursive = TRUE)
 out <- function(name, p, width = "single", height = 62, ...) ggsave_journal(file.path("figures/v2/showcase", paste0(name, ".png")), p, width, height = height, ...)
 th <- function(base = theme_classic) base(base_size = 8) + theme_halftone()
 ink <- halftone_inks
