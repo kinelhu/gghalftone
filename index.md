@@ -34,13 +34,10 @@ and
 
 ``` r
 
-remotes::install_github("kinelhu/gghalftone", subdir = "gghalftone")
+remotes::install_github("kinelhu/gghalftone")
 # or
-pak::pak("kinelhu/gghalftone/gghalftone")
+pak::pak("kinelhu/gghalftone")
 ```
-
-The package sits in a subdirectory of its repository, which is why both
-forms name it twice.
 
 It has C++ kernels, so installing from source needs a compiler: Rtools
 on Windows, the command line tools on macOS. Rendering needs ragg.
@@ -48,14 +45,14 @@ on Windows, the command line tools on macOS. Rendering needs ragg.
 From a local clone, skip the download:
 
 ``` sh
-R CMD INSTALL gghalftone
+R CMD INSTALL .
 ```
 
 While changing the package itself, skip the install:
 
 ``` r
 
-devtools::load_all("~/Dev/gghalftone/gghalftone")
+devtools::load_all("~/Dev/gghalftone")
 ```
 
 ### In an renv project
@@ -64,7 +61,7 @@ renv will not see a package that is not in a repository, so give it one.
 Build a tarball and put it in the project’s cellar:
 
 ``` sh
-cd ~/Dev/gghalftone && R CMD build gghalftone
+cd ~/Dev/gghalftone && R CMD build .
 mkdir -p ~/my-project/renv/cellar
 cp gghalftone_*.tar.gz ~/my-project/renv/cellar/
 ```
@@ -90,17 +87,6 @@ git add -f renv/cellar/gghalftone_0.0.0.9000.tar.gz
 
 And bump the `Version:` in `DESCRIPTION` whenever you rebuild, or renv
 keeps the copy it already has.
-
-### Once there is a remote
-
-The package sits in a subdirectory of its repository, so an install from
-GitHub needs to be told:
-
-``` r
-
-renv::install("<user>/gghalftone/gghalftone")
-remotes::install_github("<user>/gghalftone", subdir = "gghalftone")
-```
 
 ## Usage
 
@@ -404,3 +390,20 @@ modifier is considered stable. Every export has a help page. Start with
 - Maunga Whau elevation data: R
   [`datasets::volcano`](https://rdrr.io/r/datasets/volcano.html),
   digitised by Ross Ihaka from a topographic map of Auckland.
+
+## Development
+
+``` sh
+Rscript -e 'Rcpp::compileAttributes(); roxygen2::roxygenise()'
+R CMD INSTALL .
+Rscript -e 'library(gghalftone); testthat::test_dir("tests/testthat")'
+```
+
+Four scripts render every figure, to `figures/`, which is not tracked:
+
+``` sh
+Rscript prototypes/gallery2.R        # the defaults gallery
+Rscript prototypes/showcase.R        # the wider API
+Rscript prototypes/press_gallery.R   # every figure as printed
+Rscript prototypes/readme_figures.R  # refresh man/figures/ from those
+```
