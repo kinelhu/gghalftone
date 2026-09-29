@@ -78,13 +78,22 @@ field, and the dots inherit the colour.</p>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span><span class="va">vol</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, z <span class="op">=</span> <span class="va">z</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/geom_halftone.html">geom_halftone</a></span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>colour <span class="op">=</span> <span class="va">z</span><span class="op">)</span>, angle <span class="op">=</span> <span class="fl">45</span>, grid <span class="op">=</span> <span class="st">"square"</span>, gamma <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_halftone.html">geom_halftone</a></span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>colour <span class="op">=</span> <span class="va">z</span><span class="op">)</span>, angle <span class="op">=</span> <span class="fl">15</span>, grid <span class="op">=</span> <span class="st">"hex"</span>, gamma <span class="op">=</span> <span class="fl">1.5</span>, dot_max <span class="op">=</span> <span class="fl">1.0</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/with_halo.html">with_halo</a></span><span class="op">(</span><span class="fu">geom_contour</span><span class="op">(</span>colour <span class="op">=</span> <span class="st">"black"</span>, linewidth <span class="op">=</span> <span class="fl">0.25</span>, bins <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">coord_equal</span><span class="op">(</span>expand <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span> <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="cn">NULL</span>, y <span class="op">=</span> <span class="cn">NULL</span>, colour <span class="op">=</span> <span class="st">"Elevation (m)"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">theme_bw</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">theme_classic</span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">8</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/theme_halftone.html">theme_halftone</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu">theme</span><span class="op">(</span>axis.text <span class="op">=</span> <span class="fu">element_blank</span><span class="op">(</span><span class="op">)</span>, axis.ticks <span class="op">=</span> <span class="fu">element_blank</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="fields_files/figure-html/field-1.png" class="r-plt" alt="" width="55%" style="display: block; margin: auto;"></p>
+<p>Two settings carry this figure.</p>
+<p><code>gamma</code> above 1 holds the low ground back. Below 1 it
+lifts the whole field toward the top of the register, so the plain
+prints as dark as the flanks, the dots barely change size, and colour
+ends up carrying the elevation on its own. The screen is then a tint
+rather than a screen. <code>dot_max = 1</code> buys the summit the ink
+to read as a summit.</p>
 <p>The 45 degree square lattice is the conventional screen for maps and
-photographs. <code>gamma</code> below 1 lifts the mid-tones.</p>
+photographs in print. On a continuous field it reads through as a
+criss-cross, which is the one thing a relief map should not have, so the
+hex lattice is used here.</p>
 </div>
 <div class="section level2">
 <h2 id="engraving">Engraving<a class="anchor" aria-label="anchor" href="#engraving"></a>

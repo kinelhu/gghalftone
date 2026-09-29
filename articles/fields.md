@@ -12,7 +12,7 @@ and the dots inherit the colour.
 ``` r
 
 ggplot(vol, aes(x, y, z = z)) +
-  geom_halftone(aes(colour = z), angle = 45, grid = "square", gamma = 0.6) +
+  geom_halftone(aes(colour = z), angle = 15, grid = "hex", gamma = 1.5, dot_max = 1.0) +
   with_halo(geom_contour(colour = "black", linewidth = 0.25, bins = 8)) +
   coord_equal(expand = FALSE) + labs(x = NULL, y = NULL, colour = "Elevation (m)") +
   theme_bw() + theme_classic(base_size = 8) + theme_halftone() + theme(axis.text = element_blank(), axis.ticks = element_blank())
@@ -20,8 +20,18 @@ ggplot(vol, aes(x, y, z = z)) +
 
 ![](fields_files/figure-html/field-1.png)
 
+Two settings carry this figure.
+
+`gamma` above 1 holds the low ground back. Below 1 it lifts the whole
+field toward the top of the register, so the plain prints as dark as the
+flanks, the dots barely change size, and colour ends up carrying the
+elevation on its own. The screen is then a tint rather than a screen.
+`dot_max = 1` buys the summit the ink to read as a summit.
+
 The 45 degree square lattice is the conventional screen for maps and
-photographs. `gamma` below 1 lifts the mid-tones.
+photographs in print. On a continuous field it reads through as a
+criss-cross, which is the one thing a relief map should not have, so the
+hex lattice is used here.
 
 ## Engraving
 
