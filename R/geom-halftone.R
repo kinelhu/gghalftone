@@ -140,7 +140,7 @@ quantise_tone <- function(Z, levels = NULL, algorithm = "bayer", bayer_n = 4) {
 default_angle <- function(grid, shape) if (identical(grid, "square")) 45 else if (identical(shape, "line")) 45 else 15
 tone_floor <- 0.02   # absolute floor; the working floor is the printable minimum feature, see dot_floor()
 # smallest tone whose dot (diameter dot_max * pitch * sqrt(tone)) is at least min_feature mm across. Journals ask for
-# nothing finer than 0.25 pt (0.09 mm) at final size: below that a dot is a grey pixel on screen and mud on a press.
+# nothing finer than 0.25 pt (0.09 mm) at final size: below that a dot neither prints nor displays reliably.
 dot_floor <- function(p) max(tone_floor, (p$min_feature / (p$dot_max * p$pitch))^2)
 # Enforce the floor by dithering, not clipping: a cell below the floor is drawn AT the floor with probability tone/floor
 # (blue-noise threshold), else not at all. Mean coverage stays equal to tone, no feature is sub-printable, and light
@@ -279,7 +279,7 @@ round_dots <- function(xs, ys, r, gp, k = 12) {
     }
     return(circleGrob(x = unit(xs, "mm"), y = unit(ys, "mm"), r = unit(r, "mm"), gp = gp))
   }
-  r <- r * ngon_k(k)   # an inscribed 12-gon carries 4.7 % less ink than the circle it stands in for
+  r <- r * ngon_k(k)   # an inscribed 12-gon carries 4.7% less ink than the circle it stands in for
   a <- seq(0, 2 * pi, length.out = k + 1)[-(k + 1)]
   polygonGrob(x = unit(rep(xs, each = k) + rep(r, each = k) * cos(a), "mm"),
               y = unit(rep(ys, each = k) + rep(r, each = k) * sin(a), "mm"),
@@ -385,7 +385,7 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #'   `"floyd_steinberg"` (photographs).
 #' @param bayer_n Size of the Bayer matrix when `algorithm = "bayer"`.
 #' @param dot_max Diameter of a full-tone dot as a fraction of `pitch` (0.9). Above 1 dots merge; it is the ink weight
-#'   of the screen at 100 % tone. For line screens it is the full-tone strip width, as a fraction of pitch.
+#'   of the screen at 100% tone. For line screens it is the full-tone strip width, as a fraction of pitch.
 #' @param range Value range mapped to tone 0..1 when `z` is used; `NULL` uses the data range. A wider range lightens
 #'   the screen.
 #' @param shape `"circle"`, `"square"`, `"diamond"` (area-matched, so a mixed-shape screen stays in one register) or

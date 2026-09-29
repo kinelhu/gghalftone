@@ -1,6 +1,6 @@
 # relief.R: illuminated contours (Tanaka, 1950). Each contour segment is lit or shaded by the angle between the slope
 # it stands on and a light from `light` degrees (azimuth, clockwise from north; 315 = upper left, the cartographic
-# convention). Lit segments print in paper, shaded ones in ink, and both widen as the slope faces the light. Flanks
+# convention). Lit segments print in paper and shaded ones in ink. Both widen as the slope faces the light. Flanks
 # parallel to the light carry only the hairline base. Over a line-screen or dot field the paper segments cut through
 # the screen. The original was printed from two plates, one for the lit contours and one for the shaded.
 

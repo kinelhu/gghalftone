@@ -1,11 +1,11 @@
 # plot.R: screen a whole plot in one call. The wrappers in with-halftone.R, halo.R, relief.R and press.R each take a
 # plot already, because wrap_layers() walks one. What they cannot do is decide WHICH layer gets which treatment, and
-# that decision is the difference between a screened plot and a printed one.
+# deciding that is what this function adds.
 
 # What a layer is for, from the geom it draws with. Inheritance does the work: GeomBar, GeomCol and GeomTile are all
 # GeomRect; GeomArea and GeomDensity are GeomRibbon; GeomLine, GeomStep, GeomContour and GeomFunction are all
 # GeomPath. Reference lines are their own geoms (GeomHline, GeomVline, GeomAbline) and so are never haloed, which is
-# right: a rule is chart furniture, not data over a screen.
+# right: a rule is chart furniture rather than data drawn on a screen.
 #
 # Anything unlisted is left alone. That is the safe default here, because a layer this does not recognise draws
 # exactly as it always did. Compare a converter such as ggplotly, which has to reimplement each geom and therefore

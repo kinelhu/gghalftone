@@ -20,7 +20,7 @@ with_press(
 \item{layer}{A halftone layer, a list holding one, or a whole plot. Given a plot, every layer in it is wrapped,
 each with its own seed, so the inks miss each other and mottle independently the way separate plates do.}
 
-\item{gain}{Tone value increase at a 50 \% screen. 0 leaves the screen alone.}
+\item{gain}{Tone value increase at a 50\% screen. 0 leaves the screen alone.}
 
 \item{slur}{Length of the smear, as a fraction of the lattice pitch, in the direction the sheet travelled.
 0.1 is a press running a little fast, 0.3 a visible fault. 0 leaves the dots round.}
@@ -52,20 +52,20 @@ the way the plate describes it. Compose it around \code{\link[=with_halftone]{wi
 \section{Dot gain}{
 
 Ink spreads into paper, so a printed dot is larger than its plate. The trade measures this as tone
-value increase, the extra coverage at a 50 \% screen: roughly 0.10 to 0.20 for offset on coated stock
+value increase, the extra coverage at a 50\% screen: roughly 0.10 to 0.20 for offset on coated stock
 and 0.25 to 0.35 on newsprint. \code{gain} is that number.
 
 It applies to coverage, the fraction of paper the screen inks, which is what a densitometer reads and
 is not the same as the tone the screen was asked for. At the default ink weight a full-tone cell
 covers about three quarters of its lattice cell, not all of it. The increase follows \code{sin(pi * coverage)},
 so it vanishes at bare paper and at a covered sheet and peaks where a press gains most. Coverage is
-capped at the sheet, and that cap is what fills a shadow in: above about \code{gain = 0.2} the dark dots
-grow past the pitch, touch, and print as solid with pinholes.
+capped at the sheet, and that cap is what fills a shadow in. Above about \code{gain = 0.2} the dark dots
+grow past the pitch and meet, printing as solid with pinholes.
 }
 
 \section{Mottle}{
 
-Ink does not lie down evenly. \code{mottle} adds a slow random variation in density across the sheet, smooth at the
+\code{mottle} adds a slow random variation in ink density across the sheet, smooth at the
 scale of \code{mottle_scale} millimetres, which is what separates a real impression from a clean digital screen. It
 varies tone, so it survives resizing like everything else here.
 }
@@ -81,10 +81,10 @@ transparency.
 \section{Ink bridges}{
 
 Where two dots overlap, the circles cross in a sharp concave cusp. Wet ink does not: surface tension pulls a
-fillet across the notch. \code{fillet} is the radius of that bridge as a fraction of the pitch, applied as a
+fillet across the notch, so the boundary stays convex. \code{fillet} is the radius of that bridge as a fraction of the pitch, applied as a
 morphological closing of the union of the overlapping dots, which rounds concave corners and leaves convex
 boundaries alone. Only dots close enough to reach a neighbour are processed, so a figure pays for it in its
-shadows. A bridge is ink, so it darkens the shadows a little on top of \code{gain}.
+shadows. A bridge is ink, so it darkens the shadows on top of \code{gain}.
 
 Ink cannot bridge dots that do not meet, and at the default ink weight (\code{dot_max = 0.9}) a full-tone dot still
 stands a tenth of a pitch clear of its neighbour. So \code{fillet} needs something to work with: either \code{gain} above
@@ -95,7 +95,7 @@ What the bridge changes is the shape of the white interstices between dots, whic
 0.35 mm they are too small to read as shapes and the fillet arrives as ink weight alone. Use it where the screen
 already reads as dots: an editorial plate at 0.6 mm and up.
 
-It needs the polyclip package and it is the one setting here with a real cost: budget about a second per twenty
+It needs the polyclip package. It is also the one setting here with a measurable cost: about a second per twenty
 thousand touching dots.
 }
 

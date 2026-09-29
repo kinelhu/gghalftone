@@ -67,7 +67,7 @@ halftone_ink <- "#151515"
 halftone_widths <- c(single = 89, onehalf = 120, double = 183)
 #' @rdname halftone_inks
 #' @export
-halftone_process <- c(black = "#231F20", red = "#ED1C24", blue = "#2E3192", green = "#00A651", cyan = "#00AEEF", magenta = "#EC008C")   # K, M+Y, C+M, C+Y, C, M at 100 %: one or two plates, no tints, so a 0.3 mm dot survives the press
+halftone_process <- c(black = "#231F20", red = "#ED1C24", blue = "#2E3192", green = "#00A651", cyan = "#00AEEF", magenta = "#EC008C")   # K, M+Y, C+M, C+Y, C, M at 100%: one or two plates, no tints, so a 0.3 mm dot survives the press
 #' @rdname halftone_inks
 #' @export
 halftone_ramp <- c("#E7D9B8", "#A8741C", "#8B1A1A", "#3A0A0A")   # paper -> ochre -> red -> near-black (review 1: "best colour figure in the set")

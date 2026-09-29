@@ -93,7 +93,7 @@ makeContent.halftone_fill <- function(x) {
       dd <- matrix(Dn[cbind(as.vector(iy), as.vector(ix))], nrow(X))
       # dd in [0,1]: 0 at the edge, 1 on the medial line. "centre" is the gaussian profile that won the KM comparison (soft edge, not a tent)
       # likelihood: the normal density of the estimate across a (1 - alpha) interval, 1 on the estimate, dnorm(z)/dnorm(0) at
-      # the limit (0.146 for 95 %). "centre" is the older exp(-2 u^2), within a hair of the same curve.
+      # the limit (0.146 for 95%). "centre" is the older exp(-2 u^2), within a hair of the same curve.
       zq <- stats::qnorm(1 - (1 - p$level) / 2)
       v <- switch(p$tone, likelihood = exp(-0.5 * (zq * (1 - dd))^2), centre = exp(-2 * (1 - dd)^2), tent = dd, edge = 1 - dd, vignette = 1 - 0.55 * dd, "centre-soft" = sqrt(dd)); v * inp }
     tk <- tk^p$gamma * p$tone_max * q$cov

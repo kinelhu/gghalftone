@@ -1,6 +1,6 @@
 # halo.R: draw a line or point layer twice: first in paper colour with a hairline extra width, then as is.
 # A line crossing a dot field needs this (a step curve over a CI screen, contours over an elevation field); the
-# design rule is ~0.08 mm, never wider, or the halo starts to read as a second line.
+# design rule is 0.08 mm, never wider, or the halo starts to read as a second line.
 
 #' Paper halo under a line or point layer
 #'

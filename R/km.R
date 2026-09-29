@@ -1,5 +1,5 @@
 # km.R: survfit -> data frames ready for with_halftone(geom_ribbon()) + with_halo(geom_step()).
-# Every KM script in the prototypes rebuilt the step-ribbon frame by hand; this is that frame, once.
+# The step-ribbon frame a Kaplan-Meier plot needs, built once rather than in each script.
 
 #' Kaplan-Meier frames for halftone survival plots
 #'

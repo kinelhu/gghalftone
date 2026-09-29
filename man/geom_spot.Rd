@@ -88,7 +88,7 @@ steps and dithers the remainder with \code{algorithm}; \code{levels = 1} is a bi
 \item{bayer_n}{Size of the Bayer matrix when \code{algorithm = "bayer"}.}
 
 \item{dot_max}{Diameter of a full-tone dot as a fraction of \code{pitch} (0.9). Above 1 dots merge; it is the ink weight
-of the screen at 100 \% tone. For line screens it is the full-tone strip width, as a fraction of pitch.}
+of the screen at 100\% tone. For line screens it is the full-tone strip width, as a fraction of pitch.}
 
 \item{range}{Value range mapped to tone 0..1 when \code{z} is used; \code{NULL} uses the data range. A wider range lightens
 the screen.}

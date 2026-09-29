@@ -10,18 +10,18 @@
 #'
 #' @section Dot gain:
 #' Ink spreads into paper, so a printed dot is larger than its plate. The trade measures this as tone
-#' value increase, the extra coverage at a 50 % screen: roughly 0.10 to 0.20 for offset on coated stock
+#' value increase, the extra coverage at a 50% screen: roughly 0.10 to 0.20 for offset on coated stock
 #' and 0.25 to 0.35 on newsprint. `gain` is that number.
 #'
 #' It applies to coverage, the fraction of paper the screen inks, which is what a densitometer reads and
 #' is not the same as the tone the screen was asked for. At the default ink weight a full-tone cell
 #' covers about three quarters of its lattice cell, not all of it. The increase follows `sin(pi * coverage)`,
 #' so it vanishes at bare paper and at a covered sheet and peaks where a press gains most. Coverage is
-#' capped at the sheet, and that cap is what fills a shadow in: above about `gain = 0.2` the dark dots
-#' grow past the pitch, touch, and print as solid with pinholes.
+#' capped at the sheet, and that cap is what fills a shadow in. Above about `gain = 0.2` the dark dots
+#' grow past the pitch and meet, printing as solid with pinholes.
 #'
 #' @section Mottle:
-#' Ink does not lie down evenly. `mottle` adds a slow random variation in density across the sheet, smooth at the
+#' `mottle` adds a slow random variation in ink density across the sheet, smooth at the
 #' scale of `mottle_scale` millimetres, which is what separates a real impression from a clean digital screen. It
 #' varies tone, so it survives resizing like everything else here.
 #'
@@ -33,10 +33,10 @@
 #'
 #' @section Ink bridges:
 #' Where two dots overlap, the circles cross in a sharp concave cusp. Wet ink does not: surface tension pulls a
-#' fillet across the notch. `fillet` is the radius of that bridge as a fraction of the pitch, applied as a
+#' fillet across the notch, so the boundary stays convex. `fillet` is the radius of that bridge as a fraction of the pitch, applied as a
 #' morphological closing of the union of the overlapping dots, which rounds concave corners and leaves convex
 #' boundaries alone. Only dots close enough to reach a neighbour are processed, so a figure pays for it in its
-#' shadows. A bridge is ink, so it darkens the shadows a little on top of `gain`.
+#' shadows. A bridge is ink, so it darkens the shadows on top of `gain`.
 #'
 #' Ink cannot bridge dots that do not meet, and at the default ink weight (`dot_max = 0.9`) a full-tone dot still
 #' stands a tenth of a pitch clear of its neighbour. So `fillet` needs something to work with: either `gain` above
@@ -47,7 +47,7 @@
 #' 0.35 mm they are too small to read as shapes and the fillet arrives as ink weight alone. Use it where the screen
 #' already reads as dots: an editorial plate at 0.6 mm and up.
 #'
-#' It needs the polyclip package and it is the one setting here with a real cost: budget about a second per twenty
+#' It needs the polyclip package. It is also the one setting here with a measurable cost: about a second per twenty
 #' thousand touching dots.
 #'
 #' @section Registration:
@@ -58,7 +58,7 @@
 #'
 #' @param layer A halftone layer, a list holding one, or a whole plot. Given a plot, every layer in it is wrapped,
 #'   each with its own seed, so the inks miss each other and mottle independently the way separate plates do.
-#' @param gain Tone value increase at a 50 % screen. 0 leaves the screen alone.
+#' @param gain Tone value increase at a 50% screen. 0 leaves the screen alone.
 #' @param slur Length of the smear, as a fraction of the lattice pitch, in the direction the sheet travelled.
 #'   0.1 is a press running a little fast, 0.3 a visible fault. 0 leaves the dots round.
 #' @param slur_angle Direction of that smear in degrees, measured anticlockwise from the x axis.
@@ -125,7 +125,7 @@ press_cover <- function(dot_max, grid, shape) {
 # Tone value increase is a measurement of ink COVERAGE, so the curve is evaluated in coverage and the result read
 # back as tone. Evaluating it on tone instead put the peak in the wrong place and, worse, left the shadows alone:
 # a full-tone cell has sin(pi * 1) = 0 gain and its dots stayed a tenth of a pitch apart forever. Coverage is capped
-# at the sheet, and that cap is what fills a shadow in: the dots grow past the pitch, touch, and print as solid
+# at the sheet, and that cap is what fills a shadow in. The dots grow past the pitch and meet, printing as solid
 # with holes.
 press_gain <- function(tone, press, k = 1) {
   if (is.null(press) || press$gain <= 0) return(tone)
@@ -136,9 +136,9 @@ press_gain <- function(tone, press, k = 1) {
 # circles cross and leaves the convex outline untouched: the bridge surface tension pulls. Dots too small to touch
 # anything are drawn as dots, so only the shadows pay. Inks are filleted separately; ink does not bridge to another
 # plate's ink.
-# One dot as the shape the ink actually covers: a circle, or a capsule when the sheet slurred under the plate.
+# One dot as the shape the ink covers: a circle, or a capsule when the sheet slurred under the plate.
 # polyclip works on polygons, so the circle becomes a k-gon. Its circumradius is scaled so the k-gon carries the
-# circle's area: an inscribed k-gon is 4.7 % lighter at k = 12, which showed up as a fillet that removed ink.
+# circle's area: an inscribed k-gon is 4.7% lighter at k = 12, which showed up as a fillet that removed ink.
 ngon_k <- function(k) sqrt(2 * pi / (k * sin(2 * pi / k)))
 ink_shape <- function(cx, cy, r, slur, angle, k = 24) {
   r <- r * ngon_k(k)
@@ -160,7 +160,7 @@ press_dots <- function(xs, ys, r, cols, shape, pitch, press, k = 24) {
   shapes <- function(i) Map(function(X, Y, R) ink_shape(X, Y, R, slur, press$slur_angle %||% 90, k), xs[i], ys[i], r[i])
   as_path <- function(u, cl) pathGrob(unit(unlist(lapply(u, `[[`, "x")), "mm"), unit(unlist(lapply(u, `[[`, "y")), "mm"),
                                       id.lengths = lengths(lapply(u, `[[`, "x")), rule = "evenodd", gp = gpar(fill = cl, col = NA))
-  if (fillet <= 0) {   # slur alone: no union needed, each dot is just a capsule
+  if (fillet <= 0) {   # slur alone: no union needed, each dot is a capsule
     kids <- gList()
     for (cl in unique(cols)) { s <- which(cols == cl); if (length(s)) kids <- gList(kids, as_path(shapes(s), cl)) }
     return(gTree(children = kids))
@@ -171,7 +171,7 @@ press_dots <- function(xs, ys, r, cols, shape, pitch, press, k = 24) {
   touch <- r >= pitch / 2 - f - slur / 2
   if (!any(touch) && slur <= 0) return(dot_grob(xs, ys, r, cols, shape))
   kids <- gList()
-  # Dots with nothing to bridge to are just dots: circles when the sheet did not move, capsules when it did. Sending
+  # Dots with nothing to bridge to stay dots: circles when the sheet did not move, capsules when it did. Sending
   # them through the union as well cost time and, for a field of any size, the protection stack.
   loose <- which(!touch)
   if (length(loose)) kids <- gList(kids, if (slur <= 0) dot_grob(xs[loose], ys[loose], r[loose], cols[loose], shape) else {
