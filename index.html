@@ -72,36 +72,37 @@
 <h2 id="install">Install<a class="anchor" aria-label="anchor" href="#install"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"gghalftone"</span>,</span>
+<span>                 repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://kinelhu.r-universe.dev"</span>, <span class="st">"https://cloud.r-project.org"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>R-universe serves prebuilt binaries for Windows and macOS, so this needs no compiler on the usual builds of R. A source-only build, such as Homebrew’s, fetches the source and compiles it instead, which needs Rtools on Windows or the command line tools on macOS. The package has C++ kernels either way.</p>
+<p>From GitHub, if you want the development version:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"kinelhu/gghalftone"</span><span class="op">)</span></span>
-<span><span class="co"># or</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"kinelhu/gghalftone"</span><span class="op">)</span></span></code></pre></div>
-<p>It has C++ kernels, so installing from source needs a compiler: Rtools on Windows, the command line tools on macOS. Rendering needs ragg.</p>
-<p>From a local clone, skip the download:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL .</span></code></pre></div>
+<p>From a local clone:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL .</span></code></pre></div>
 <p>While changing the package itself, skip the install:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">load_all</span><span class="op">(</span><span class="st">"~/Dev/gghalftone"</span><span class="op">)</span></span></code></pre></div>
+<p>Rendering needs ragg.</p>
 <div class="section level3">
 <h3 id="in-an-renv-project">In an renv project<a class="anchor" aria-label="anchor" href="#in-an-renv-project"></a>
 </h3>
-<p>renv will not see a package that is not in a repository, so give it one. Build a tarball and put it in the project’s cellar:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="bu">cd</span> ~/Dev/gghalftone <span class="kw">&amp;&amp;</span> <span class="ex">R</span> CMD build .</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/my-project/renv/cellar</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">cp</span> gghalftone_<span class="pp">*</span>.tar.gz ~/my-project/renv/cellar/</span></code></pre></div>
-<p>Then, in the project:</p>
+<p>Point renv at the universe and let it resolve:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">renv</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"gghalftone"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu">renv</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"gghalftone"</span>, repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://kinelhu.r-universe.dev"</span>, <span class="st">"https://cloud.r-project.org"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">renv</span><span class="fu">::</span><span class="fu">snapshot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>The lockfile records <code>"Source": "Cellar"</code>, and <code>renv::restore()</code> reads the tarball back out of <code>renv/cellar/</code>.</p>
-<p>Two things to watch. renv’s own <code>renv/.gitignore</code> lists <code>cellar/</code>, so the tarball is untracked by default and a fresh clone restores against a file that is not there. Commit it deliberately:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-f</span> renv/cellar/gghalftone_0.0.0.9000.tar.gz</span></code></pre></div>
-<p>And bump the <code>Version:</code> in <code>DESCRIPTION</code> whenever you rebuild, or renv keeps the copy it already has.</p>
+<p>To pin a build with no network dependency, put a tarball in the project’s cellar instead:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="bu">cd</span> ~/Dev/gghalftone <span class="kw">&amp;&amp;</span> <span class="ex">R</span> CMD build .</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/my-project/renv/cellar <span class="kw">&amp;&amp;</span> <span class="fu">cp</span> gghalftone_<span class="pp">*</span>.tar.gz ~/my-project/renv/cellar/</span></code></pre></div>
+<p><code>renv::install("gghalftone")</code> then records <code>"Source": "Cellar"</code> and <code>renv::restore()</code> reads the tarball back out. Two things to watch: renv’s own <code>renv/.gitignore</code> lists <code>cellar/</code>, so the tarball is untracked and a fresh clone restores against a file that is not there, and renv keeps the copy it has unless <code>Version:</code> in <code>DESCRIPTION</code> moves.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-f</span> renv/cellar/gghalftone_0.1.0.tar.gz</span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kinelhu/gghalftone" class="external-link">gghalftone</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Screen the fill of any layer: ribbons, areas, bars, densities, polygons, sf.</span></span>
@@ -174,7 +175,7 @@
 <h2 id="screen-a-whole-plot">Screen a whole plot<a class="anchor" aria-label="anchor" href="#screen-a-whole-plot"></a>
 </h2>
 <p><code><a href="reference/halftone_plot.html">halftone_plot()</a></code> takes a finished plot and returns it printed. It screens every filled layer, draws a paper hairline under every line that crosses a screen, and adds the theme modifier.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/halftone_plot.html">halftone_plot</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/halftone_plot.html">halftone_plot</a></span><span class="op">(</span><span class="va">p</span>, pitch <span class="op">=</span> <span class="fl">0.6</span>, shape <span class="op">=</span> <span class="st">"line"</span><span class="op">)</span>   <span class="co"># any with_halftone() argument</span></span></code></pre></div>
 <p>The treatment follows the geom. Ribbons, areas, densities, bars, tiles, polygons, sf geometries, violins, boxplots and smooths are screened, each with the tone profile its geometry calls for. Lines, paths, steps, contours and points are haloed where a screen sits under them. Anything drawn on a screen gets the printer’s knockout channel.</p>
@@ -207,7 +208,7 @@
 <strong>Registration</strong> is the standard deviation in mm of that ink’s plate offset, which shows when a figure is built from one layer per ink.</li>
 </ul>
 <p>Wrap one layer, or a whole plot. Given a plot, every layer is pressed as its own plate, with its own offset and mottle, and the plot you passed in is left alone so you can print the pair.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/with_press.html">with_press</a></span><span class="op">(</span><span class="fu"><a href="reference/with_halftone.html">with_halftone</a></span><span class="op">(</span><span class="fu">geom_col</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>, gain <span class="op">=</span> <span class="fl">0.3</span>, fillet <span class="op">=</span> <span class="fl">0.04</span>, mottle <span class="op">=</span> <span class="fl">0.12</span>, registration <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/with_press.html">with_press</a></span><span class="op">(</span><span class="va">p</span>, gain <span class="op">=</span> <span class="fl">0.26</span>, slur <span class="op">=</span> <span class="fl">0.06</span>, fillet <span class="op">=</span> <span class="fl">0.06</span>, mottle <span class="op">=</span> <span class="fl">0.13</span>, registration <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></code></pre></div>
 <div class="float">
@@ -237,7 +238,8 @@
 <div class="section level2">
 <h2 id="status">Status<a class="anchor" aria-label="anchor" href="#status"></a>
 </h2>
-<p>Prototype. The API of <code><a href="reference/geom_halftone.html">geom_halftone()</a></code>, <code><a href="reference/cmyk.html">geom_halftone_cmyk()</a></code>, <code><a href="reference/geom_spot.html">geom_spot()</a></code>, <code><a href="reference/with_halftone.html">with_halftone()</a></code>, <code><a href="reference/with_halo.html">with_halo()</a></code>, <code><a href="reference/with_relief.html">with_relief()</a></code>, <code><a href="reference/with_press.html">with_press()</a></code>, <code><a href="reference/halftone_raster.html">halftone_raster()</a></code>, the <code>screen</code> and <code>tone</code> aesthetics, <code><a href="reference/km_steps.html">km_steps()</a></code> and the <code><a href="reference/theme_halftone.html">theme_halftone()</a></code> modifier is considered stable. Every export has a help page. Start with <code><a href="reference/with_halftone.html">?with_halftone</a></code>.</p>
+<p>Version 0.1.0, archived at <a href="https://doi.org/10.5281/zenodo.23037875" class="external-link">10.5281/zenodo.23037875</a>. Checked on Ubuntu, macOS and Windows with no errors or warnings.</p>
+<p>The API of <code><a href="reference/geom_halftone.html">geom_halftone()</a></code>, <code><a href="reference/cmyk.html">geom_halftone_cmyk()</a></code>, <code><a href="reference/geom_spot.html">geom_spot()</a></code>, <code><a href="reference/halftone_plot.html">halftone_plot()</a></code>, <code><a href="reference/with_halftone.html">with_halftone()</a></code>, <code><a href="reference/with_halo.html">with_halo()</a></code>, <code><a href="reference/with_relief.html">with_relief()</a></code>, <code><a href="reference/with_press.html">with_press()</a></code>, <code><a href="reference/halftone_raster.html">halftone_raster()</a></code>, the <code>screen</code> and <code>tone</code> aesthetics, <code><a href="reference/km_steps.html">km_steps()</a></code> and the <code><a href="reference/theme_halftone.html">theme_halftone()</a></code> modifier is considered stable. Every export has a help page. Start with <code><a href="reference/with_halftone.html">?with_halftone</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -260,14 +262,14 @@
 <div class="section level2">
 <h2 id="development">Development<a class="anchor" aria-label="anchor" href="#development"></a>
 </h2>
-<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'Rcpp::compileAttributes(); roxygen2::roxygenise()'</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL .</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'library(gghalftone); testthat::test_dir("tests/testthat")'</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'Rcpp::compileAttributes(); roxygen2::roxygenise()'</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL .</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'library(gghalftone); testthat::test_dir("tests/testthat")'</span></span></code></pre></div>
 <p>Four scripts render every figure, to <code>figures/</code>, which is not tracked:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="ex">Rscript</span> prototypes/gallery2.R        <span class="co"># the defaults gallery</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="ex">Rscript</span> prototypes/showcase.R        <span class="co"># the wider API</span></span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="ex">Rscript</span> prototypes/press_gallery.R   <span class="co"># every figure as printed</span></span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="ex">Rscript</span> prototypes/readme_figures.R  <span class="co"># refresh man/figures/ from those</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="ex">Rscript</span> prototypes/gallery2.R        <span class="co"># the defaults gallery</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="ex">Rscript</span> prototypes/showcase.R        <span class="co"># the wider API</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="ex">Rscript</span> prototypes/press_gallery.R   <span class="co"># every figure as printed</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="ex">Rscript</span> prototypes/readme_figures.R  <span class="co"># refresh man/figures/ from those</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
