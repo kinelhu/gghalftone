@@ -1,10 +1,10 @@
-# readme_figures.R: assemble gghalftone/man/figures/ from the accepted renders.
+# readme_figures.R: assemble man/figures/ from the accepted renders.
 # The README shows seven images. Six are copies of renders the other scripts produce; gallery.png is a montage built
 # here. Without this step man/figures/ drifts from figures/v2/ and the README shows work that no script reproduces.
 # Run from the project root, after gallery2.R and showcase.R: Rscript prototypes/readme_figures.R
 suppressPackageStartupMessages({library(magick)})
 
-dest <- "gghalftone/man/figures"
+dest <- "man/figures"
 dir.create(dest, showWarnings = FALSE, recursive = TRUE)
 
 # README image  <-  the render it comes from

@@ -1,0 +1,13 @@
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.DS_Store$
+^\.github$
+^\.gitignore$
+^prototypes$
+^figures$
+^CLAUDE\.md$
+^TODO\.md$
+^design_review\.md$
+^.*\.Rproj$
+^\.Rproj\.user$
