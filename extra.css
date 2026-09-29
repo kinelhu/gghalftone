@@ -9,6 +9,12 @@
   max-width: 46rem;
 }
 
+/* pkgdown shows the alt text as a caption, and the README also carries its own italic caption under most figures,
+   so those figures were getting the same thing said twice. Where a real caption follows, hide the one pkgdown made
+   from the alt text; where it does not, that one is the only caption and stays. The alt attribute is untouched
+   either way, which is where a screen reader looks. */
+.float:has(+ p > em:only-child) .figcaption { display: none; }
+
 /* A fully italic paragraph under a figure is the fuller caption. Same treatment, and it closes the gap to the
    figure above rather than to the prose below. */
 p > em:only-child {
