@@ -70,4 +70,3 @@
   and
   [`km_risk()`](https://kinelhu.github.io/gghalftone/reference/km_steps.md)
   turn a `survfit` object into the frames these layers want.
-- `design_review.md` carries the review log, newest entry last.
