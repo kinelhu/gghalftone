@@ -24,7 +24,9 @@ Useful links:
 ## Author
 
 **Maintainer**: Kinan El Husseini <kinelhu@gmail.com>
+([ORCID](https://orcid.org/0000-0001-9188-833X))
 
 Authors:
 
 - Kinan El Husseini <kinelhu@gmail.com>
+  ([ORCID](https://orcid.org/0000-0001-9188-833X))
