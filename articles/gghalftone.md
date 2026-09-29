@@ -44,8 +44,7 @@ left alone, and so is any geom it does not recognise.
 
 It screens the fill and nothing else, so line weights, point shapes and
 fill colours stay as you set them. The rest of this vignette composes
-the same figure layer by layer, which is what to do when the figure is
-built for the screen from the start.
+the same figure layer by layer.
 
 ## Screen a confidence band
 
@@ -169,8 +168,8 @@ halftone_proof(p)   # final-size render plus a 4x crop of the panel centre
 
 ## Defaults
 
-- Pitch is 0.35 mm (73 lines per inch). Coarser pitches read as a dot
-  pattern. Finer pitches read as a flat tint.
+- Pitch is 0.35 mm (73 lines per inch). A coarser pitch reads as a dot
+  pattern, a finer one as a flat tint.
 - No feature is smaller than 0.09 mm (0.25 pt), the minimum line weight
   in journal artwork guidelines (Nature Portfolio; Elsevier). Light tone
   becomes sparse dots at the minimum size.

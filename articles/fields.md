@@ -22,16 +22,15 @@ ggplot(vol, aes(x, y, z = z)) +
 
 Two settings carry this figure.
 
-`gamma` above 1 holds the low ground back. Below 1 it lifts the whole
-field toward the top of the register, so the plain prints as dark as the
-flanks, the dots barely change size, and colour ends up carrying the
-elevation on its own. The screen is then a tint rather than a screen.
-`dot_max = 1` buys the summit the ink to read as a summit.
+`gamma` above 1 keeps the low ground light. Below 1 it lifts the whole
+field toward the top of the register: the plain prints as dark as the
+flanks and the dots stop changing size, leaving colour to carry the
+elevation alone. `dot_max = 1` gives the summit enough ink to separate
+from the flanks.
 
 The 45 degree square lattice is the conventional screen for maps and
-photographs in print. On a continuous field it reads through as a
-criss-cross, which is the one thing a relief map should not have, so the
-hex lattice is used here.
+photographs in print. On a continuous field its axes read through as a
+criss-cross, so the hex lattice is used here.
 
 ## Engraving
 
@@ -107,10 +106,10 @@ ggplot(dens, aes(x, y, z = z)) +
 ## Photographs
 
 [`halftone_raster()`](https://kinelhu.github.io/gghalftone/reference/halftone_raster.md)
-reads an image into a field. Screen it once per process ink and you get
+reads an image into a field. One screen per process ink gives
 four-colour process, with the rosette that comes from the classic screen
-angles. Screen the luminance with error diffusion in one ink and you get
-the newspaper screen.
+angles. Error diffusion on the luminance in one ink gives the newspaper
+screen.
 
 ``` r
 
@@ -147,7 +146,7 @@ ggplot(st, aes(long, lat, group = group, fill = murder)) +
 ## Pitch
 
 The default pitch is 0.35 mm, or 73 lines per inch. The comparison below
-shows why. At 0.6 mm the screen reads as dots. At 0.25 mm it reads as a
+shows why: a 0.6 mm screen reads as dots, while 0.25 mm collapses into a
 flat tint and takes about 1.8 times as long to draw.
 
 ``` r
@@ -174,8 +173,8 @@ off by default and outside the journal register. Use it for a plate, a
 poster or a cover.
 
 Stacked rather than set side by side, and narrow to suit a portrait
-subject: three panels across a page leave each one too small to see the
-screen, which is the thing the figure is about.
+subject. Three panels across a page leave each one too small to show the
+screen.
 
 ``` r
 
@@ -191,7 +190,7 @@ patchwork::wrap_plots(one("as prepared"), one("dot gain only", gain = 0.3, seed 
 
 ![](fields_files/figure-html/press-1.png)
 
-`gain` is the trade’s tone value increase at a 50 % screen, about 0.15
+`gain` is the trade’s tone value increase at a 50% screen, about 0.15
 for offset on coated stock and 0.35 on newsprint. It applies to
 coverage, the fraction of paper the screen inks, which is what a
 densitometer reads and is not the tone the screen was asked for.

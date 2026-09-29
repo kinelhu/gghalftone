@@ -128,7 +128,7 @@ makeContent(x)
 - dot_max:
 
   Diameter of a full-tone dot as a fraction of `pitch` (0.9). Above 1
-  dots merge; it is the ink weight of the screen at 100 % tone. For line
+  dots merge; it is the ink weight of the screen at 100% tone. For line
   screens it is the full-tone strip width, as a fraction of pitch.
 
 - range:

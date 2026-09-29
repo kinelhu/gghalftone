@@ -7,12 +7,13 @@ Maunga Whau twice: as a colour dot screen, and as a line-screen
 engraving with illuminated contours
 
 Halftone fills for ggplot2. The package places dots or hatch lines at
-draw time on a lattice with a physical pitch in millimetres. This is
-what separates it from [ggfx](https://ggfx.data-imaginist.com), whose
-`with_*()` filters run on the rasterised layer, so their dot size is in
-pixels and changes with output size. A figure saved at 89 mm and at 183
-mm gets the same screen, not a scaled one. Overlapping groups are
-printed on one lattice so that every group stays visible.
+draw time on a lattice whose pitch is in millimetres. A figure saved at
+89 mm and at 183 mm therefore gets the same screen at both sizes.
+
+That is the difference from [ggfx](https://ggfx.data-imaginist.com). Its
+`with_*()` filters run on the rasterised layer, so dot size is in pixels
+and scales with the output. Overlapping groups here print on one
+lattice, so every group stays visible.
 
 ![Kaplan-Meier with three halftone confidence bands and a risk
 table](reference/figures/km.png)
@@ -134,8 +135,8 @@ needs it.*
 The defaults encode these rules. Each one was chosen by comparing
 renders at 600 dpi.
 
-- **Pitch is 0.35 mm** (73 lines per inch). At 0.6 mm the screen reads
-  as a dot pattern. At 0.25 mm it reads as a flat tint and takes about
+- **Pitch is 0.35 mm** (73 lines per inch). A 0.6 mm screen reads as a
+  dot pattern, while 0.25 mm collapses into a flat tint and takes about
   1.8 times as long to draw.
 - **Tone is continuous.** Dot area follows tone exactly. Set
   `levels = k` to quantise and dither with an ordered (Bayer 1973),
@@ -213,26 +214,25 @@ halftone_plot(p, pitch = 0.6, shape = "line")   # any with_halftone() argument
 The treatment follows the geom. Ribbons, areas, densities, bars, tiles,
 polygons, sf geometries, violins, boxplots and smooths are screened,
 each with the tone profile its geometry calls for. Lines, paths, steps,
-contours and points are haloed, but only where a screen sits under them:
-anything drawn on a screen gets the printer’s knockout channel. Text,
-error bars, rugs and reference lines are left alone, and so is any geom
-it does not recognise, because an unknown layer draws exactly as it did
-before. The worst case is an unscreened layer rather than a wrong
+contours and points are haloed where a screen sits under them. Anything
+drawn on a screen gets the printer’s knockout channel.
+
+Text, error bars, rugs and reference lines are left alone. So is any
+geom the function does not recognise: an unknown layer draws as it
+always did, so the worst case is an unscreened layer rather than a wrong
 figure.
 
 It screens the fill and chooses no colours. Line weights, point shapes
-and any colour you set or mapped stay as the plot set them, so a figure
-built for the screen from the start still reads better. Applying it
+and any colour you set or mapped stay as the plot set them. Applying it
 twice changes nothing, and a layer you wrapped yourself is left as you
 wrapped it.
 
-A colour you did not choose is the theme’s business rather than this
-function’s. On ggplot2 4.0 an unmapped geom colour comes from
-`theme(geom = )`, whose stock accent is the blue `geom_smooth()` draws
-its line in.
+Colours you did not choose belong to the theme. On ggplot2 4.0 an
+unmapped geom colour comes from `theme(geom = )`, whose stock accent is
+the blue `geom_smooth()` draws its line in.
 [`theme_halftone()`](https://kinelhu.github.io/gghalftone/reference/theme_halftone.md)
-sets that accent to the package’s ink, so the one colour that would sit
-outside the register comes into it.
+sets that accent to the package’s ink, which brings that colour into the
+register.
 
 ![Six panels built plainly, then screened in one
 call](reference/figures/whole_plot.png)
@@ -266,9 +266,9 @@ than one layer, each is pressed as its own plate.
   for offset on coated stock, 0.35 on newsprint. It is applied to
   coverage, the fraction of paper the screen inks, which is what a
   densitometer reads and is not the tone the screen was asked for.
-  Coverage stops at the sheet, and that is what fills a shadow in: past
-  about 0.2 the dark dots grow beyond the lattice, touch, and print as
-  solid with pinholes.
+  Coverage stops at the sheet, and that cap is what fills a shadow in.
+  Past about 0.2 the dark dots grow beyond the lattice and meet,
+  printing as solid with pinholes.
 - **Fillet** is the ink bridge where two dots meet, as a fraction of the
   pitch. Wet ink does not cross in a sharp cusp; surface tension pulls a
   curve across the notch. It acts only where dots meet, so it needs
@@ -303,8 +303,8 @@ whole press
 whole press. Gain on its own is close to what raising `dot_max` on the
 plain figure would give. The whole press adds mottle, slur, ink bridges
 and a plate offset. `figures/v2/press/control.png` matches the plain
-screen’s ink weight to the pressed one, so the part that is not simply
-more ink can be seen on its own.*
+screen’s ink weight to the pressed one, so the part that is not more ink
+can be seen on its own.*
 
 Everything here makes a figure less faithful to its data. It is a
 separate entry point, off by default and outside the journal register.
