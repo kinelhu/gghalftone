@@ -84,7 +84,12 @@ out("map", pM, height = 58)
 
 ## 8 Elevation: colour dots, and engraving (line screen) with illuminated contours -----------------------------------------------------------------------
 vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
-pE <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(aes(colour = z), angle = 45, grid = "square", gamma = 0.6) + with_halo(geom_contour(colour = "black", linewidth = 0.25, bins = 8)) +
+# gamma 1.5 rather than 0.6: below 1 it lifts the whole field toward the top of the register, so the plain printed as
+# dark as the flanks and the dots barely changed size. Colour was carrying the elevation on its own and the screen
+# was a tint. Above 1 the plain recedes and the dot does the work it is there to do. dot_max 1.0 buys the summit the
+# ink to read as a summit. Hex rather than square at 45: on a continuous field the square lattice reads through as a
+# criss-cross, which is the one thing a relief map should not have.
+pE <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(aes(colour = z), angle = 15, grid = "hex", gamma = 1.5, dot_max = 1.0) + with_halo(geom_contour(colour = "black", linewidth = 0.25, bins = 8)) +
   coord_equal(expand = FALSE) + labs(x = NULL, y = NULL, colour = "Elevation (m)") + th(theme_bw) + theme(axis.text = element_blank(), axis.ticks = element_blank())
 pE2 <- ggplot(vol, aes(x, y, z = z)) + geom_halftone(shape = "line", colour = "black", angle = 30, gamma = 1.4) + with_relief(geom_contour(bins = 10)) +   # Tanaka: lit NW in paper, shaded SE in ink
   coord_equal(expand = FALSE) + labs(x = NULL, y = NULL) + th(theme_bw) + theme(axis.text = element_blank(), axis.ticks = element_blank())
