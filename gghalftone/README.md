@@ -10,15 +10,21 @@ Halftone fills for ggplot2. The package places dots or hatch lines at draw time 
 
 ## Install
 
-There is no remote yet, so the package installs from the working copy. Compiling it needs an Rcpp toolchain; rendering needs ragg.
+```r
+remotes::install_github("kinelhu/gghalftone", subdir = "gghalftone")
+# or
+pak::pak("kinelhu/gghalftone/gghalftone")
+```
 
-From the repository root:
+The package sits in a subdirectory of its repository, which is why both forms name it twice.
+
+It has C++ kernels, so installing from source needs a compiler: Rtools on Windows, the command line tools on macOS. Rendering needs ragg.
+
+From a local clone, skip the download:
 
 ```sh
 R CMD INSTALL gghalftone
 ```
-
-That puts it in your user library, where `library(gghalftone)` finds it from any project that has no library of its own.
 
 While changing the package itself, skip the install:
 

@@ -10,7 +10,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        # Windows is where this package is least tested: it has Rcpp kernels and a raster correction keyed to the
+        # agg devices, so it is the platform most likely to differ.
+        os: [macos-latest, ubuntu-latest, windows-latest]
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
