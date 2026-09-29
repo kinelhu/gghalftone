@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/kinelhu/gghalftone/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/kinelhu/gghalftone/blob/v0.1.0/DESCRIPTION)
 
 El Husseini K (2026). *gghalftone: Halftone, Dither and Line-Screen
 Fills for 'ggplot2'*. R package version 0.1.0,
