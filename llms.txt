@@ -1,5 +1,7 @@
 # gghalftone
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23037875.svg)](https://doi.org/10.5281/zenodo.23037875)
+
 ![Maunga Whau twice: as a colour dot screen, and as a line-screen
 engraving with illuminated contours](reference/figures/engraving.png)
 
