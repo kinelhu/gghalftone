@@ -26,7 +26,7 @@
 #' @references
 #' Bayer, B. E. (1973). An optimum method for two-level rendition of continuous-tone pictures. IEEE International Conference on Communications, 26, 11-15.
 #' Floyd, R. W., and Steinberg, L. (1976). An adaptive algorithm for spatial greyscale. Proceedings of the Society for Information Display, 17(2), 75-77.
-#' Ulichney, R. (1993). The void-and-cluster method for dither array generation. Proceedings of SPIE, 1913, 332-343. <https://doi.org/10.1117/12.152707>
+#' Ulichney, R. (1993). The void-and-cluster method for dither array generation. Proceedings of SPIE, 1913, 332-343. \doi{10.1117/12.152707}
 #' @examples
 #' bayer_matrix(2)
 #' range(blue_noise_matrix(32))
@@ -411,11 +411,14 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
 #' @seealso [with_halftone()] to screen the fill of an existing layer, [geom_spot()] for per-point discs,
 #'   [scale_screen_discrete()] for colour-free encodings, [with_halo()] for lines drawn over a screen.
 #' @examples
-#' vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
-#' ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone() + ggplot2::theme_bw() + theme_halftone()
+#' vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))),
+#'                    z = as.vector(t(volcano)))
+#' ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone() +
+#'   ggplot2::theme_bw() + theme_halftone()
 #' # engraving: a line screen, plus contours with a paper halo
 #' ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone(shape = "line", angle = 30) +
-#'   with_halo(ggplot2::geom_contour(colour = "black", linewidth = 0.2), width = 0.15) + ggplot2::theme_bw() + theme_halftone()
+#'   with_halo(ggplot2::geom_contour(colour = "black", linewidth = 0.2), width = 0.15) +
+#'   ggplot2::theme_bw() + theme_halftone()
 #' @export
 geom_halftone <- function(mapping = NULL, data = NULL, stat = "identity", position = "identity", ...,
                           pitch = NULL, angle = NULL, grid = "hex", levels = NULL, algorithm = "bayer",
@@ -508,7 +511,8 @@ GeomSpot <- ggproto("GeomSpot", Geom,
 #' @examples
 #' d <- expand.grid(gene = c("A", "B", "C"), cluster = 1:4); d$expr <- runif(12); d$pct <- runif(12)
 #' ggplot2::ggplot(d, ggplot2::aes(cluster, gene, tone = expr, size = pct)) + geom_spot() +
-#'   scale_tone_continuous() + ggplot2::scale_radius(range = c(1, 2.2)) + ggplot2::theme_minimal() + theme_halftone()
+#'     scale_tone_continuous() + ggplot2::scale_radius(range = c(1, 2.2)) +
+#'   ggplot2::theme_minimal() + theme_halftone()
 #' @export
 geom_spot <- function(mapping = NULL, data = NULL, stat = "identity", position = "identity", ..., r = 3, pitch = 0.35,
                       levels = NULL, bayer_n = 4, dot_max = 0.9, range = NULL, ring = TRUE, ring_lwd = 0.3, min_feature = 0.09, angle = NULL, shape = "circle",

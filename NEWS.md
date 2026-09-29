@@ -1,4 +1,4 @@
-# gghalftone 0.0.0.9000
+# gghalftone 0.1.0
 
 * `with_halftone()` screens the fill of any layer at draw time, on a lattice whose pitch is in millimetres, so a figure saved at 89 mm and at 183 mm gets the same screen. The tone profile follows the geometry: flat for bars, areas, polygons and maps, the likelihood of the estimate for intervals, a soft vignette for densities.
 * `halftone_plot()` screens a whole plot, or a patchwork, in one call. It screens the filled layers, haloes the lines and points that sit over a screen, and adds the theme modifier. A geom it does not recognise draws exactly as it did before.

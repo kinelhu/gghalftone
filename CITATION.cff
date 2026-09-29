@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "gghalftone: Halftone, Dither and Line-Screen Fills for ggplot2"
+abstract: >-
+  Halftone screens as ggplot2 layers. Dots are placed at draw time on a lattice
+  with a physical pitch in millimetres, so a figure gets the same screen at any
+  output size.
+authors:
+  - family-names: "El Husseini"
+    given-names: "Kinan"
+    email: "kinelhu@gmail.com"
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/kinelhu/gghalftone"
+url: "https://kinelhu.github.io/gghalftone/"
+keywords:
+  - R
+  - ggplot2
+  - halftone
+  - data-visualisation
+  - scientific-figures

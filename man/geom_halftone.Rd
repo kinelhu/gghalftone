@@ -165,11 +165,14 @@ Set \code{tone_max} to override.
 }
 
 \examples{
-vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
-ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone() + ggplot2::theme_bw() + theme_halftone()
+vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))),
+                   z = as.vector(t(volcano)))
+ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone() +
+  ggplot2::theme_bw() + theme_halftone()
 # engraving: a line screen, plus contours with a paper halo
 ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone(shape = "line", angle = 30) +
-  with_halo(ggplot2::geom_contour(colour = "black", linewidth = 0.2), width = 0.15) + ggplot2::theme_bw() + theme_halftone()
+  with_halo(ggplot2::geom_contour(colour = "black", linewidth = 0.2), width = 0.15) +
+  ggplot2::theme_bw() + theme_halftone()
 }
 \references{
 Nature Portfolio. Formatting guide: figures. \url{https://www.nature.com/nature/for-authors/formatting-guide}

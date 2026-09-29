@@ -11,3 +11,4 @@
 ^design_review\.md$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^CITATION\.cff$

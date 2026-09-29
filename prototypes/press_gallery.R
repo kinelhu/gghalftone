@@ -16,7 +16,11 @@ dir.create("figures/v2/press", showWarnings = FALSE, recursive = TRUE)
 # in its own panel leaves the third panel showing what no setting on the plain figure reproduces: mottle, the smear
 # of slur, ink bridges, and one plate landing off another.
 GAIN  <- list(gain = 0.26)
-PRESS <- list(gain = 0.26, slur = 0.06, slur_angle = 90, fillet = 0.06, mottle = 0.13, mottle_scale = 8,
+# Mottle carries this panel. At 0.13 over 8 mm the third panel was within a per cent of the second and looked it:
+# on a single-ink figure registration has nothing to be out of register with, and at 0.35 mm the slur and the fillet
+# are sub-pixel. 0.20 over 4 mm is the drift in ink density a reader can actually see, and it is the one artefact
+# that scales with the sheet rather than with the pitch.
+PRESS <- list(gain = 0.26, slur = 0.10, slur_angle = 90, fillet = 0.06, mottle = 0.20, mottle_scale = 4,
               registration = 0.05, seed = 41)
 
 # A panel title has to sit above the axis and legend text, not beside it. base_size is 8 in the gallery, so a title

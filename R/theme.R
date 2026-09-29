@@ -37,7 +37,8 @@
 #' Nature Portfolio. Formatting guide: figures. <https://www.nature.com/nature/for-authors/formatting-guide>
 #' Elsevier. Artwork and media instructions. <https://www.elsevier.com/about/policies-and-standards/author/artwork-and-media-instructions>
 #' @examples
-#' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() + ggplot2::theme_classic() + theme_halftone()
+#' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() +
+#'   ggplot2::theme_classic() + theme_halftone()
 #' @export
 theme_halftone <- function(paper = "white", palette = c("inks", "process", "none")) {
   palette <- match.arg(palette)

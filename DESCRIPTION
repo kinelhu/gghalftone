@@ -1,6 +1,6 @@
 Package: gghalftone
 Title: Halftone, Dither and Line-Screen Fills for 'ggplot2'
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: person("Kinan", "El Husseini", role = c("aut", "cre"), email = "kinelhu@gmail.com")
 Description: Halftone screens as ggplot2 layers. Dots are placed at draw time on a lattice with a physical pitch in
     millimetres, so a figure gets the same screen at any output size. Provides geom_halftone() for gridded fields,

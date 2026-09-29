@@ -175,10 +175,13 @@ makeContent.halftone_fill <- function(x) {
 #' @return The layer, with its geom replaced by a halftone-drawing subclass.
 #' @order 1
 #' @examples
-#' x <- seq(0, 10, length.out = 60); d <- data.frame(x, y = sin(x), lo = sin(x) - 0.5, hi = sin(x) + 0.5)
+#' x <- seq(0, 10, length.out = 60)
+#' d <- data.frame(x, y = sin(x), lo = sin(x) - 0.5, hi = sin(x) + 0.5)
 #' ggplot2::ggplot(d, ggplot2::aes(x)) +
-#'   with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), fill = halftone_inks[["blue"]])) +
-#'   with_halo(ggplot2::geom_line(ggplot2::aes(y = y), colour = halftone_inks[["blue"]])) + ggplot2::theme_classic() + theme_halftone()
+#'   with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi),
+#'                                       fill = halftone_inks[["blue"]])) +
+#'     with_halo(ggplot2::geom_line(ggplot2::aes(y = y), colour = halftone_inks[["blue"]])) +
+#'   ggplot2::theme_classic() + theme_halftone()
 #' @export
 with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone = NULL, profile = c("vertical", "radial"),
                           levels = NULL, bayer_n = 4, dot_max = 0.9, gamma = 1, tone_max = NULL, outline = TRUE,

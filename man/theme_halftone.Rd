@@ -77,7 +77,8 @@ vector file every dot is a path at physical size. \code{halftone_proof()} render
 crop of one region (by default the panel centre at 4x) and returns the two file paths.
 }
 \examples{
-ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() + ggplot2::theme_classic() + theme_halftone()
+ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() +
+  ggplot2::theme_classic() + theme_halftone()
 }
 \references{
 Nature Portfolio. Formatting guide: figures. \url{https://www.nature.com/nature/for-authors/formatting-guide}
