@@ -15,14 +15,20 @@ That is the difference from [ggfx](https://ggfx.data-imaginist.com). Its `with_*
 ## Install
 
 ```r
+install.packages("gghalftone",
+                 repos = c("https://kinelhu.r-universe.dev", "https://cloud.r-project.org"))
+```
+
+R-universe serves prebuilt binaries for Windows and macOS, so this needs no compiler on the usual builds of R. A source-only build, such as Homebrew's, fetches the source and compiles it instead, which needs Rtools on Windows or the command line tools on macOS. The package has C++ kernels either way.
+
+From GitHub, if you want the development version:
+
+```r
 remotes::install_github("kinelhu/gghalftone")
-# or
 pak::pak("kinelhu/gghalftone")
 ```
 
-It has C++ kernels, so installing from source needs a compiler: Rtools on Windows, the command line tools on macOS. Rendering needs ragg.
-
-From a local clone, skip the download:
+From a local clone:
 
 ```sh
 R CMD INSTALL .
@@ -34,32 +40,29 @@ While changing the package itself, skip the install:
 devtools::load_all("~/Dev/gghalftone")
 ```
 
+Rendering needs ragg.
+
 ### In an renv project
 
-renv will not see a package that is not in a repository, so give it one. Build a tarball and put it in the project's cellar:
-
-```sh
-cd ~/Dev/gghalftone && R CMD build .
-mkdir -p ~/my-project/renv/cellar
-cp gghalftone_*.tar.gz ~/my-project/renv/cellar/
-```
-
-Then, in the project:
+Point renv at the universe and let it resolve:
 
 ```r
-renv::install("gghalftone")
+renv::install("gghalftone", repos = c("https://kinelhu.r-universe.dev", "https://cloud.r-project.org"))
 renv::snapshot()
 ```
 
-The lockfile records `"Source": "Cellar"`, and `renv::restore()` reads the tarball back out of `renv/cellar/`.
-
-Two things to watch. renv's own `renv/.gitignore` lists `cellar/`, so the tarball is untracked by default and a fresh clone restores against a file that is not there. Commit it deliberately:
+To pin a build with no network dependency, put a tarball in the project's cellar instead:
 
 ```sh
-git add -f renv/cellar/gghalftone_0.0.0.9000.tar.gz
+cd ~/Dev/gghalftone && R CMD build .
+mkdir -p ~/my-project/renv/cellar && cp gghalftone_*.tar.gz ~/my-project/renv/cellar/
 ```
 
-And bump the `Version:` in `DESCRIPTION` whenever you rebuild, or renv keeps the copy it already has.
+`renv::install("gghalftone")` then records `"Source": "Cellar"` and `renv::restore()` reads the tarball back out. Two things to watch: renv's own `renv/.gitignore` lists `cellar/`, so the tarball is untracked and a fresh clone restores against a file that is not there, and renv keeps the copy it has unless `Version:` in `DESCRIPTION` moves.
+
+```sh
+git add -f renv/cellar/gghalftone_0.1.0.tar.gz
+```
 
 ## Usage
 
@@ -186,7 +189,9 @@ The package does not ship a complete theme. `theme_halftone()` is a modifier tha
 
 ## Status
 
-Prototype. The API of `geom_halftone()`, `geom_halftone_cmyk()`, `geom_spot()`, `with_halftone()`, `with_halo()`, `with_relief()`, `with_press()`, `halftone_raster()`, the `screen` and `tone` aesthetics, `km_steps()` and the `theme_halftone()` modifier is considered stable. Every export has a help page. Start with `?with_halftone`.
+Version 0.1.0, archived at [10.5281/zenodo.23037875](https://doi.org/10.5281/zenodo.23037875). Checked on Ubuntu, macOS and Windows with no errors or warnings.
+
+The API of `geom_halftone()`, `geom_halftone_cmyk()`, `geom_spot()`, `halftone_plot()`, `with_halftone()`, `with_halo()`, `with_relief()`, `with_press()`, `halftone_raster()`, the `screen` and `tone` aesthetics, `km_steps()` and the `theme_halftone()` modifier is considered stable. Every export has a help page. Start with `?with_halftone`.
 
 ## References
 
