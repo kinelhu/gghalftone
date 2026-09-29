@@ -69,34 +69,38 @@
 <div class="section level2">
 <h2 id="install">Install<a class="anchor" aria-label="anchor" href="#install"></a>
 </h2>
-<p>There is no remote yet, so the package installs from the working copy. Compiling it needs an Rcpp toolchain; rendering needs ragg.</p>
-<p>From the repository root:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL gghalftone</span></code></pre></div>
-<p>That puts it in your user library, where <code><a href="https://github.com/kinelhu/gghalftone" class="external-link">library(gghalftone)</a></code> finds it from any project that has no library of its own.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"kinelhu/gghalftone"</span>, subdir <span class="op">=</span> <span class="st">"gghalftone"</span><span class="op">)</span></span>
+<span><span class="co"># or</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"kinelhu/gghalftone/gghalftone"</span><span class="op">)</span></span></code></pre></div>
+<p>The package sits in a subdirectory of its repository, which is why both forms name it twice.</p>
+<p>It has C++ kernels, so installing from source needs a compiler: Rtools on Windows, the command line tools on macOS. Rendering needs ragg.</p>
+<p>From a local clone, skip the download:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL gghalftone</span></code></pre></div>
 <p>While changing the package itself, skip the install:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">load_all</span><span class="op">(</span><span class="st">"~/Dev/gghalftone/gghalftone"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="in-an-renv-project">In an renv project<a class="anchor" aria-label="anchor" href="#in-an-renv-project"></a>
 </h3>
 <p>renv will not see a package that is not in a repository, so give it one. Build a tarball and put it in the project’s cellar:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="bu">cd</span> ~/Dev/gghalftone <span class="kw">&amp;&amp;</span> <span class="ex">R</span> CMD build gghalftone</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/my-project/renv/cellar</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">cp</span> gghalftone_<span class="pp">*</span>.tar.gz ~/my-project/renv/cellar/</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="bu">cd</span> ~/Dev/gghalftone <span class="kw">&amp;&amp;</span> <span class="ex">R</span> CMD build gghalftone</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/my-project/renv/cellar</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">cp</span> gghalftone_<span class="pp">*</span>.tar.gz ~/my-project/renv/cellar/</span></code></pre></div>
 <p>Then, in the project:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">renv</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"gghalftone"</span><span class="op">)</span></span>
 <span><span class="fu">renv</span><span class="fu">::</span><span class="fu">snapshot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The lockfile records <code>"Source": "Cellar"</code>, and <code>renv::restore()</code> reads the tarball back out of <code>renv/cellar/</code>.</p>
 <p>Two things to watch. renv’s own <code>renv/.gitignore</code> lists <code>cellar/</code>, so the tarball is untracked by default and a fresh clone restores against a file that is not there. Commit it deliberately:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-f</span> renv/cellar/gghalftone_0.0.0.9000.tar.gz</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-f</span> renv/cellar/gghalftone_0.0.0.9000.tar.gz</span></code></pre></div>
 <p>And bump the <code>Version:</code> in <code>DESCRIPTION</code> whenever you rebuild, or renv keeps the copy it already has.</p>
 </div>
 <div class="section level3">
 <h3 id="once-there-is-a-remote">Once there is a remote<a class="anchor" aria-label="anchor" href="#once-there-is-a-remote"></a>
 </h3>
 <p>The package sits in a subdirectory of its repository, so an install from GitHub needs to be told:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">renv</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"&lt;user&gt;/gghalftone/gghalftone"</span><span class="op">)</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"&lt;user&gt;/gghalftone"</span>, subdir <span class="op">=</span> <span class="st">"gghalftone"</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -104,7 +108,7 @@
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kinelhu/gghalftone" class="external-link">gghalftone</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Screen the fill of any layer: ribbons, areas, bars, densities, polygons, sf.</span></span>
@@ -177,7 +181,7 @@
 <h2 id="screen-a-whole-plot">Screen a whole plot<a class="anchor" aria-label="anchor" href="#screen-a-whole-plot"></a>
 </h2>
 <p><code><a href="reference/halftone_plot.html">halftone_plot()</a></code> takes a finished plot and returns it printed. It screens every filled layer, draws a paper hairline under every line that crosses a screen, and adds the theme modifier.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/halftone_plot.html">halftone_plot</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/halftone_plot.html">halftone_plot</a></span><span class="op">(</span><span class="va">p</span>, pitch <span class="op">=</span> <span class="fl">0.6</span>, shape <span class="op">=</span> <span class="st">"line"</span><span class="op">)</span>   <span class="co"># any with_halftone() argument</span></span></code></pre></div>
 <p>The treatment follows the geom. Ribbons, areas, densities, bars, tiles, polygons, sf geometries, violins, boxplots and smooths are screened, each with the tone profile its geometry calls for. Lines, paths, steps, contours and points are haloed, but only where a screen sits under them: anything drawn on a screen gets the printer’s knockout channel. Text, error bars, rugs and reference lines are left alone, and so is any geom it does not recognise, because an unknown layer draws exactly as it did before. The worst case is an unscreened layer rather than a wrong figure.</p>
@@ -209,7 +213,7 @@
 <strong>Registration</strong> is the standard deviation in mm of that ink’s plate offset, which shows when a figure is built from one layer per ink.</li>
 </ul>
 <p>Wrap one layer, or a whole plot. Given a plot, every layer is pressed as its own plate, with its own offset and mottle, and the plot you passed in is left alone so you can print the pair.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/with_press.html">with_press</a></span><span class="op">(</span><span class="fu"><a href="reference/with_halftone.html">with_halftone</a></span><span class="op">(</span><span class="fu">geom_col</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>, gain <span class="op">=</span> <span class="fl">0.3</span>, fillet <span class="op">=</span> <span class="fl">0.04</span>, mottle <span class="op">=</span> <span class="fl">0.12</span>, registration <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/with_press.html">with_press</a></span><span class="op">(</span><span class="va">p</span>, gain <span class="op">=</span> <span class="fl">0.26</span>, slur <span class="op">=</span> <span class="fl">0.06</span>, fillet <span class="op">=</span> <span class="fl">0.06</span>, mottle <span class="op">=</span> <span class="fl">0.13</span>, registration <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></code></pre></div>
 <div class="float">
