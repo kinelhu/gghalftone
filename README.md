@@ -1,5 +1,7 @@
 # gghalftone
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23037875.svg)](https://doi.org/10.5281/zenodo.23037875)
+
 ![Maunga Whau twice: as a colour dot screen, and as a line-screen engraving with illuminated contours](man/figures/engraving.png)
 
 Halftone fills for ggplot2. The package places dots or hatch lines at draw time on a lattice whose pitch is in millimetres. A figure saved at 89 mm and at 183 mm therefore gets the same screen at both sizes.

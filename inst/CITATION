@@ -1,0 +1,11 @@
+citHeader("To cite gghalftone in publications, use:")
+
+bibentry(
+  bibtype  = "Manual",
+  title    = "{gghalftone}: Halftone, Dither and Line-Screen Fills for {ggplot2}",
+  author   = person("Kinan", "El Husseini"),
+  year     = "2026",
+  note     = "R package version 0.1.0",
+  doi      = "10.5281/zenodo.23037875",
+  url      = "https://github.com/kinelhu/gghalftone"
+)
