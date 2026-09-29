@@ -1,6 +1,6 @@
 # Changelog
 
-## gghalftone 0.0.0.9000
+## gghalftone 0.1.0
 
 - [`with_halftone()`](https://kinelhu.github.io/gghalftone/reference/with_halftone.md)
   screens the fill of any layer at draw time, on a lattice whose pitch

@@ -193,8 +193,11 @@ screen, and the output holds no partial transparency.
 ## Examples
 
 ``` r
-x <- seq(0, 10, length.out = 60); d <- data.frame(x, y = sin(x), lo = sin(x) - 0.5, hi = sin(x) + 0.5)
+x <- seq(0, 10, length.out = 60)
+d <- data.frame(x, y = sin(x), lo = sin(x) - 0.5, hi = sin(x) + 0.5)
 ggplot2::ggplot(d, ggplot2::aes(x)) +
-  with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), fill = halftone_inks[["blue"]])) +
-  with_halo(ggplot2::geom_line(ggplot2::aes(y = y), colour = halftone_inks[["blue"]])) + ggplot2::theme_classic() + theme_halftone()
+  with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi),
+                                      fill = halftone_inks[["blue"]])) +
+    with_halo(ggplot2::geom_line(ggplot2::aes(y = y), colour = halftone_inks[["blue"]])) +
+  ggplot2::theme_classic() + theme_halftone()
 ```

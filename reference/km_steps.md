@@ -46,7 +46,8 @@ Loprinzi, C. L., Laurie, J. A., Wieand, H. S., et al. (1994).
 Prospective evaluation of prognostic variables from patient-completed
 questionnaires. North Central Cancer Treatment Group. Journal of
 Clinical Oncology, 12(3), 601-607.
-<https://doi.org/10.1200/JCO.1994.12.3.601>. Distributed as
+[doi:10.1200/JCO.1994.12.3.601](https://doi.org/10.1200/JCO.1994.12.3.601)
+. Distributed as
 [`survival::lung`](https://rdrr.io/pkg/survival/man/lung.html).
 
 ## Examples
@@ -57,6 +58,7 @@ if (requireNamespace("survival", quietly = TRUE)) {
   s <- km_steps(fit)
   ggplot2::ggplot(s, ggplot2::aes(time, group = strata)) +
     with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi, fill = strata))) +
-    with_halo(ggplot2::geom_step(ggplot2::aes(y = surv, colour = strata))) + ggplot2::theme_classic() + theme_halftone()
+      with_halo(ggplot2::geom_step(ggplot2::aes(y = surv, colour = strata))) +
+  ggplot2::theme_classic() + theme_halftone()
 }
 ```

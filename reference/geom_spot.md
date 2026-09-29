@@ -205,5 +205,6 @@ normalised inside the geom.
 ``` r
 d <- expand.grid(gene = c("A", "B", "C"), cluster = 1:4); d$expr <- runif(12); d$pct <- runif(12)
 ggplot2::ggplot(d, ggplot2::aes(cluster, gene, tone = expr, size = pct)) + geom_spot() +
-  scale_tone_continuous() + ggplot2::scale_radius(range = c(1, 2.2)) + ggplot2::theme_minimal() + theme_halftone()
+    scale_tone_continuous() + ggplot2::scale_radius(range = c(1, 2.2)) +
+  ggplot2::theme_minimal() + theme_halftone()
 ```

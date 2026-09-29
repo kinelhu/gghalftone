@@ -127,5 +127,6 @@ Artwork and media instructions.
 ## Examples
 
 ``` r
-ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() + ggplot2::theme_classic() + theme_halftone()
+ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point() +
+  ggplot2::theme_classic() + theme_halftone()
 ```

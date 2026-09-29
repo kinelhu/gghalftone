@@ -74,12 +74,15 @@ appears.
 
 Tanaka, K. (1950). The relief contour method of representing topography
 on maps. Geographical Review, 40(3), 444-456.
-<https://doi.org/10.2307/211219>
+[doi:10.2307/211219](https://doi.org/10.2307/211219)
 
 ## Examples
 
 ``` r
-vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))), z = as.vector(t(volcano)))
-ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) + geom_halftone(shape = "line", colour = "black", angle = 30) +
-  with_relief(ggplot2::geom_contour(bins = 10)) + ggplot2::coord_equal(expand = FALSE) + ggplot2::theme_bw() + theme_halftone()
+vol <- data.frame(expand.grid(x = seq_len(ncol(volcano)), y = seq_len(nrow(volcano))),
+                   z = as.vector(t(volcano)))
+ggplot2::ggplot(vol, ggplot2::aes(x, y, z = z)) +
+  geom_halftone(shape = "line", colour = "black", angle = 30) +
+    with_relief(ggplot2::geom_contour(bins = 10)) + ggplot2::coord_equal(expand = FALSE) +
+  ggplot2::theme_bw() + theme_halftone()
 ```

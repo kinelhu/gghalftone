@@ -155,7 +155,8 @@ does. Values around 0.05 mm read as a good press, 0.2 mm as a cheap one.
 d <- data.frame(x = seq(0, 10, length.out = 60))
 d$y <- sin(d$x); d$lo <- d$y - 0.5; d$hi <- d$y + 0.5
 ggplot2::ggplot(d, ggplot2::aes(x)) +
-  with_press(with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), fill = "black")),
+  with_press(with_halftone(ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi),
+                                                fill = "black")),
              gain = 0.3) +
   ggplot2::theme_classic() + theme_halftone()
 ```
