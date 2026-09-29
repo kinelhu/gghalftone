@@ -10,7 +10,10 @@ authors:
   - family-names: "El Husseini"
     given-names: "Kinan"
     email: "kinelhu@gmail.com"
+    orcid: "https://orcid.org/0000-0001-9188-833X"
+    affiliation: "Pulmonology, Allergology and Lung Transplantation Unit, Bichat Hospital, AP-HP, Paris, France"
 version: 0.1.0
+date-released: "2026-09-29"
 license: MIT
 repository-code: "https://github.com/kinelhu/gghalftone"
 url: "https://kinelhu.github.io/gghalftone/"

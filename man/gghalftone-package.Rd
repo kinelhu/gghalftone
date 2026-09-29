@@ -18,11 +18,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Kinan El Husseini \email{kinelhu@gmail.com}
+\strong{Maintainer}: Kinan El Husseini \email{kinelhu@gmail.com} (\href{https://orcid.org/0000-0001-9188-833X}{ORCID})
 
 Authors:
 \itemize{
-  \item Kinan El Husseini \email{kinelhu@gmail.com}
+  \item Kinan El Husseini \email{kinelhu@gmail.com} (\href{https://orcid.org/0000-0001-9188-833X}{ORCID})
 }
 
 }
