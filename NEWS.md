@@ -13,4 +13,3 @@
 * Drawing a screen no longer reseeds the caller's session. `blue_noise_matrix()` is seeded so the matrix is identical every time, and it now puts the RNG back where it found it.
 * `theme_halftone()` is a modifier rather than a complete theme: paper ground, no gridlines, screen-sized legend keys, the ink palette, and the geom accent. `ggsave_journal()` writes PNG, TIFF or vector PDF at a column width. `halftone_proof()` renders at final size plus a magnified crop.
 * `km_steps()`, `km_censor()` and `km_risk()` turn a `survfit` object into the frames these layers want.
-* `design_review.md` carries the review log, newest entry last.

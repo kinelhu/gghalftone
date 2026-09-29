@@ -198,7 +198,7 @@ with_halftone <- function(layer, pitch = 0.35, angle = NULL, grid = "hex", tone 
   tone <- match.arg(tone, c("likelihood", "centre", "flat", "tent", "edge", "vignette", "centre-soft")); parent <- layer$geom
   # colour is redundant by default where groups tile the plane (bars, areas, polygons, tiles): each group also gets its
   # own screen, so the figure survives greyscale. Not for intervals and densities: there overlapping groups are woven
-  # on ONE lattice, and separate lattices at different angles moire (tested; see design_review.md)
+  # on ONE lattice, because separate lattices at different angles moire against each other (measured)
   is_flat_geom <- inherits(parent0, c("GeomRect", "GeomTile", "GeomArea", "GeomPolygon", "GeomSf")) && !inherits(parent0, c("GeomDensity", "GeomViolin"))   # GeomDensity inherits GeomArea
   redundant <- redundant %||% is_flat_geom
   # one tonal register. flat: 0.45 (hatch 0.4), but 0.6 for polygons/sf whose fill colour is the value; centre 0.6 so three

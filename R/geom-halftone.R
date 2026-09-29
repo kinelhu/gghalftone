@@ -326,7 +326,7 @@ GeomHalftone <- ggproto("GeomHalftone", Geom,
   draw_panel = function(data, panel_params, coord, pitch = NULL, angle = NULL, grid = "hex",
                         levels = NULL, algorithm = "bayer", bayer_n = 4, dot_max = 0.9, range = NULL,
                         shape = "circle", gamma = 1, overlap = c("stack", "interleave", "overprint"), blend = "mix", tone_max = NULL, min_feature = 0.09) {
-    pitch <- pitch %||% 0.35   # 73 lpi (pitch ladder, design_review.md)
+    pitch <- pitch %||% 0.35   # 73 lines per inch, chosen on a pitch ladder: 0.6 mm reads as dots, 0.25 mm as a tint
     tone_max <- tone_max %||% if (isTRUE(levels == 1)) 0.55 else 1       # a binary stipple must never saturate into the bare lattice
     overlap <- match.arg(overlap); angle_user <- !is.null(angle); angle <- angle %||% default_angle(grid, shape)   # screen specs are absolute unless the user gave an angle offset
     use_tone <- !all(is.na(data$tone))
